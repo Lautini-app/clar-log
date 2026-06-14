@@ -1,30 +1,59 @@
-import { useState } from "react";
-import { Mail, WifiOff, ArrowRight, Loader2 } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Eye, EyeOff, Loader2, Lock, Mail, WifiOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export function AuthScreen({ onOfflineContinue }: { onOfflineContinue: () => void }) {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [status, setStatus] = useState<"idle" | "signingIn" | "error">("idle");
+  const [resetStatus, setResetStatus] = useState<"idle" | "sending" | "sent">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const online = typeof navigator === "undefined" ? true : navigator.onLine;
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
-    if (!email.trim()) return;
-    setStatus("sending");
+    if (!email.trim() || !password) return;
+    setStatus("signingIn");
+    setResetStatus("idle");
     setErrorMsg(null);
-    const { error } = await supabase.auth.signInWithOtp({
+
+    const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
-      options: {
-        emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
-      },
+      password,
     });
+
     if (error) {
       setStatus("error");
       setErrorMsg(error.message);
       return;
     }
-    setStatus("sent");
+    setStatus("idle");
+  }
+
+  async function requestPasswordReset() {
+    if (!email.trim()) {
+      setStatus("error");
+      setErrorMsg("Bitte gib zuerst deine E-Mail-Adresse ein.");
+      return;
+    }
+
+    setStatus("idle");
+    setResetStatus("sending");
+    setErrorMsg(null);
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+    });
+
+    if (error) {
+      setResetStatus("idle");
+      setStatus("error");
+      setErrorMsg(error.message);
+      return;
+    }
+
+    setResetStatus("sent");
   }
 
   return (
@@ -41,7 +70,7 @@ export function AuthScreen({ onOfflineContinue }: { onOfflineContinue: () => voi
 
         <h1 className="text-2xl font-semibold text-foreground">Anmelden</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Wir schicken dir einen Magic-Link per E-Mail. Kein Passwort nötig.
+          Melde dich mit deiner E-Mail-Adresse und deinem Passwort an.
         </p>
 
         {!online && (
@@ -68,20 +97,53 @@ export function AuthScreen({ onOfflineContinue }: { onOfflineContinue: () => voi
             </div>
           </label>
 
+          <label className="block">
+            <span className="text-xs text-muted-foreground">Passwort</span>
+            <div className="mt-1 flex items-center gap-2 rounded-xl border border-border bg-background/40 px-3 py-2.5">
+              <Lock className="h-4 w-4 text-muted-foreground" />
+              <input
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Dein Passwort"
+                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((value) => !value)}
+                className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                aria-label={showPassword ? "Passwort ausblenden" : "Passwort anzeigen"}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </label>
+
+          <button
+            type="button"
+            onClick={requestPasswordReset}
+            disabled={resetStatus === "sending"}
+            className="text-xs text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline disabled:opacity-60"
+          >
+            {resetStatus === "sending" ? "E-Mail wird gesendet ..." : "Passwort vergessen?"}
+          </button>
+
           <button
             type="submit"
-            disabled={status === "sending" || status === "sent"}
+            disabled={status === "signingIn"}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
           >
-            {status === "sending" && <Loader2 className="h-4 w-4 animate-spin" />}
-            {status === "sent" ? "Mail verschickt" : "Magic-Link senden"}
-            {status === "idle" && <ArrowRight className="h-4 w-4" />}
+            {status === "signingIn" && <Loader2 className="h-4 w-4 animate-spin" />}
+            Anmelden
           </button>
         </form>
 
-        {status === "sent" && (
+        {resetStatus === "sent" && (
           <p className="mt-4 rounded-lg border border-border bg-card/60 px-3 py-2 text-xs text-muted-foreground">
-            Prüfe dein Postfach. Der Link öffnet die App direkt.
+            Wenn ein Konto zu dieser E-Mail existiert, erhältst du eine Nachricht zum Zurücksetzen
+            deines Passworts.
           </p>
         )}
         {status === "error" && errorMsg && (
