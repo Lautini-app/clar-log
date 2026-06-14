@@ -7,8 +7,34 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
+
+const DESPIA_HOME_URL = "https://home.lautini.ch";
+
+function isDespiaUserAgent() {
+  if (typeof navigator === "undefined") return false;
+  return navigator.userAgent.toLowerCase().includes("despia");
+}
+
+function DespiaHeader() {
+  const [isDespia, setIsDespia] = useState(false);
+
+  useEffect(() => {
+    setIsDespia(isDespiaUserAgent());
+  }, []);
+
+  if (!isDespia) return null;
+
+  return (
+    <header className="despia-header" aria-label="Despia Navigation">
+      <a className="despia-header__button" href={DESPIA_HOME_URL}>
+        ← clar
+      </a>
+    </header>
+  );
+}
 
 function NotFoundComponent() {
   return (
@@ -71,7 +97,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Lovable App" },
       { name: "description", content: "Lovable Generated Project" },
       { name: "author", content: "Lovable" },
@@ -113,6 +139,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <DespiaHeader />
       <Outlet />
     </QueryClientProvider>
   );
