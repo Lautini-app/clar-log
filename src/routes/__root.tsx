@@ -27,11 +27,7 @@ function DespiaHeader() {
 
   return (
     <header className="despia-header" aria-label="Despia Navigation">
-      <button
-        className="despia-header__button"
-        type="button"
-        onClick={() => window.history.back()}
-      >
+      <button className="despia-header__button" type="button" onClick={() => window.history.back()}>
         ← clar
       </button>
     </header>
