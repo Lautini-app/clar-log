@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Medication, MedType, Settings } from "@/lib/clar-storage";
 import { SectionCard } from "./SectionCard";
-import { Pill, Plus, X, Zap, Clock, Heart, LogOut, Trash2, Loader2 } from "lucide-react";
+import { Pill, Plus, X, Zap, Clock, Heart, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteAllUserData } from "@/lib/clar-sync";
 import { deleteAccount } from "@/lib/account.functions";
@@ -53,11 +53,6 @@ export function SettingsView({
     } finally {
       setDeleting(false);
     }
-  }
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    window.location.reload();
   }
 
   const updateMed = (id: string, patch: Partial<Medication>) => {
@@ -216,14 +211,6 @@ export function SettingsView({
 
       <SectionCard title="Konto & Datenschutz" subtitle={userId ? "Eingeloggt — Daten werden mit clar.cloud synchronisiert." : "Nicht eingeloggt — nur lokal."}>
         <div className="space-y-2">
-          {userId && (
-            <button
-              onClick={handleSignOut}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-background/40 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-background/60"
-            >
-              <LogOut className="h-4 w-4" /> Abmelden
-            </button>
-          )}
           <button
             onClick={handleHardDelete}
             disabled={deleting}
