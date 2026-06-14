@@ -167,8 +167,12 @@
     display: inline-flex;
     align-items: center;
     height: 44px;
+    border: 0;
     padding: 0 16px;
+    background: transparent;
     color: inherit;
+    cursor: pointer;
+    font: inherit;
     font-size: 15px;
     font-weight: 600;
     line-height: 1;
