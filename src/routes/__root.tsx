@@ -11,8 +11,6 @@ import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
 
-const DESPIA_HOME_URL = "https://home.lautini.ch";
-
 function isDespiaUserAgent() {
   if (typeof navigator === "undefined") return false;
   return navigator.userAgent.toLowerCase().includes("despia");
@@ -29,9 +27,9 @@ function DespiaHeader() {
 
   return (
     <header className="despia-header" aria-label="Despia Navigation">
-      <a className="despia-header__button" href={DESPIA_HOME_URL}>
+      <button className="despia-header__button" type="button" onClick={() => window.history.back()}>
         ← clar
-      </a>
+      </button>
     </header>
   );
 }
