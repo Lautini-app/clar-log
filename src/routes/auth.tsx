@@ -39,7 +39,9 @@ function AuthRoute() {
       onOfflineContinue={() => {
         try {
           localStorage.setItem("clar.offlineBypass", "1");
-        } catch {}
+        } catch {
+          // Offline bypass is best-effort; private browsing can block localStorage.
+        }
         setOfflineBypass(true);
       }}
     />
