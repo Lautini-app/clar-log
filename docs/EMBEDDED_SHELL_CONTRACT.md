@@ -1,6 +1,6 @@
 # clar.tracker — Embedded Shell Contract
 
-Wenn clar.tracker in einer nativen Hülle (clar.heim Wrapper, React-Native-WebView, Iframe-Embed) läuft, übernimmt die Shell die Authentifizierung — die Magic-Link-UI wird übersprungen. Kommunikation läuft ausschließlich über `postMessage` / native Bridges.
+Wenn clar.tracker in einer nativen Hülle (clar.heim Wrapper, React-Native-WebView, Iframe-Embed) läuft, übernimmt die Shell die Authentifizierung — die Email/Passwort-UI wird übersprungen. Kommunikation läuft ausschließlich über `postMessage` / native Bridges.
 
 Implementierung: `src/lib/embedded-shell.ts`.
 
@@ -107,7 +107,7 @@ Alle Messages sind JSON-Strings mit `type`-Feld.
 
 ## Hinweise
 
-- Die App **wartet aktiv** auf `clar:session` — sie zeigt im Embedded-Modus nie den Magic-Link-Screen. Schickt die Shell keine Session, bleibt die App auf einem leeren Hydration-Screen (mit lokalem Store, falls vorhanden).
+- Die App **wartet aktiv** auf `clar:session` — sie zeigt im Embedded-Modus nie den Email/Passwort-Screen. Schickt die Shell keine Session, bleibt die App auf einem leeren Hydration-Screen (mit lokalem Store, falls vorhanden).
 - `setSession` setzt sowohl Access- als auch Refresh-Token; die App refresht danach selbständig (Supabase-Standard).
 - Origin-Whitelist auf `postMessage` ist aktuell `"*"` — bei harter Production-Härtung sollten beide Seiten gegen die jeweilige App-Origin prüfen.
 - Bei `clar:signout` aus der Shell beendet die App die Supabase-Session — die Shell sollte den globalen Logout dann auch in clar.heim / clar.markt durchreichen.

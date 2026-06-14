@@ -12,7 +12,7 @@ export const Route = createFileRoute("/auth")({
       {
         name: "description",
         content:
-          "Melde dich per Magic-Link an, um deine Tracker-Daten geräteübergreifend zu synchronisieren — oder fahre offline fort.",
+          "Melde dich mit E-Mail und Passwort an, um deine Tracker-Daten geräteübergreifend zu synchronisieren — oder fahre offline fort.",
       },
     ],
   }),

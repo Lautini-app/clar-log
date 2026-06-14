@@ -6,7 +6,7 @@ Stand: 12.06.2026. Diese Datei fasst alles zusammen, was ein neues Team braucht,
 
 ## 1. Was ist clar.tracker?
 
-Eine PWA für ADHS-Stimulanzien-Tracking: Dosen, Wirkungskurve, Stimmung, Schlaf, Nebenwirkungen, Wochenfokus. Drei Tabs (`/heute`, `/bericht`, `/einstellungen`). Lokaler Store + Supabase-Sync, Magic-Link-Auth, Offline-Modus, Embedded-Shell-Mode für die native `clar.heim`-Hülle.
+Eine PWA für ADHS-Stimulanzien-Tracking: Dosen, Wirkungskurve, Stimmung, Schlaf, Nebenwirkungen, Wochenfokus. Drei Tabs (`/heute`, `/bericht`, `/einstellungen`). Lokaler Store + Supabase-Sync, Supabase-Auth mit E-Mail und Passwort, Offline-Modus, Embedded-Shell-Mode für die native `clar.heim`-Hülle.
 
 ## 2. Stack
 
@@ -17,7 +17,7 @@ Eine PWA für ADHS-Stimulanzien-Tracking: Dosen, Wirkungskurve, Stimmung, Schlaf
 | Styling | Tailwind v4 (via `src/styles.css`, kein `tailwind.config.js`) + shadcn/ui |
 | State | React Hooks + custom `useStore` (`src/lib/clar-storage.ts`) |
 | Backend | Supabase (Schema `clar_log`, geteiltes Projekt `cgwpzpnklxphqxlixtva`) |
-| Auth | Supabase Magic-Link (OTP) — Email-only, kein Passwort |
+| Auth | Supabase Email/Passwort (`signInWithPassword`) |
 | Server-Code | TanStack `createServerFn` (z. B. `src/lib/account.functions.ts`) |
 | Deploy-Target | Cloudflare Workers (via `@cloudflare/vite-plugin` + `wrangler.jsonc`) |
 | Paket-Manager | Bun (`bun.lock`) |
@@ -28,7 +28,7 @@ Eine PWA für ADHS-Stimulanzien-Tracking: Dosen, Wirkungskurve, Stimmung, Schlaf
 src/routes/
   __root.tsx                       — HTML-Shell, QueryClient, Error-/NotFound-Boundary
   index.tsx                        — redirect → /heute
-  auth.tsx                         — /auth (ssr:false) — Magic-Link + Offline-Bypass
+  auth.tsx                         — /auth (ssr:false) — Email/Passwort + Offline-Bypass
   _authenticated.tsx               — Layout (ssr:false): Auth-Gate, Shell-Bridge, Tab-Bar, Outlet
   _authenticated.heute.tsx         — /heute
   _authenticated.bericht.tsx       — /bericht
@@ -57,10 +57,10 @@ TypeScript-Typen (`DayLog`, `Settings`, `Dose`, `EffectWindow`, …) sind in `sr
 
 ## 5. Auth-Flow
 
-### 5.1 Magic-Link (Web)
+### 5.1 Email/Passwort (Web)
 
-1. `/auth` → `AuthScreen` ruft `supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } })`.
-2. User klickt Link im Mail → Redirect zurück, Supabase setzt Session in `localStorage`.
+1. `/auth` → `AuthScreen` ruft `supabase.auth.signInWithPassword({ email, password })`.
+2. Supabase setzt bei erfolgreicher Anmeldung die Session in `localStorage`.
 3. `useStore` hört auf `onAuthStateChange`, setzt `userId`, lädt Server-Daten und mergt lokalen Store (Migration via `migrateLocalToSupabase`).
 4. `_authenticated`-Gate sieht `userId` → Tabs sind erreichbar.
 
@@ -136,7 +136,7 @@ Erstes Mal: SQL aus `docs/SUPABASE_SETUP.sql` im Supabase SQL-Editor ausführen 
 | Etappe | Inhalt | Status |
 |---|---|---|
 | 1 | Supabase-Schema `clar_log` + RLS + Grants | ✅ |
-| 2 | Magic-Link Auth + Offline-Bypass + lokale Migration | ✅ |
+| 2 | Email/Passwort-Auth + Offline-Bypass + lokale Migration | ✅ |
 | 3 | Embedded Shell Contract (postMessage-Bridge, Erkennung, Doku) | ✅ |
 | 4 | DSGVO Account-Delete (Service-Role-Admin-Delete) | ✅ |
 | 5 | Routen-Architektur: `_authenticated` Layout + `/auth` + Tab-Routen | ✅ |
