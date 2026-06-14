@@ -39,9 +39,7 @@ function isDesktopBrowser(navigator: Navigator) {
   if (uaData?.mobile === true || isTouchMac) return false;
 
   return (
-    /\b(windows|win32|win64|macintosh|macintel|macppc|linux x86_64|x11|cros)\b/.test(
-      platform,
-    ) ||
+    /\b(windows|win32|win64|macintosh|macintel|macppc|linux x86_64|x11|cros)\b/.test(platform) ||
     /\b(windows nt|macintosh|x11|linux x86_64|cros)\b/.test(userAgent)
   );
 }
@@ -50,7 +48,9 @@ function shouldShowClarHeader() {
   if (typeof window === "undefined") return false;
   const { location, navigator } = window;
 
-  return isStandaloneNavigator(navigator) || (!isLocalhost(location) && !isDesktopBrowser(navigator));
+  return (
+    isStandaloneNavigator(navigator) || (!isLocalhost(location) && !isDesktopBrowser(navigator))
+  );
 }
 
 function DespiaHeader() {

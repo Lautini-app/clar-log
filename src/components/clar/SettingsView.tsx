@@ -57,9 +57,7 @@ export function SettingsView({
 
   const updateMed = (id: string, patch: Partial<Medication>) => {
     onChange({
-      medications: settings.medications.map((m) =>
-        m.id === id ? { ...m, ...patch } : m,
-      ),
+      medications: settings.medications.map((m) => (m.id === id ? { ...m, ...patch } : m)),
     });
   };
 
@@ -104,10 +102,7 @@ export function SettingsView({
       >
         <div className="space-y-2">
           {settings.medications.map((m) => (
-            <div
-              key={m.id}
-              className="rounded-xl border border-border bg-background/40 p-3"
-            >
+            <div key={m.id} className="rounded-xl border border-border bg-background/40 p-3">
               <div className="mb-2 flex items-center gap-2">
                 {m.type === "retard" ? (
                   <Clock className="h-4 w-4 text-primary" />
@@ -209,14 +204,25 @@ export function SettingsView({
         Daten auf diesem Gerät zurücksetzen
       </button>
 
-      <SectionCard title="Konto & Datenschutz" subtitle={userId ? "Eingeloggt — Daten werden mit clar.cloud synchronisiert." : "Nicht eingeloggt — nur lokal."}>
+      <SectionCard
+        title="Konto & Datenschutz"
+        subtitle={
+          userId
+            ? "Eingeloggt — Daten werden mit clar.cloud synchronisiert."
+            : "Nicht eingeloggt — nur lokal."
+        }
+      >
         <div className="space-y-2">
           <button
             onClick={handleHardDelete}
             disabled={deleting}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/40 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
           >
-            {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+            {deleting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
             Alle meine Daten löschen (DSGVO)
           </button>
           <p className="text-[11px] text-muted-foreground">
