@@ -44,6 +44,7 @@ function isDesktopBrowser(navigator: Navigator) {
 
 function shouldShowClarHeader() {
   if (typeof window === "undefined") return false;
+  try { if (window.self !== window.top) return false; } catch { return false; }
   const { location, navigator } = window;
   const userAgent = navigator.userAgent.toLowerCase();
 
