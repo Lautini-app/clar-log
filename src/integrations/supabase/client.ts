@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 export const SUPABASE_URL = "https://cgwpzpnklxphqxlixtva.supabase.co";
 export const SUPABASE_PUBLISHABLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnd3B6cG5rbHhwaHF4bGxpeHR2YSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzc5MDg3MjU3LCJleHAiOjIwOTQ2NjMyNTd9.t-VnUALdHsoNo9mJ6LV-lW4OntJLqHnF36SHb0rNP0c";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnd3B6cG5rbHhwaHF4bGl4dHZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODcyNTcsImV4cCI6MjA5NDY2MzI1N30.t-VnUALdHsoNo9mJ6LV-lW4OntJLqHnF36SHb0rNP0c";
 
 /**
  * Browser-Client für Supabase. Schreibt in das Schema `clar_log`
