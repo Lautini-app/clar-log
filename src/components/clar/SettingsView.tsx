@@ -1,27 +1,178 @@
 import { useState } from "react";
-import type { Medication, MedType, Settings } from "@/lib/clar-storage";
-import { SectionCard } from "./SectionCard";
-import { Pill, Plus, X, Zap, Clock, Heart, Trash2, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { deleteAllUserData } from "@/lib/clar-sync";
-import { deleteAccount } from "@/lib/account.functions";
+import { Download, Loader2, Plus, Trash2 } from "lucide-react";
 
-export function SettingsView({
-  settings,
-  onChange,
-  onReset,
-  userId,
-}: {
+import { SectionCard } from "./SectionCard";
+import { supabase } from "@/integrations/supabase/client";
+import { deleteAccount } from "@/lib/account.functions";
+import { deleteAllUserData } from "@/lib/clar-sync";
+import type {
+  Medication,
+  MedicationType,
+  ObservationPeriod,
+  Settings,
+  TimeSlot,
+  WellbeingItem,
+} from "@/lib/clar-storage";
+import {
+  MEDICATION_TYPE_LABELS,
+  SLOT_LABELS,
+  TIME_SLOTS,
+  WELLBEING_CATALOG,
+  createMedication,
+  createPeriod,
+  getActivePeriod,
+} from "@/lib/clar-storage";
+
+type Props = {
   settings: Settings;
   onChange: (patch: Partial<Settings>) => void;
   onReset: () => void;
   userId: string | null;
+};
+
+function makeIcs(period: ObservationPeriod) {
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//clar//Konto//DE",
+    ...TIME_SLOTS.flatMap((slot) => [
+      "BEGIN:VEVENT",
+      `UID:${period.id}-${slot}@clar`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART:${period.startDate.replace(/-/g, "")}T${period.timeSlots[slot].replace(":", "")}00`,
+      `RRULE:FREQ=DAILY;UNTIL:${period.endDate.replace(/-/g, "")}T235900`,
+      `SUMMARY:clar ${SLOT_LABELS[slot]} erfassen`,
+      "END:VEVENT",
+    ]),
+    "END:VCALENDAR",
+  ].join("\r\n");
+}
+
+function downloadIcs(period: ObservationPeriod) {
+  const blob = new Blob([makeIcs(period)], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${period.name || "clar-periode"}.ics`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function upsertPeriod(settings: Settings, period: ObservationPeriod, onChange: Props["onChange"]) {
+  onChange({
+    activePeriodId: period.id,
+    periods: settings.periods.some((item) => item.id === period.id)
+      ? settings.periods.map((item) => (item.id === period.id ? period : item))
+      : [...settings.periods, period],
+  });
+}
+
+function MedicationRows({
+  medications,
+  onChange,
+}: {
+  medications: Medication[];
+  onChange: (next: Medication[]) => void;
 }) {
+  const update = (id: string, patch: Partial<Medication>) =>
+    onChange(medications.map((med) => (med.id === id ? { ...med, ...patch } : med)));
+
+  return (
+    <div className="space-y-3">
+      {medications.map((med) => (
+        <div key={med.id} className="rounded-2xl border border-border bg-background p-3">
+          <div className="flex gap-2">
+            <input
+              value={med.name}
+              onChange={(event) => update(med.id, { name: event.target.value })}
+              className="min-w-0 flex-1 rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold outline-none focus:border-primary"
+            />
+            <button
+              type="button"
+              onClick={() => onChange(medications.filter((item) => item.id !== med.id))}
+              className="grid h-10 w-10 place-items-center rounded-full text-primary hover:bg-primary/10"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="rounded-xl border border-border bg-card p-2 text-center">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Dosis</p>
+              <div className="mt-2 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => update(med.id, { mg: Math.max(0, med.mg - 5) })}
+                  className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground"
+                >
+                  -
+                </button>
+                <span className="min-w-10 text-sm font-semibold">{med.mg} mg</span>
+                <button
+                  type="button"
+                  onClick={() => update(med.id, { mg: med.mg + 5 })}
+                  className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <label className="rounded-xl border border-border bg-card p-2">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Einnahme
+              </span>
+              <select
+                value={med.intakeSlot}
+                onChange={(event) => update(med.id, { intakeSlot: event.target.value as TimeSlot })}
+                className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
+              >
+                {TIME_SLOTS.map((slot) => (
+                  <option key={slot} value={slot}>
+                    {SLOT_LABELS[slot]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="rounded-xl border border-border bg-card p-2">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Typ
+              </span>
+              <select
+                value={med.type}
+                onChange={(event) =>
+                  update(med.id, { type: event.target.value as MedicationType })
+                }
+                className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
+              >
+                {Object.entries(MEDICATION_TYPE_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => onChange([...medications, createMedication()])}
+        className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+      >
+        <Plus className="h-4 w-4" /> Medikament hinzufügen
+      </button>
+    </div>
+  );
+}
+
+export function SettingsView({ settings, onChange, onReset, userId }: Props) {
   const [deleting, setDeleting] = useState(false);
+  const [customLabel, setCustomLabel] = useState("");
+  const activePeriod = getActivePeriod(settings);
 
   async function handleHardDelete() {
     const ok = confirm(
-      "Alle deine Daten dauerhaft löschen?\n\nDas entfernt alle Logs und Einstellungen aus der Cloud und auf diesem Gerät und meldet dich ab. Nicht widerrufbar.",
+      "Alle deine Daten dauerhaft löschen?\n\nDas entfernt alle Logs und Einstellungen aus der Cloud und auf diesem Gerät. Nicht widerrufbar.",
     );
     if (!ok) return;
     const confirm2 = prompt('Zur Bestätigung bitte "LÖSCHEN" eingeben:');
@@ -29,9 +180,7 @@ export function SettingsView({
     setDeleting(true);
     try {
       if (userId) {
-        // 1) Daten löschen, solange wir noch authentifiziert sind (RLS).
         await deleteAllUserData(userId);
-        // 2) auth.users-Eintrag löschen via Service-Role-Server-Funktion.
         const { data: sessionData } = await supabase.auth.getSession();
         const accessToken = sessionData.session?.access_token;
         if (accessToken) {
@@ -39,9 +188,7 @@ export function SettingsView({
             await deleteAccount({ data: { accessToken } });
           } catch (err) {
             console.warn("[clar] account delete failed:", err);
-            alert(
-              "Deine Daten wurden gelöscht, aber der Account konnte nicht entfernt werden. Bitte später erneut versuchen oder Support kontaktieren.",
-            );
+            alert("Daten gelöscht, Account-Löschung konnte nicht abgeschlossen werden.");
           }
         }
       } else {
@@ -55,185 +202,177 @@ export function SettingsView({
     }
   }
 
-  const updateMed = (id: string, patch: Partial<Medication>) => {
-    onChange({
-      medications: settings.medications.map((m) => (m.id === id ? { ...m, ...patch } : m)),
-    });
+  const updateActivePeriod = (patch: Partial<ObservationPeriod>) => {
+    const next = createPeriod({ ...activePeriod, ...patch, id: activePeriod?.id });
+    upsertPeriod(settings, next, onChange);
   };
 
-  const removeMed = (id: string) => {
-    onChange({ medications: settings.medications.filter((m) => m.id !== id) });
-  };
-
-  const addMed = (type: MedType) => {
-    const med: Medication = {
-      id: crypto.randomUUID(),
-      name:
-        type === "retard"
-          ? "Neues Retard-Medikament"
-          : type === "instant"
-            ? "Neues Bedarfsmedikament"
-            : "Neue sonstige",
-      mg: 10,
-      type,
+  const addCustomItem = () => {
+    const label = customLabel.trim();
+    if (!label) return;
+    const item: WellbeingItem = {
+      id: `custom-${crypto.randomUUID?.() ?? Date.now()}`,
+      category: "custom",
+      label,
+      kind: "scale",
     };
-    onChange({ medications: [...settings.medications, med] });
+    onChange({ customWellbeingItems: [...settings.customWellbeingItems, item] });
+    setCustomLabel("");
   };
 
   return (
     <div className="space-y-4 pb-32">
-      <header className="pt-2 animate-fade-up">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Personalisieren</p>
-        <h1 className="mt-1 text-2xl font-semibold text-foreground">Einstellungen</h1>
+      <header className="pt-2">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">Konto</p>
+        <h1 className="mt-1 text-2xl font-semibold text-foreground">clar verwalten</h1>
       </header>
 
-      <SectionCard title="Wochenfokus" subtitle="Erscheint jeden Abend als eine kurze Frage.">
-        <textarea
-          value={settings.weeklyFocus}
-          onChange={(e) => onChange({ weeklyFocus: e.target.value })}
-          rows={2}
-          className="w-full resize-none rounded-lg border border-border bg-background/40 px-3 py-2.5 text-sm text-foreground outline-none"
-        />
-      </SectionCard>
-
-      <SectionCard
-        title="Medikamente"
-        subtitle="Lege ein Retard-Medikament und ein Bedarfsmedikament an."
-      >
-        <div className="space-y-2">
-          {settings.medications.map((m) => (
-            <div key={m.id} className="rounded-xl border border-border bg-background/40 p-3">
-              <div className="mb-2 flex items-center gap-2">
-                {m.type === "retard" ? (
-                  <Clock className="h-4 w-4 text-primary" />
-                ) : m.type === "instant" ? (
-                  <Zap className="h-4 w-4 text-primary" />
-                ) : (
-                  <Heart className="h-4 w-4 text-primary" />
-                )}
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {m.type === "retard"
-                    ? "Retard (Dauerwirkung)"
-                    : m.type === "instant"
-                      ? "Instant (bei Bedarf)"
-                      : "Sonstige"}
-                </span>
-                <button
-                  onClick={() => removeMed(m.id)}
-                  className="ml-auto grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
-                  aria-label="Medikament löschen"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <input
-                  value={m.name}
-                  onChange={(e) => updateMed(m.id, { name: e.target.value })}
-                  className="col-span-2 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground outline-none"
-                />
-                <div className="flex items-center gap-1 rounded-lg border border-border bg-background/60 px-2">
-                  <input
-                    type="number"
-                    value={m.mg}
-                    onChange={(e) => updateMed(m.id, { mg: Number(e.target.value) })}
-                    className="w-full bg-transparent py-2 text-right text-sm text-foreground outline-none"
-                  />
-                  <span className="text-xs text-muted-foreground">mg</span>
-                </div>
-              </div>
+      <SectionCard title="Aktive Periode verwalten">
+        {activePeriod ? (
+          <div className="space-y-3">
+            <label className="block rounded-2xl border border-border bg-background p-3">
+              <span className="text-xs font-semibold text-muted-foreground">Name</span>
+              <input
+                value={activePeriod.name}
+                onChange={(event) => updateActivePeriod({ name: event.target.value })}
+                className="mt-1 w-full bg-transparent text-base font-semibold outline-none"
+              />
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="date"
+                value={activePeriod.startDate}
+                onChange={(event) => updateActivePeriod({ startDate: event.target.value })}
+                className="rounded-2xl border border-border bg-background p-3 text-sm font-semibold outline-none"
+              />
+              <input
+                type="date"
+                value={activePeriod.endDate}
+                onChange={(event) => updateActivePeriod({ endDate: event.target.value })}
+                className="rounded-2xl border border-border bg-background p-3 text-sm font-semibold outline-none"
+              />
             </div>
-          ))}
-          <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2">
+              {TIME_SLOTS.map((slot) => (
+                <label key={slot} className="rounded-2xl border border-border bg-background p-3">
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {SLOT_LABELS[slot]}
+                  </span>
+                  <input
+                    type="time"
+                    value={activePeriod.timeSlots[slot]}
+                    onChange={(event) =>
+                      updateActivePeriod({
+                        timeSlots: { ...activePeriod.timeSlots, [slot]: event.target.value },
+                      })
+                    }
+                    className="mt-1 w-full bg-transparent text-sm font-semibold text-primary outline-none"
+                  />
+                </label>
+              ))}
+            </div>
             <button
-              onClick={() => addMed("retard")}
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10 active:scale-[0.98]"
+              type="button"
+              onClick={() => downloadIcs(activePeriod)}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
             >
-              <Plus className="h-3.5 w-3.5" /> Retard
-            </button>
-            <button
-              onClick={() => addMed("instant")}
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10 active:scale-[0.98]"
-            >
-              <Plus className="h-3.5 w-3.5" /> Bei Bedarf
-            </button>
-            <button
-              onClick={() => addMed("antidepressant")}
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10 active:scale-[0.98]"
-            >
-              <Plus className="h-3.5 w-3.5" /> Sonstige
+              <Download className="h-4 w-4" /> Kalender erneut exportieren
             </button>
           </div>
-          {settings.medications.length === 0 && (
-            <p className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Pill className="h-3 w-3" /> Noch keine Medikamente hinterlegt.
-            </p>
-          )}
+        ) : (
+          <button
+            type="button"
+            onClick={() => upsertPeriod(settings, createPeriod(), onChange)}
+            className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+          >
+            Periode erstellen
+          </button>
+        )}
+      </SectionCard>
+
+      {activePeriod && (
+        <SectionCard title="Medikamente CRUD">
+          <MedicationRows
+            medications={activePeriod.medications}
+            onChange={(medications) => updateActivePeriod({ medications })}
+          />
+        </SectionCard>
+      )}
+
+      <SectionCard title="Eigene Befindlichkeiten hinzufügen">
+        <div className="flex gap-2">
+          <input
+            value={customLabel}
+            onChange={(event) => setCustomLabel(event.target.value)}
+            placeholder="z.B. Geräuschempfindlichkeit"
+            className="min-w-0 flex-1 rounded-2xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+          />
+          <button
+            type="button"
+            onClick={addCustomItem}
+            className="rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+          >
+            +
+          </button>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {[...settings.customWellbeingItems].map((item) => (
+            <span key={item.id} className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+              {item.label}
+            </span>
+          ))}
+          {WELLBEING_CATALOG.slice(0, 5).map((item) => (
+            <span key={item.id} className="rounded-full bg-card px-3 py-1.5 text-xs text-muted-foreground">
+              {item.label}
+            </span>
+          ))}
         </div>
       </SectionCard>
 
-      <SectionCard title="Erinnerungen" subtitle="Werden für die simulierten Hinweise verwendet.">
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block">
-            <span className="text-xs text-muted-foreground">Morgens</span>
-            <input
-              type="time"
-              value={settings.morningTime}
-              onChange={(e) => onChange({ morningTime: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-border bg-background/40 px-3 py-2.5 text-sm text-foreground outline-none [color-scheme:dark]"
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs text-muted-foreground">Abends</span>
-            <input
-              type="time"
-              value={settings.eveningTime}
-              onChange={(e) => onChange({ eveningTime: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-border bg-background/40 px-3 py-2.5 text-sm text-foreground outline-none [color-scheme:dark]"
-            />
-          </label>
+      <SectionCard title="Sprache">
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            ["de", "Deutsch"],
+            ["en", "English"],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onChange({ language: key as Settings["language"] })}
+              className={`rounded-2xl py-3 text-sm font-semibold ${
+                settings.language === key ? "bg-primary text-primary-foreground" : "bg-card text-primary"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </SectionCard>
 
       <button
+        type="button"
         onClick={() => {
-          if (confirm("Alle Logs und Einstellungen löschen?")) onReset();
+          if (confirm("Alle lokalen Logs und Einstellungen löschen?")) onReset();
         }}
-        className="w-full rounded-xl border border-destructive/40 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+        className="w-full rounded-xl border border-primary/40 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
       >
         Daten auf diesem Gerät zurücksetzen
       </button>
 
       <SectionCard
-        title="Konto & Datenschutz"
-        subtitle={
-          userId
-            ? "Eingeloggt — Daten werden mit clar.cloud synchronisiert."
-            : "Nicht eingeloggt — nur lokal."
-        }
+        title="Konto löschen (DSGVO)"
+        subtitle={userId ? "Eingeloggt und synchronisiert." : "Nicht eingeloggt — nur lokale Daten."}
       >
-        <div className="space-y-2">
-          <button
-            onClick={handleHardDelete}
-            disabled={deleting}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/40 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-60"
-          >
-            {deleting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="h-4 w-4" />
-            )}
-            Alle meine Daten löschen (DSGVO)
-          </button>
-          <p className="text-[11px] text-muted-foreground">
-            Entfernt alle Logs und Einstellungen aus der clar.cloud sowie lokal.
-          </p>
-        </div>
+        <button
+          type="button"
+          onClick={handleHardDelete}
+          disabled={deleting}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/40 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 disabled:opacity-60"
+        >
+          {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+          Konto und Daten löschen
+        </button>
       </SectionCard>
-
-      <p className="text-center text-xs text-muted-foreground">
-        clar.tracker · auf diesem Gerät gespeichert · kein Konto nötig
-      </p>
     </div>
   );
 }

@@ -9,12 +9,12 @@ import { useEffect, useState } from "react";
 import { Calendar, BarChart3, Settings as SettingsIcon } from "lucide-react";
 import { useStore } from "@/lib/clar-storage";
 import { supabase } from "@/integrations/supabase/client";
+import { consumeSessionTokenFromUrl } from "@/lib/clar-auth";
 import {
   isEmbeddedShell,
   installShellBridge,
   persistEmbeddedFlag,
   signalShellReady,
-  signalNeedsSession,
   signalSignedIn,
   signalSignedOut,
 } from "@/lib/embedded-shell";
@@ -24,20 +24,30 @@ export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
 });
 
-function getOfflineBypass() {
-  if (typeof window === "undefined") return false;
-  try {
-    return localStorage.getItem("clar.offlineBypass") === "1";
-  } catch {
-    return false;
-  }
-}
-
 function AuthenticatedLayout() {
   const { hydrated, userId } = useStore();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [offlineBypass] = useState(getOfflineBypass);
+  const [tokenChecked, setTokenChecked] = useState(false);
+  const [tokenConsumed, setTokenConsumed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    consumeSessionTokenFromUrl()
+      .then((consumed) => {
+        if (active) setTokenConsumed(consumed);
+      })
+      .catch((error) => {
+        console.warn("[clar-auth] failed to consume token:", error);
+        return false;
+      })
+      .finally(() => {
+        if (active) setTokenChecked(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Embedded-Shell-Lifecycle.
   useEffect(() => {
@@ -54,7 +64,6 @@ function AuthenticatedLayout() {
   useEffect(() => {
     if (!hydrated || !isEmbeddedShell()) return;
     if (userId) signalSignedIn(userId);
-    else signalNeedsSession();
   }, [hydrated, userId]);
 
   useEffect(() => {
@@ -65,18 +74,16 @@ function AuthenticatedLayout() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // Auth-Gate: ohne Session und ohne Embedded/Offline-Modus → /auth.
   useEffect(() => {
-    if (!hydrated) return;
-    if (!userId && !isEmbeddedShell() && !offlineBypass) {
+    if (!hydrated || !tokenChecked) return;
+    if (!userId && !tokenConsumed) {
       navigate({ to: "/auth", replace: true });
     }
-  }, [hydrated, userId, offlineBypass, navigate]);
+  }, [hydrated, tokenChecked, tokenConsumed, userId, navigate]);
 
-  if (!hydrated) return <div className="min-h-screen bg-background" />;
+  if (!hydrated || !tokenChecked) return <div className="min-h-screen bg-background" />;
 
-  const embedded = isEmbeddedShell();
-  if (!userId && !embedded && !offlineBypass) {
+  if (!userId) {
     return <div className="min-h-screen bg-background" />;
   }
 
@@ -86,8 +93,8 @@ function AuthenticatedLayout() {
     Icon: typeof Calendar;
   }> = [
     { to: "/heute", label: "Heute", Icon: Calendar },
-    { to: "/bericht", label: "Bericht", Icon: BarChart3 },
-    { to: "/einstellungen", label: "Einstellungen", Icon: SettingsIcon },
+    { to: "/bericht", label: "Verlauf", Icon: BarChart3 },
+    { to: "/einstellungen", label: "Konto", Icon: SettingsIcon },
   ];
 
   return (

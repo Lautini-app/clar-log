@@ -1,311 +1,212 @@
 import { useMemo, useState } from "react";
-import type { DayLog } from "@/lib/clar-storage";
+
 import { SectionCard } from "./SectionCard";
-import { Download, FileText, CalendarRange } from "lucide-react";
-import { CurveInsights } from "./CurveInsights";
+import type { DayLog, Settings, WellbeingAnswer } from "@/lib/clar-storage";
+import { SLOT_LABELS, TIME_SLOTS, WELLBEING_CATALOG, getActivePeriod } from "@/lib/clar-storage";
 
-function timeToMin(t?: string) {
-  if (!t) return null;
-  const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
+type Props = {
+  logs: Record<string, DayLog>;
+  settings: Settings;
+};
+
+const FILTERS = [7, 14, 30] as const;
+
+function asNumber(answer?: WellbeingAnswer) {
+  return typeof answer?.value === "number" ? answer.value : undefined;
 }
 
-function freq(items: string[]) {
-  const m = new Map<string, number>();
-  for (const i of items) m.set(i, (m.get(i) ?? 0) + 1);
-  return [...m.entries()].sort((a, b) => b[1] - a[1]);
+function asTime(answer?: WellbeingAnswer) {
+  const raw = answer?.time ?? (typeof answer?.value === "string" ? answer.value : undefined);
+  if (!raw || !raw.includes(":")) return undefined;
+  const [h, m] = raw.split(":").map(Number);
+  return h + (m || 0) / 60;
 }
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
-}
-function isoNDaysAgo(n: number) {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0, 10);
-}
-function fmtDateDE(iso: string) {
-  return new Date(iso).toLocaleDateString("de-DE", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+function collectAnswer(log: DayLog, itemId: string) {
+  for (const slot of TIME_SLOTS) {
+    const answer = log.slots[slot].answers[itemId];
+    if (answer) return answer;
+  }
+  return undefined;
 }
 
-type Preset = "7" | "14" | "30" | "all" | "custom";
+function dayTone(value?: number, inverse = false) {
+  if (value == null) return "bg-primary/10 text-primary";
+  const score = inverse ? 6 - value : value;
+  if (score >= 4) return "bg-primary text-primary-foreground";
+  if (score >= 3) return "bg-[#D6A833] text-[#1C2E1C]";
+  return "bg-[#B94A3A] text-[#F5F3EE]";
+}
 
-export function ReportView({ logs }: { logs: Record<string, DayLog> }) {
-  const allDays = useMemo(
-    () => Object.values(logs).sort((a, b) => (a.date < b.date ? 1 : -1)),
-    [logs],
+function dateLabel(date: string) {
+  return new Date(date).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" });
+}
+
+function ChartFrame({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-3xl border border-border bg-card p-4">
+      <h3 className="mb-3 text-sm font-semibold">{title}</h3>
+      {children}
+    </div>
   );
+}
 
-  const [preset, setPreset] = useState<Preset>("7");
-  const [customFrom, setCustomFrom] = useState<string>(isoNDaysAgo(7));
-  const [customTo, setCustomTo] = useState<string>(todayISO());
-
-  const { from, to } = useMemo(() => {
-    if (preset === "all") {
-      const dates = allDays.map((d) => d.date);
-      return {
-        from: dates.length ? dates[dates.length - 1] : todayISO(),
-        to: dates.length ? dates[0] : todayISO(),
-      };
-    }
-    if (preset === "custom") return { from: customFrom, to: customTo };
-    const n = Number(preset);
-    return { from: isoNDaysAgo(n - 1), to: todayISO() };
-  }, [preset, customFrom, customTo, allDays]);
-
+export function ReportView({ logs, settings }: Props) {
+  const [range, setRange] = useState<(typeof FILTERS)[number]>(14);
+  const period = getActivePeriod(settings);
   const days = useMemo(
-    () => allDays.filter((d) => d.date >= from && d.date <= to),
-    [allDays, from, to],
+    () =>
+      Object.values(logs)
+        .filter((log) => !period || !log.periodId || log.periodId === period.id)
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .slice(-range),
+    [logs, period, range],
   );
 
-  const rangeDays =
-    Math.round(
-      (new Date(to).getTime() - new Date(from).getTime()) / 86400000,
-    ) + 1;
-
-  const stats = useMemo(() => {
-    const tracked = days.length;
-    const totalDoses = days.reduce((s, d) => s + d.doses.length, 0);
-    const sleepVals = days.map((d) => d.sleepQuality).filter((x): x is number => !!x);
-    const avgSleep = sleepVals.length
-      ? (sleepVals.reduce((a, b) => a + b, 0) / sleepVals.length).toFixed(1)
-      : "—";
-    const moodFreq = freq(days.flatMap((d) => d.moods)).slice(0, 5);
-    const sideFreq = freq(days.flatMap((d) => d.sideEffects)).slice(0, 5);
-
-    const onsetMins = days
-      .map((d) => timeToMin(d.effect.onset))
-      .filter((x): x is number => x != null);
-    const durationMins = days
-      .map((d) => {
-        const o = timeToMin(d.effect.onset);
-        const w = timeToMin(d.effect.wornOff);
-        return o != null && w != null && w > o ? w - o : null;
-      })
-      .filter((x): x is number => x != null);
-    const avgOnset =
-      onsetMins.length
-        ? (() => {
-            const m = Math.round(onsetMins.reduce((a, b) => a + b, 0) / onsetMins.length);
-            return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
-          })()
-        : "—";
-    const avgDuration = durationMins.length
-      ? `${(durationMins.reduce((a, b) => a + b, 0) / durationMins.length / 60).toFixed(1)}h`
-      : "—";
-
-    const reboundDays = days.filter((d) => d.effect.rebound).length;
-
-    return { tracked, totalDoses, avgSleep, moodFreq, sideFreq, avgOnset, avgDuration, reboundDays };
-  }, [days]);
-
-  const exportText = () => {
-    const lines = [
-      `clar.tracker — Bericht`,
-      `Erstellt am ${new Date().toLocaleString("de-DE")}`,
-      `Zeitraum: ${fmtDateDE(from)} – ${fmtDateDE(to)} (${rangeDays} Tage)`,
-      ``,
-      `Erfasste Tage: ${stats.tracked}`,
-      `Dosen insgesamt: ${stats.totalDoses}`,
-      `Ø Schlafqualität: ${stats.avgSleep}/5`,
-      `Ø Wirkungseintritt: ${stats.avgOnset}`,
-      `Ø Wirkungsdauer: ${stats.avgDuration}`,
-      `Rebound-Tage: ${stats.reboundDays}`,
-      ``,
-      `Häufigste Stimmungen: ${stats.moodFreq.map(([k, v]) => `${k} (${v})`).join(", ")}`,
-      `Häufigste Nebenwirkungen: ${stats.sideFreq.map(([k, v]) => `${k} (${v})`).join(", ")}`,
-      ``,
-      `--- Tageslog ---`,
-      ...days.map(
-        (d) =>
-          `${d.date} | Dosen ${d.doses.length} | Schlaf ${d.sleepQuality ?? "-"}/5 | Bewertung ${d.rating ?? "-"}/10${d.note ? ` | "${d.note}"` : ""}`,
-      ),
-    ];
-    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `clar-tracker-report-${new Date().toISOString().slice(0, 10)}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const sleep = days.map((day) => ({
+    date: day.date,
+    value: asNumber(collectAnswer(day, "sleep_recovery")) ?? asNumber(collectAnswer(day, "sleep_latency")),
+  }));
+  const mood = days.map((day) => ({ date: day.date, value: asNumber(collectAnswer(day, "base_mood")) }));
+  const rebounds = days.map((day) => ({
+    date: day.date,
+    x: asTime(collectAnswer(day, "rebound_time")),
+    y: asNumber(collectAnswer(day, "rebound_intensity")),
+  }));
 
   return (
     <div className="space-y-4 pb-32">
-      <header className="pt-2 animate-fade-up">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Für deine Ärztin / deinen Arzt</p>
-        <h1 className="mt-1 text-2xl font-semibold text-foreground">Bericht</h1>
-        <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <CalendarRange className="h-3.5 w-3.5" />
-          {fmtDateDE(from)} – {fmtDateDE(to)} · {rangeDays} Tage · {days.length} erfasst
+      <header className="pt-2">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">Verlauf</p>
+        <h1 className="mt-1 text-2xl font-semibold text-foreground">Entwicklung sehen</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {period?.name ?? "Keine aktive Periode"} · {days.length} Tage
         </p>
       </header>
 
-      <SectionCard title="Trackingzeitraum">
-        <div className="flex flex-wrap gap-2">
-          {([
-            ["7", "7 Tage"],
-            ["14", "14 Tage"],
-            ["30", "30 Tage"],
-            ["all", "Gesamt"],
-            ["custom", "Eigener"],
-          ] as [Preset, string][]).map(([id, label]) => (
-            <button
-              key={id}
-              onClick={() => setPreset(id)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                preset === id
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card text-foreground hover:bg-secondary"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        {preset === "custom" && (
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <label className="text-xs text-muted-foreground">
-              Von
-              <input
-                type="date"
-                value={customFrom}
-                max={customTo}
-                onChange={(e) => setCustomFrom(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-border bg-card px-2 py-1.5 text-sm text-foreground"
-              />
-            </label>
-            <label className="text-xs text-muted-foreground">
-              Bis
-              <input
-                type="date"
-                value={customTo}
-                min={customFrom}
-                max={todayISO()}
-                onChange={(e) => setCustomTo(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-border bg-card px-2 py-1.5 text-sm text-foreground"
-              />
-            </label>
-          </div>
-        )}
-      </SectionCard>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Stat label="Erfasste Tage" value={stats.tracked} />
-        <Stat label="Dosen erfasst" value={stats.totalDoses} />
-        <Stat label="Ø Schlaf" value={`${stats.avgSleep}/5`} />
-        <Stat label="Rebound-Tage" value={stats.reboundDays} />
-        <Stat label="Ø Wirkungseintritt" value={stats.avgOnset} />
-        <Stat label="Ø Wirkungsdauer" value={stats.avgDuration} />
+      <div className="grid grid-cols-3 gap-2">
+        {FILTERS.map((filter) => (
+          <button
+            key={filter}
+            type="button"
+            onClick={() => setRange(filter)}
+            className={`rounded-full py-2 text-sm font-semibold ${
+              range === filter ? "bg-primary text-primary-foreground" : "bg-card text-primary"
+            }`}
+          >
+            {filter} Tage
+          </button>
+        ))}
       </div>
 
-      <SectionCard title="Häufigste Stimmungen">
-        <FreqList items={stats.moodFreq} empty="Noch keine Stimmungen erfasst." />
-      </SectionCard>
-
-      <SectionCard title="Häufigste Nebenwirkungen">
-        <FreqList items={stats.sideFreq} empty="Keine gemeldet." />
-      </SectionCard>
-
-      <SectionCard title="Auswertung pro Tag">
-        {days.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Noch keine Tage erfasst.</p>
-        ) : (
-          <div className="space-y-5">
-            {days.map((d) => (
-              <div key={d.date} className="border-b border-border pb-4 last:border-0 last:pb-0">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {new Date(d.date).toLocaleDateString("de-DE", {
-                    weekday: "long",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </p>
-                <CurveInsights log={d} />
-              </div>
-            ))}
-          </div>
-        )}
-      </SectionCard>
-
-      <SectionCard title="Tag-für-Tag-Log">
-        {days.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Noch keine Tage erfasst.</p>
-        ) : (
-          <ul className="divide-y divide-border">
-            {days.map((d) => (
-              <li key={d.date} className="py-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">
-                    {new Date(d.date).toLocaleDateString("de-DE", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
+      <SectionCard title="Day-Cards" subtitle="Top-3 Ampel aus Schlaf, Stimmung und Rebound.">
+        <div className="space-y-3">
+          {days.length === 0 && (
+            <p className="text-sm text-muted-foreground">Noch keine Tageslogs in dieser Periode.</p>
+          )}
+          {days.map((day) => {
+            const sleepValue = asNumber(collectAnswer(day, "sleep_recovery"));
+            const moodValue = asNumber(collectAnswer(day, "base_mood"));
+            const reboundValue = asNumber(collectAnswer(day, "rebound_intensity"));
+            return (
+              <div key={day.date} className="rounded-3xl border border-border bg-background p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="font-semibold">{dateLabel(day.date)}</h2>
                   <span className="text-xs text-muted-foreground">
-                    {d.doses.length} {d.doses.length === 1 ? "Dosis" : "Dosen"} · Schlaf{" "}
-                    {d.sleepQuality ?? "-"}/5 · Bewertung {d.rating ?? "-"}/10
+                    {TIME_SLOTS.filter((slot) => day.slots[slot].status === "done").length}/3 fertig
                   </span>
                 </div>
-                {d.moods.length > 0 && (
-                  <p className="mt-1 text-xs text-muted-foreground">{d.moods.join(" · ")}</p>
-                )}
-                {d.sideEffects.length > 0 && (
-                  <p className="mt-0.5 text-xs text-warning/90">⚠ {d.sideEffects.join(", ")}</p>
-                )}
-                {d.note && (
-                  <p className="mt-1 text-xs italic text-foreground/80">"{d.note}"</p>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+                <div className="grid grid-cols-3 gap-2">
+                  <span className={`rounded-2xl p-2 text-center text-xs font-semibold ${dayTone(sleepValue)}`}>
+                    Schlaf {sleepValue ?? "–"}
+                  </span>
+                  <span className={`rounded-2xl p-2 text-center text-xs font-semibold ${dayTone(moodValue)}`}>
+                    Stimmung {moodValue ?? "–"}
+                  </span>
+                  <span className={`rounded-2xl p-2 text-center text-xs font-semibold ${dayTone(reboundValue, true)}`}>
+                    Rebound {reboundValue ?? "–"}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </SectionCard>
 
-      <button
-        onClick={exportText}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary-soft/40 py-3.5 text-sm font-medium text-primary transition-colors hover:bg-primary-soft active:scale-[0.98]"
-      >
-        <Download className="h-4 w-4" /> Bericht exportieren (.txt)
-      </button>
-      <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
-        <FileText className="h-3 w-3" /> Oder mach einen Screenshot für den Termin.
-      </p>
-    </div>
-  );
-}
+      <ChartFrame title="Schlaf-Balken">
+        <div className="flex h-32 items-end gap-2">
+          {sleep.map((entry) => (
+            <div key={entry.date} className="flex flex-1 flex-col items-center gap-2">
+              <div className="flex h-24 w-full items-end rounded-full bg-primary/10">
+                <div
+                  className="w-full rounded-full bg-primary"
+                  style={{ height: `${((entry.value ?? 0) / 5) * 100}%` }}
+                />
+              </div>
+              <span className="text-[10px] text-muted-foreground">{dateLabel(entry.date).slice(0, 2)}</span>
+            </div>
+          ))}
+        </div>
+      </ChartFrame>
 
-function Stat({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4 animate-fade-up">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-xl font-semibold text-foreground">{value}</p>
-    </div>
-  );
-}
+      <ChartFrame title="Stimmungs-Linie">
+        <svg viewBox="0 0 300 120" className="h-32 w-full">
+          <polyline
+            fill="none"
+            stroke="var(--color-primary)"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            points={mood
+              .map((entry, index) => {
+                const x = mood.length <= 1 ? 150 : (index / (mood.length - 1)) * 280 + 10;
+                const y = 110 - ((entry.value ?? 0) / 5) * 90;
+                return `${x},${y}`;
+              })
+              .join(" ")}
+          />
+          {mood.map((entry, index) => {
+            const x = mood.length <= 1 ? 150 : (index / (mood.length - 1)) * 280 + 10;
+            const y = 110 - ((entry.value ?? 0) / 5) * 90;
+            return <circle key={entry.date} cx={x} cy={y} r="4" fill="var(--color-primary)" />;
+          })}
+        </svg>
+      </ChartFrame>
 
-function FreqList({ items, empty }: { items: [string, number][]; empty: string }) {
-  if (items.length === 0) return <p className="text-sm text-muted-foreground">{empty}</p>;
-  const max = items[0][1];
-  return (
-    <ul className="space-y-2">
-      {items.map(([k, v]) => (
-        <li key={k} className="flex items-center gap-3">
-          <span className="w-28 shrink-0 text-sm capitalize text-foreground">{k}</span>
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
-            <div
-              className="h-full rounded-full bg-primary"
-              style={{ width: `${(v / max) * 100}%` }}
-            />
-          </div>
-          <span className="w-6 text-right text-xs text-muted-foreground">{v}</span>
-        </li>
-      ))}
-    </ul>
+      <ChartFrame title="Rebound-Scatter">
+        <div className="relative h-36 rounded-3xl bg-primary/10">
+          {rebounds.map((entry) => {
+            if (entry.x == null || entry.y == null) return null;
+            return (
+              <span
+                key={entry.date}
+                className="absolute h-3 w-3 rounded-full bg-primary"
+                title={entry.date}
+                style={{
+                  left: `${Math.min(95, Math.max(3, ((entry.x - 6) / 18) * 100))}%`,
+                  bottom: `${Math.min(92, Math.max(6, (entry.y / 5) * 100))}%`,
+                }}
+              />
+            );
+          })}
+          <span className="absolute bottom-2 left-3 text-[10px] text-muted-foreground">06:00</span>
+          <span className="absolute bottom-2 right-3 text-[10px] text-muted-foreground">24:00</span>
+        </div>
+      </ChartFrame>
+
+      <SectionCard title="Ausgewählter Katalog">
+        <div className="flex flex-wrap gap-2">
+          {(period?.selectedWellbeingIds ?? []).map((itemId) => {
+            const item = WELLBEING_CATALOG.find((entry) => entry.id === itemId);
+            if (!item) return null;
+            return (
+              <span key={itemId} className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+                {item.label} · {(period?.wellbeingSlots[itemId] ?? TIME_SLOTS).map((slot) => SLOT_LABELS[slot]).join("/")}
+              </span>
+            );
+          })}
+        </div>
+      </SectionCard>
+    </div>
   );
 }

@@ -5,11 +5,10 @@ import { useStore } from "@/lib/clar-storage";
 export const Route = createFileRoute("/_authenticated/einstellungen")({
   head: () => ({
     meta: [
-      { title: "Einstellungen — clar.tracker" },
+      { title: "Konto — clar.tracker" },
       {
         name: "description",
-        content:
-          "Medikamente, Erinnerungen und Datenschutz — verwalte deine clar.tracker-Einstellungen.",
+        content: "Periode, Medikamente, eigene Befindlichkeiten, Sprache und Datenschutz verwalten.",
       },
     ],
   }),

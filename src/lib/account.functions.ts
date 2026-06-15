@@ -7,8 +7,8 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/
  *
  * Verifiziert das Access-Token des Aufrufers gegen Supabase Auth und löscht
  * anschließend den `auth.users`-Eintrag via Service-Role-Key. Über die
- * `ON DELETE CASCADE`-FKs auf `clar_log.tracker_logs` und
- * `clar_log.tracker_settings` werden alle Userdaten automatisch entfernt.
+ * `ON DELETE CASCADE`-FKs auf den clar_log-Tabellen werden alle Userdaten
+ * automatisch entfernt.
  */
 export const deleteAccount = createServerFn({ method: "POST" })
   .inputValidator((data: { accessToken: string }) => {
@@ -41,6 +41,8 @@ export const deleteAccount = createServerFn({ method: "POST" })
     });
 
     // Belt-and-suspenders: explizit Tabellen leeren (falls FK-Cascade fehlen sollte).
+    await admin.schema("clar_log").from("daily_logs").delete().eq("user_id", userId);
+    await admin.schema("clar_log").from("observation_periods").delete().eq("user_id", userId);
     await admin.schema("clar_log").from("tracker_logs").delete().eq("user_id", userId);
     await admin
       .schema("clar_log")
