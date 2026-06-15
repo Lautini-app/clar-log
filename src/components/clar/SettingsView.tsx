@@ -145,6 +145,35 @@ function MedicationRows({
                 ))}
               </select>
             </label>
+            {med.type === "stimulant" && (
+              <label className="rounded-xl border border-border bg-card p-2">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Wirkdauer
+                </span>
+                <select
+                  value={med.duration ?? "short"}
+                  onChange={(e) => update(med.id, { duration: e.target.value as "short" | "long" })}
+                  className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
+                >
+                  <option value="short">Kurzwirksam</option>
+                  <option value="long">Langwirksam (Retard)</option>
+                </select>
+              </label>
+            )}
+            {med.type === "other" && (
+              <label className="rounded-xl border border-border bg-card p-2">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Bezeichnung
+                </span>
+                <input
+                  type="text"
+                  value={med.customName ?? ""}
+                  onChange={(e) => update(med.id, { customName: e.target.value })}
+                  placeholder="z.B. Melatonin"
+                  className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
+                />
+              </label>
+            )}
           </div>
         </div>
       ))}

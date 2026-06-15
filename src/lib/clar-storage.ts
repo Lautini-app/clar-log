@@ -32,6 +32,8 @@ export type Medication = {
   mg: number;
   intakeSlot: TimeSlot;
   type: MedicationType;
+  duration?: "short" | "long";
+  customName?: string;
 };
 
 export type Dose = {
