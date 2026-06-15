@@ -11,19 +11,57 @@ import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
 
-function isDespiaUserAgent() {
-  if (typeof navigator === "undefined") return false;
-  return navigator.userAgent.toLowerCase().includes("despia");
+function isLocalhost(location: Location) {
+  return (
+    location.hostname === "localhost" ||
+    location.hostname === "127.0.0.1" ||
+    location.hostname === "[::1]" ||
+    location.hostname === "::1"
+  );
+}
+
+function isStandaloneNavigator(navigator: Navigator) {
+  return (navigator as Navigator & { standalone?: boolean }).standalone === true;
+}
+
+function isDesktopBrowser(navigator: Navigator) {
+  const uaData = (
+    navigator as Navigator & {
+      userAgentData?: { mobile?: boolean; platform?: string };
+    }
+  ).userAgentData;
+  const platform = (uaData?.platform || navigator.platform || "").toLowerCase();
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isTouchMac = platform === "macintel" && navigator.maxTouchPoints > 1;
+
+  if (uaData?.mobile === true || isTouchMac) return false;
+
+  return (
+    /\b(windows|win32|win64|macintosh|macintel|macppc|linux x86_64|x11|cros)\b/.test(platform) ||
+    /\b(windows nt|macintosh|x11|linux x86_64|cros)\b/.test(userAgent)
+  );
+}
+
+function shouldShowClarHeader() {
+  if (typeof window === "undefined") return false;
+  const { location, navigator } = window;
+  const userAgent = navigator.userAgent.toLowerCase();
+
+  return (
+    userAgent.includes("despia") ||
+    isStandaloneNavigator(navigator) ||
+    (!isLocalhost(location) && !isDesktopBrowser(navigator))
+  );
 }
 
 function DespiaHeader() {
-  const [isDespia, setIsDespia] = useState(false);
+  const [showHeader, setShowHeader] = useState(false);
 
   useEffect(() => {
-    setIsDespia(isDespiaUserAgent());
+    setShowHeader(shouldShowClarHeader());
   }, []);
 
-  if (!isDespia) return null;
+  if (!showHeader) return null;
 
   return (
     <header className="despia-header" aria-label="Despia Navigation">
