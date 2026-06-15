@@ -135,25 +135,19 @@ function MedicationEditor({
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
-          <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="mt-3 grid grid-cols-1 gap-2">
             <div className="rounded-xl border border-border bg-card p-2 text-center">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Dosis</p>
-              <div className="mt-2 flex items-center justify-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => update(med.id, { mg: Math.max(0, med.mg - 5) })}
-                  className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground"
-                >
-                  -
-                </button>
-                <span className="min-w-10 text-sm font-semibold">{med.mg} mg</span>
-                <button
-                  type="button"
-                  onClick={() => update(med.id, { mg: med.mg + 5 })}
-                  className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground"
-                >
-                  +
-                </button>
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  type="number"
+                  value={med.mg}
+                  onChange={(e) => update(med.id, { mg: Number(e.target.value) })}
+                  className="w-20 rounded-lg border border-border bg-background px-2 py-1 text-sm font-semibold outline-none"
+                  min={0}
+                  step={5}
+                />
+                <span className="text-sm text-muted-foreground">mg</span>
               </div>
             </div>
             <label className="rounded-xl border border-border bg-card p-2">
@@ -190,6 +184,35 @@ function MedicationEditor({
                 ))}
               </select>
             </label>
+            {med.type === "stimulant" && (
+              <label className="rounded-xl border border-border bg-card p-2">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Wirkdauer
+                </span>
+                <select
+                  value={med.duration ?? "short"}
+                  onChange={(e) => update(med.id, { duration: e.target.value as "short" | "long" })}
+                  className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
+                >
+                  <option value="short">Kurzwirksam</option>
+                  <option value="long">Langwirksam (Retard)</option>
+                </select>
+              </label>
+            )}
+            {med.type === "other" && (
+              <label className="rounded-xl border border-border bg-card p-2">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Bezeichnung
+                </span>
+                <input
+                  type="text"
+                  value={med.customName ?? ""}
+                  onChange={(e) => update(med.id, { customName: e.target.value })}
+                  placeholder="z.B. Melatonin"
+                  className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
+                />
+              </label>
+            )}
           </div>
         </div>
       ))}
