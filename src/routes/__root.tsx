@@ -11,8 +11,6 @@ import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
 
-const DESPIA_HOME_URL = "https://home.lautini.ch";
-
 function isLocalhost(location: Location) {
   return (
     location.hostname === "localhost" ||
@@ -47,9 +45,12 @@ function isDesktopBrowser(navigator: Navigator) {
 function shouldShowClarHeader() {
   if (typeof window === "undefined") return false;
   const { location, navigator } = window;
+  const userAgent = navigator.userAgent.toLowerCase();
 
   return (
-    isStandaloneNavigator(navigator) || (!isLocalhost(location) && !isDesktopBrowser(navigator))
+    userAgent.includes("despia") ||
+    isStandaloneNavigator(navigator) ||
+    (!isLocalhost(location) && !isDesktopBrowser(navigator))
   );
 }
 
@@ -64,9 +65,9 @@ function DespiaHeader() {
 
   return (
     <header className="despia-header" aria-label="Despia Navigation">
-      <a className="despia-header__button" href={DESPIA_HOME_URL}>
+      <button className="despia-header__button" type="button" onClick={() => window.history.back()}>
         ← clar
-      </a>
+      </button>
     </header>
   );
 }
