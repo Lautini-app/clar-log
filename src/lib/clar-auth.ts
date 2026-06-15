@@ -6,6 +6,8 @@ type TokenParams = {
 };
 
 function getUrlParams(): URLSearchParams {
+  console.log('[clar-auth] hash:', window.location.hash);
+  console.log('[clar-auth] search:', window.location.search);
   const params = new URLSearchParams(window.location.search);
   const hash = window.location.hash.startsWith("#")
     ? window.location.hash.slice(1)
