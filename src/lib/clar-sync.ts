@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { DayLog, Settings } from "./clar-storage";
+import { defaultSettings, getActivePeriod } from "./clar-storage";
+import type { DayLog, ObservationPeriod, Settings } from "./clar-storage";
 
 const MIGRATION_FLAG = "clar.tracker.migrated.v1";
 
@@ -10,6 +11,35 @@ export type RemoteStore = {
 
 /** Lädt alle Logs + Settings des Users aus Supabase. */
 export async function loadFromSupabase(userId: string): Promise<RemoteStore> {
+  const [periodsRes, dailyLogsRes] = await Promise.all([
+    supabase.from("observation_periods").select("*").eq("user_id", userId),
+    supabase.from("daily_logs").select("*").eq("user_id", userId),
+  ]);
+
+  if (!periodsRes.error && !dailyLogsRes.error) {
+    const periods = ((periodsRes.data ?? []) as Array<Record<string, unknown>>)
+      .map((row) => ((row.data as ObservationPeriod | undefined) ?? row) as ObservationPeriod)
+      .filter((period) => typeof period?.id === "string");
+    const logs: Record<string, DayLog> = {};
+    for (const row of (dailyLogsRes.data ?? []) as Array<Record<string, unknown>>) {
+      const date = String(row.date ?? "");
+      if (!date) continue;
+      const data = ((row.data as DayLog | undefined) ?? row) as DayLog;
+      logs[date] = { ...data, date };
+    }
+    return {
+      logs,
+      settings:
+        periods.length > 0
+          ? {
+              ...defaultSettings,
+              periods,
+              activePeriodId: periods[0]?.id,
+            }
+          : null,
+    };
+  }
+
   const [logsRes, settingsRes] = await Promise.all([
     supabase
       .from("tracker_logs")
@@ -41,6 +71,20 @@ export async function upsertLogToSupabase(
   userId: string,
   log: DayLog,
 ): Promise<void> {
+  const { error: dailyLogError } = await supabase
+    .from("daily_logs")
+    .upsert(
+      {
+        user_id: userId,
+        date: log.date,
+        period_id: log.periodId,
+        data: log,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id,date" },
+    );
+  if (!dailyLogError) return;
+
   const { error } = await supabase
     .from("tracker_logs")
     .upsert(
@@ -59,6 +103,20 @@ export async function upsertSettingsToSupabase(
   userId: string,
   settings: Settings,
 ): Promise<void> {
+  const activePeriod = getActivePeriod(settings);
+  if (activePeriod) {
+    const { error: periodError } = await supabase.from("observation_periods").upsert(
+      {
+        id: activePeriod.id,
+        user_id: userId,
+        data: activePeriod,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" },
+    );
+    if (!periodError) return;
+  }
+
   const { error } = await supabase.from("tracker_settings").upsert(
     {
       user_id: userId,
@@ -86,23 +144,49 @@ export async function migrateLocalToSupabase(
   }));
 
   if (logRows.length > 0) {
-    const { error } = await supabase
-      .from("tracker_logs")
-      .upsert(logRows, { onConflict: "user_id,date", ignoreDuplicates: true });
+    const dailyRows = Object.values(local.logs).map((l) => ({
+      user_id: userId,
+      date: l.date,
+      period_id: l.periodId,
+      data: l,
+      updated_at: new Date(l.updatedAt ?? Date.now()).toISOString(),
+    }));
+    const { error: dailyError } = await supabase
+      .from("daily_logs")
+      .upsert(dailyRows, { onConflict: "user_id,date", ignoreDuplicates: true });
+    const { error } = dailyError
+      ? await supabase
+          .from("tracker_logs")
+          .upsert(logRows, { onConflict: "user_id,date", ignoreDuplicates: true })
+      : { error: null };
     if (error) {
       console.warn("[clar-sync] migration logs failed:", error.message);
       return; // Flag NICHT setzen, beim nächsten Login retry
     }
   }
 
-  const { error: sErr } = await supabase.from("tracker_settings").upsert(
-    {
-      user_id: userId,
-      data: local.settings,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id", ignoreDuplicates: true },
-  );
+  const activePeriod = getActivePeriod(local.settings);
+  const { error: periodError } = activePeriod
+    ? await supabase.from("observation_periods").upsert(
+        {
+          id: activePeriod.id,
+          user_id: userId,
+          data: activePeriod,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id", ignoreDuplicates: true },
+      )
+    : { error: new Error("no active period") };
+  const { error: sErr } = periodError
+    ? await supabase.from("tracker_settings").upsert(
+        {
+          user_id: userId,
+          data: local.settings,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id", ignoreDuplicates: true },
+      )
+    : { error: null };
   if (sErr) {
     console.warn("[clar-sync] migration settings failed:", sErr.message);
     return;
@@ -114,6 +198,8 @@ export async function migrateLocalToSupabase(
 /** DSGVO: Alle Daten des Users löschen (Supabase + lokal). */
 export async function deleteAllUserData(userId: string): Promise<void> {
   await Promise.all([
+    supabase.from("daily_logs").delete().eq("user_id", userId),
+    supabase.from("observation_periods").delete().eq("user_id", userId),
     supabase.from("tracker_logs").delete().eq("user_id", userId),
     supabase.from("tracker_settings").delete().eq("user_id", userId),
   ]);

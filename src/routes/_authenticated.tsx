@@ -86,8 +86,8 @@ function AuthenticatedLayout() {
     Icon: typeof Calendar;
   }> = [
     { to: "/heute", label: "Heute", Icon: Calendar },
-    { to: "/bericht", label: "Bericht", Icon: BarChart3 },
-    { to: "/einstellungen", label: "Einstellungen", Icon: SettingsIcon },
+    { to: "/bericht", label: "Verlauf", Icon: BarChart3 },
+    { to: "/einstellungen", label: "Konto", Icon: SettingsIcon },
   ];
 
   return (

@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TodayView } from "@/components/clar/TodayView";
-import { NotificationBanner } from "@/components/clar/Notification";
-import { useStore, todayKey, emptyLog } from "@/lib/clar-storage";
+import { useStore, todayKey, emptyLog, getActivePeriod } from "@/lib/clar-storage";
 
 export const Route = createFileRoute("/_authenticated/heute")({
   head: () => ({
@@ -18,22 +17,16 @@ export const Route = createFileRoute("/_authenticated/heute")({
 });
 
 function HeuteRoute() {
-  const { store, upsertLog } = useStore();
+  const { store, upsertLog, updateSettings } = useStore();
   const today = todayKey();
-  const log = store.logs[today] ?? emptyLog(today);
+  const activePeriod = getActivePeriod(store.settings);
+  const log = store.logs[today] ?? emptyLog(today, activePeriod?.id);
   return (
-    <>
-      <NotificationBanner
-        morningTime={store.settings.morningTime}
-        eveningTime={store.settings.eveningTime}
-        weeklyFocus={store.settings.weeklyFocus}
-        onAct={() => {}}
-      />
-      <TodayView
-        log={log}
-        settings={store.settings}
-        onChange={(patch) => upsertLog(today, patch)}
-      />
-    </>
+    <TodayView
+      log={log}
+      settings={store.settings}
+      onChange={(patch) => upsertLog(today, patch)}
+      onSettingsChange={updateSettings}
+    />
   );
 }

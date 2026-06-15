@@ -5,11 +5,10 @@ import { useStore } from "@/lib/clar-storage";
 export const Route = createFileRoute("/_authenticated/bericht")({
   head: () => ({
     meta: [
-      { title: "Bericht — clar.tracker" },
+      { title: "Verlauf — clar.tracker" },
       {
         name: "description",
-        content:
-          "Klare Einblicke in Dosis, Wirkung und Stimmung — bereit für den nächsten Arzttermin.",
+        content: "7/14/30-Tage Verlauf mit Ampel-Karten und clar v2 Charts.",
       },
     ],
   }),
@@ -18,5 +17,5 @@ export const Route = createFileRoute("/_authenticated/bericht")({
 
 function BerichtRoute() {
   const { store } = useStore();
-  return <ReportView logs={store.logs} />;
+  return <ReportView logs={store.logs} settings={store.settings} />;
 }

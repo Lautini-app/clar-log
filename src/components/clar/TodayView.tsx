@@ -1,534 +1,768 @@
 import { useMemo, useState } from "react";
-import { Pill, Plus, X, Moon, Utensils, Activity, Smile, Zap, Clock, Heart, Briefcase } from "lucide-react";
+import {
+  CalendarDays,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Download,
+  Pill,
+  Plus,
+  Trash2,
+} from "lucide-react";
+
 import { Chip } from "./Chip";
 import { SectionCard } from "./SectionCard";
-import { EffectCurve } from "./EffectCurve";
-import { CurveInsights } from "./CurveInsights";
-import type { ActivityEntry, DayLog, Dose, Medication, MoodEntry, Settings } from "@/lib/clar-storage";
-import { todayKey } from "@/lib/clar-storage";
+import type {
+  DayLog,
+  Medication,
+  MedicationType,
+  ObservationPeriod,
+  ProfileType,
+  Settings,
+  TimeSlot,
+  WellbeingAnswer,
+  WellbeingItem,
+} from "@/lib/clar-storage";
+import {
+  MEDICATION_TYPE_LABELS,
+  PROFILE_LABELS,
+  SLOT_LABELS,
+  TIME_SLOTS,
+  WELLBEING_CATALOG,
+  availableWellbeingItems,
+  createMedication,
+  createPeriod,
+  getActivePeriod,
+} from "@/lib/clar-storage";
 
-const MOODS = [
-  { id: "focused", label: "Fokussiert", emoji: "🎯" },
-  { id: "calm", label: "Ruhig", emoji: "🌿" },
-  { id: "energized", label: "Energiegeladen", emoji: "⚡" },
-  { id: "anxious", label: "Ängstlich", emoji: "😰" },
-  { id: "irritable", label: "Gereizt", emoji: "😤" },
-  { id: "flat", label: "Flach", emoji: "😐" },
-  { id: "overwhelmed", label: "Überfordert", emoji: "🌀" },
-  { id: "sad", label: "Traurig", emoji: "🌧️" },
-];
-
-const SIDE_EFFECTS = [
-  "Kopfschmerzen",
-  "Herzrasen",
-  "Mundtrockenheit",
-  "Schwindel",
-  "Stimmungstief",
-  "Schlafprobleme",
-  "Kribbeln",
-];
-
-const ACTIVITIES = [
-  { id: "work", label: "Arbeit", emoji: "💼" },
-  { id: "study", label: "Lernen", emoji: "📚" },
-  { id: "sport", label: "Sport", emoji: "🏃" },
-  { id: "meal", label: "Essen", emoji: "🍽️" },
-  { id: "social", label: "Sozial", emoji: "👥" },
-  { id: "rest", label: "Pause", emoji: "🛋️" },
-  { id: "creative", label: "Kreativ", emoji: "🎨" },
-  { id: "errand", label: "Erledigung", emoji: "📦" },
-];
-
-const APPETITE: DayLog["appetite"][] = ["none", "little", "normal", "much"];
-const APPETITE_LABEL: Record<NonNullable<DayLog["appetite"]>, string> = {
-  none: "keiner",
-  little: "wenig",
-  normal: "normal",
-  much: "viel",
-};
-
-function nowHM() {
-  const d = new Date();
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
-
-export function TodayView({
-  log,
-  settings,
-  onChange,
-}: {
+type Props = {
   log: DayLog;
   settings: Settings;
   onChange: (patch: Partial<DayLog>) => void;
+  onSettingsChange: (patch: Partial<Settings>) => void;
+};
+
+const CATEGORY_LABEL: Record<WellbeingItem["category"], string> = {
+  sleep: "Schlaf",
+  mood: "Stimmung",
+  rebound: "Rebound",
+  concentration: "Konzentration",
+  appetite: "Appetit",
+  body: "Körper",
+  cycle: "Zyklus",
+  custom: "Eigene",
+};
+
+function makeIcs(period: ObservationPeriod) {
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//clar//Beobachtungsperiode//DE",
+    "CALSCALE:GREGORIAN",
+    ...TIME_SLOTS.flatMap((slot) => {
+      const time = period.timeSlots[slot].replace(":", "");
+      return [
+        "BEGIN:VEVENT",
+        `UID:${period.id}-${slot}@clar`,
+        `DTSTAMP:${stamp}`,
+        `DTSTART:${period.startDate.replace(/-/g, "")}T${time}00`,
+        `RRULE:FREQ=DAILY;UNTIL:${period.endDate.replace(/-/g, "")}T235900`,
+        `SUMMARY:clar ${SLOT_LABELS[slot]} erfassen`,
+        `DESCRIPTION:${period.name}`,
+        "END:VEVENT",
+      ];
+    }),
+    "END:VCALENDAR",
+  ].join("\r\n");
+}
+
+function downloadIcs(period: ObservationPeriod) {
+  const blob = new Blob([makeIcs(period)], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${period.name || "clar-periode"}.ics`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function savePeriod(
+  settings: Settings,
+  period: ObservationPeriod,
+  onSettingsChange: Props["onSettingsChange"],
+) {
+  const periods = settings.periods.some((item) => item.id === period.id)
+    ? settings.periods.map((item) => (item.id === period.id ? period : item))
+    : [...settings.periods, period];
+  onSettingsChange({ periods, activePeriodId: period.id });
+}
+
+function statusLabel(status: string) {
+  if (status === "done") return "fertig";
+  if (status === "in_progress") return "in Arbeit";
+  return "ausstehend";
+}
+
+function MedicationEditor({
+  medications,
+  onChange,
+}: {
+  medications: Medication[];
+  onChange: (next: Medication[]) => void;
 }) {
-  const today = todayKey();
-  const isToday = log.date === today;
-  const greeting = useMemo(() => {
-    const h = new Date().getHours();
-    if (h < 12) return "Guten Morgen";
-    if (h < 18) return "Guten Tag";
-    return "Guten Abend";
-  }, []);
+  const update = (id: string, patch: Partial<Medication>) =>
+    onChange(medications.map((med) => (med.id === id ? { ...med, ...patch } : med)));
 
-  const addDoseFromMed = (med: Medication) => {
-    const dose: Dose = {
-      id: crypto.randomUUID(),
-      name: med.name,
-      mg: med.mg,
-      time: nowHM(),
-      type: med.type,
-      medId: med.id,
-    };
-    onChange({ doses: [...log.doses, dose] });
+  return (
+    <div className="space-y-3">
+      {medications.map((med) => (
+        <div key={med.id} className="rounded-2xl border border-border bg-background p-3">
+          <div className="flex items-center gap-2">
+            <input
+              value={med.name}
+              onChange={(event) => update(med.id, { name: event.target.value })}
+              className="min-w-0 flex-1 rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold outline-none focus:border-primary"
+              aria-label="Medikamentenname"
+            />
+            <button
+              type="button"
+              onClick={() => onChange(medications.filter((item) => item.id !== med.id))}
+              className="grid h-9 w-9 place-items-center rounded-full text-primary transition-colors hover:bg-primary/10"
+              aria-label="Medikament entfernen"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="rounded-xl border border-border bg-card p-2 text-center">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Dosis</p>
+              <div className="mt-2 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => update(med.id, { mg: Math.max(0, med.mg - 5) })}
+                  className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground"
+                >
+                  -
+                </button>
+                <span className="min-w-10 text-sm font-semibold">{med.mg} mg</span>
+                <button
+                  type="button"
+                  onClick={() => update(med.id, { mg: med.mg + 5 })}
+                  className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <label className="rounded-xl border border-border bg-card p-2">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Einnahme
+              </span>
+              <select
+                value={med.intakeSlot}
+                onChange={(event) => update(med.id, { intakeSlot: event.target.value as TimeSlot })}
+                className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
+              >
+                {TIME_SLOTS.map((slot) => (
+                  <option key={slot} value={slot}>
+                    {SLOT_LABELS[slot]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="rounded-xl border border-border bg-card p-2">
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Typ
+              </span>
+              <select
+                value={med.type}
+                onChange={(event) =>
+                  update(med.id, { type: event.target.value as MedicationType })
+                }
+                className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
+              >
+                {Object.entries(MEDICATION_TYPE_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => onChange([...medications, createMedication()])}
+        className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+      >
+        <Plus className="h-4 w-4" /> Medikament hinzufügen
+      </button>
+    </div>
+  );
+}
+
+function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "onSettingsChange">) {
+  const [step, setStep] = useState(0);
+  const [draft, setDraft] = useState<ObservationPeriod>(() => createPeriod());
+  const catalog = WELLBEING_CATALOG.filter((item) => !item.module || draft.modules[item.module]);
+  const categories = Array.from(new Set(catalog.map((item) => item.category)));
+
+  const updateDraft = (patch: Partial<ObservationPeriod>) =>
+    setDraft((current) => createPeriod({ ...current, ...patch, id: current.id }));
+
+  const toggleItem = (itemId: string) => {
+    const selected = draft.selectedWellbeingIds.includes(itemId);
+    const selectedWellbeingIds = selected
+      ? draft.selectedWellbeingIds.filter((id) => id !== itemId)
+      : [...draft.selectedWellbeingIds, itemId];
+    const wellbeingSlots = { ...draft.wellbeingSlots };
+    if (selected) delete wellbeingSlots[itemId];
+    else wellbeingSlots[itemId] = TIME_SLOTS;
+    updateDraft({ selectedWellbeingIds, wellbeingSlots });
   };
 
-  const removeDose = (id: string) => {
-    onChange({ doses: log.doses.filter((d) => d.id !== id) });
+  const toggleItemSlot = (itemId: string, slot: TimeSlot) => {
+    const current = draft.wellbeingSlots[itemId] ?? [];
+    const next = current.includes(slot)
+      ? current.filter((item) => item !== slot)
+      : [...current, slot];
+    updateDraft({ wellbeingSlots: { ...draft.wellbeingSlots, [itemId]: next } });
   };
 
-  const updateDose = (id: string, patch: Partial<Dose>) => {
-    onChange({
-      doses: log.doses.map((d) => (d.id === id ? { ...d, ...patch } : d)),
-    });
-  };
-
-  const moodEntries = log.moodEntries ?? [];
-  const addMood = (moodId: string) => {
-    const entry: MoodEntry = {
-      id: crypto.randomUUID(),
-      time: nowHM(),
-      mood: moodId,
-    };
-    onChange({ moodEntries: [...moodEntries, entry] });
-  };
-  const updateMood = (id: string, patch: Partial<MoodEntry>) => {
-    onChange({
-      moodEntries: moodEntries.map((m) => (m.id === id ? { ...m, ...patch } : m)),
-    });
-  };
-  const removeMood = (id: string) => {
-    onChange({ moodEntries: moodEntries.filter((m) => m.id !== id) });
-  };
-  const moodById = (id: string) => MOODS.find((m) => m.id === id);
-
-  const activityEntries = log.activityEntries ?? [];
-  const addActivity = (actId: string) => {
-    const entry: ActivityEntry = {
-      id: crypto.randomUUID(),
-      time: nowHM(),
-      activity: actId,
-    };
-    onChange({ activityEntries: [...activityEntries, entry] });
-  };
-  const updateActivity = (id: string, patch: Partial<ActivityEntry>) => {
-    onChange({
-      activityEntries: activityEntries.map((a) =>
-        a.id === id ? { ...a, ...patch } : a,
+  const steps = [
+    {
+      title: "Profil & Module",
+      body: (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            {Object.entries(PROFILE_LABELS).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => updateDraft({ profile: key as ProfileType })}
+                className={`rounded-2xl border p-4 text-left text-sm font-semibold ${
+                  draft.profile === key
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-foreground"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {[
+            ["cycleTracking", "Zyklus-Tracking"],
+            ["bodyFocus", "Körper-Fokus"],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() =>
+                updateDraft({
+                  modules: {
+                    ...draft.modules,
+                    [key]: !draft.modules[key as keyof ObservationPeriod["modules"]],
+                  },
+                })
+              }
+              className={`w-full rounded-2xl border p-4 text-left text-sm font-semibold ${
+                draft.modules[key as keyof ObservationPeriod["modules"]]
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       ),
-    });
-  };
-  const removeActivity = (id: string) => {
-    onChange({ activityEntries: activityEntries.filter((a) => a.id !== id) });
-  };
-  const activityById = (id: string) => ACTIVITIES.find((a) => a.id === id);
-
-  const toggleSide = (s: string) => {
-    const has = log.sideEffects.includes(s);
-    onChange({
-      sideEffects: has ? log.sideEffects.filter((x) => x !== s) : [...log.sideEffects, s],
-    });
-  };
+    },
+    {
+      title: "Name & Zeitraum",
+      body: (
+        <div className="space-y-3">
+          <label className="block rounded-2xl border border-border bg-card p-3">
+            <span className="text-xs font-semibold text-muted-foreground">Periodenname</span>
+            <input
+              value={draft.name}
+              onChange={(event) => updateDraft({ name: event.target.value })}
+              className="mt-1 w-full bg-transparent text-base font-semibold outline-none"
+            />
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              ["startDate", "Startdatum"],
+              ["endDate", "Enddatum"],
+            ].map(([key, label]) => (
+              <label key={key} className="block rounded-2xl border border-border bg-card p-3">
+                <span className="text-xs font-semibold text-muted-foreground">{label}</span>
+                <input
+                  type="date"
+                  value={draft[key as "startDate" | "endDate"]}
+                  onChange={(event) => updateDraft({ [key]: event.target.value })}
+                  className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Zeitpunkte",
+      body: (
+        <div className="grid gap-3">
+          {TIME_SLOTS.map((slot) => (
+            <label key={slot} className="rounded-2xl border border-border bg-card p-4">
+              <span className="text-sm font-semibold">{SLOT_LABELS[slot]}</span>
+              <input
+                type="time"
+                value={draft.timeSlots[slot]}
+                onChange={(event) =>
+                  updateDraft({ timeSlots: { ...draft.timeSlots, [slot]: event.target.value } })
+                }
+                className="mt-2 w-full bg-transparent text-lg font-semibold text-primary outline-none"
+              />
+            </label>
+          ))}
+        </div>
+      ),
+    },
+    {
+      title: "Medikamente",
+      body: (
+        <MedicationEditor
+          medications={draft.medications}
+          onChange={(medications) => updateDraft({ medications })}
+        />
+      ),
+    },
+    {
+      title: "Befindlichkeiten",
+      body: (
+        <div className="space-y-4">
+          {categories.map((category) => (
+            <div key={category}>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {CATEGORY_LABEL[category]}
+              </p>
+              <div className="space-y-2">
+                {catalog
+                  .filter((item) => item.category === category)
+                  .map((item) => {
+                    const active = draft.selectedWellbeingIds.includes(item.id);
+                    return (
+                      <div key={item.id} className="rounded-2xl border border-border bg-card p-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleItem(item.id)}
+                          className={`w-full text-left text-sm font-semibold ${
+                            active ? "text-primary" : "text-foreground"
+                          }`}
+                        >
+                          {active ? "✓ " : ""}
+                          {item.label}
+                        </button>
+                        {active && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {TIME_SLOTS.map((slot) => (
+                              <Chip
+                                key={slot}
+                                active={(draft.wellbeingSlots[item.id] ?? []).includes(slot)}
+                                onClick={() => toggleItemSlot(item.id, slot)}
+                                className="px-3 py-1.5 text-xs"
+                              >
+                                {SLOT_LABELS[slot]}
+                              </Chip>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      title: "Kalender-Export",
+      body: (
+        <div className="space-y-4">
+          <div className="rounded-3xl bg-primary/10 p-5 text-sm text-foreground">
+            Exportiere Erinnerungen für Morgen, Mittag und Abend als `.ics`.
+          </div>
+          <button
+            type="button"
+            onClick={() => downloadIcs(draft)}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
+          >
+            <Download className="h-4 w-4" /> .ics herunterladen
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-4 pb-32">
-      {/* Header */}
-      <header className="pt-2 animate-fade-up">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">
-          {new Date(log.date).toLocaleDateString("de-DE", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold text-foreground">
-          {isToday ? greeting : "Tageslog"}
-        </h1>
+      <header className="pt-2">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">clar v2</p>
+        <h1 className="mt-1 text-2xl font-semibold">Beobachtungsperiode einrichten</h1>
       </header>
-
-      {/* Doses */}
-      <SectionCard
-        title="Heutige Dosen"
-        subtitle={`${log.doses.length} ${log.doses.length === 1 ? "Dosis" : "Dosen"} erfasst`}
-      >
-        <div className="space-y-2">
-          {log.doses.map((d) => (
-            <div
-              key={d.id}
-              className="flex items-center gap-2 rounded-xl border border-border bg-background/40 p-3"
+      <SectionCard title={steps[step].title} subtitle={`Schritt ${step + 1} von 6`}>
+        {steps[step].body}
+        <div className="mt-5 flex items-center justify-between">
+          <button
+            type="button"
+            disabled={step === 0}
+            onClick={() => setStep((value) => Math.max(0, value - 1))}
+            className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold text-primary disabled:opacity-40"
+          >
+            <ChevronLeft className="h-4 w-4" /> Zurück
+          </button>
+          {step === steps.length - 1 ? (
+            <button
+              type="button"
+              onClick={() => savePeriod(settings, draft, onSettingsChange)}
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
             >
-              {d.type === "instant" ? (
-                <Zap className="h-4 w-4 text-primary" />
-              ) : d.type === "retard" ? (
-                <Clock className="h-4 w-4 text-primary" />
-              ) : d.type === "antidepressant" ? (
-                <Heart className="h-4 w-4 text-primary" />
-              ) : (
-                <Pill className="h-4 w-4 text-primary" />
-              )}
-              <input
-                value={d.name}
-                onChange={(e) => updateDose(d.id, { name: e.target.value })}
-                className="flex-1 bg-transparent text-sm font-medium text-foreground outline-none"
-              />
-              <input
-                type="number"
-                value={d.mg}
-                onChange={(e) => updateDose(d.id, { mg: Number(e.target.value) })}
-                className="w-14 bg-transparent text-right text-sm text-muted-foreground outline-none"
-              />
-              <span className="text-xs text-muted-foreground">mg</span>
-              <input
-                type="time"
-                value={d.time}
-                onChange={(e) => updateDose(d.id, { time: e.target.value })}
-                className="rounded-md bg-secondary px-2 py-1 text-xs text-foreground outline-none [color-scheme:dark]"
-              />
-              <button
-                onClick={() => removeDose(d.id)}
-                className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:bg-destructive/20 hover:text-destructive"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ))}
-          {settings.medications.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-border py-3 text-center text-xs text-muted-foreground">
-              Noch keine Medikamente hinterlegt — füge sie in den Einstellungen hinzu.
-            </p>
+              <Check className="h-4 w-4" /> Periode starten
+            </button>
           ) : (
-            <div
-              className={`grid gap-2 ${settings.medications.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}
+            <button
+              type="button"
+              onClick={() => setStep((value) => Math.min(steps.length - 1, value + 1))}
+              className="inline-flex items-center gap-1 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
             >
-              {settings.medications.map((med) => (
-                <button
-                  key={med.id}
-                  onClick={() => addDoseFromMed(med)}
-                  className="flex flex-col items-center gap-1 rounded-xl border border-dashed border-border py-3 text-sm font-medium text-primary transition-colors hover:bg-primary/10 active:scale-[0.98]"
-                >
-                  <span className="flex items-center gap-1.5">
-                    {med.type === "retard" ? (
-                      <Clock className="h-4 w-4" />
-                    ) : med.type === "instant" ? (
-                      <Zap className="h-4 w-4" />
-                    ) : (
-                      <Heart className="h-4 w-4" />
-                    )}
-                    <Plus className="h-3 w-3" />
-                  </span>
-                  <span className="text-xs">
-                    {med.name} · {med.mg} mg
-                  </span>
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    {med.type === "retard"
-                      ? "Retard"
-                      : med.type === "instant"
-                        ? "Bei Bedarf"
-                        : "Sonstige"}
-                  </span>
-                </button>
-              ))}
-            </div>
+              Weiter <ChevronRight className="h-4 w-4" />
+            </button>
           )}
         </div>
       </SectionCard>
+    </div>
+  );
+}
 
-      {/* Wirkungsfenster */}
-      <>
-          <SectionCard
-            title="Wirkungsfenster"
-            subtitle="Ziehe Start, Peak und Ende über den Tagesverlauf."
-          >
-            <EffectCurve
-              onset={log.effect.onset}
-              peak={log.effect.peak}
-              wornOff={log.effect.wornOff}
-              points={log.effect.points}
-              doses={log.doses}
-              moods={moodEntries.map((e) => ({
-                id: e.id,
-                time: e.time,
-                emoji: moodById(e.mood)?.emoji ?? "•",
-                label: moodById(e.mood)?.label ?? e.mood,
-              }))}
-              activities={activityEntries.map((e) => ({
-                id: e.id,
-                time: e.time,
-                emoji: activityById(e.activity)?.emoji ?? "•",
-                label: activityById(e.activity)?.label ?? e.activity,
-              }))}
-              onChange={(next) =>
-                onChange({ effect: { ...log.effect, ...next } })
-              }
-            />
-            <div className="mt-3 flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Rebound?</span>
-              <Chip
-                active={log.effect.rebound === true}
-                onClick={() => onChange({ effect: { ...log.effect, rebound: true } })}
-              >
-                Ja
-              </Chip>
-              <Chip
-                active={log.effect.rebound === false}
-                onClick={() => onChange({ effect: { ...log.effect, rebound: false } })}
-              >
-                Nein
-              </Chip>
-            </div>
-          </SectionCard>
+function ScaleInput({ value, onChange }: { value?: number; onChange: (value: number) => void }) {
+  return (
+    <div className="grid grid-cols-5 gap-2">
+      {[1, 2, 3, 4, 5].map((item) => (
+        <button
+          key={item}
+          type="button"
+          onClick={() => onChange(item)}
+          className={`rounded-2xl py-3 text-sm font-semibold ${
+            value === item ? "bg-primary text-primary-foreground" : "bg-card text-primary"
+          }`}
+        >
+          {item}
+        </button>
+      ))}
+    </div>
+  );
+}
 
-          {/* Auswertung */}
-          <SectionCard
-            title="Auswertung"
-            subtitle="Was deine Einträge heute zeigen — automatisch abgeleitet."
-          >
-            <CurveInsights log={log} />
-          </SectionCard>
+function BooleanInput({
+  value,
+  onChange,
+}: {
+  value?: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {[
+        [true, "Ja"],
+        [false, "Nein"],
+      ].map(([bool, label]) => (
+        <button
+          key={String(bool)}
+          type="button"
+          onClick={() => onChange(Boolean(bool))}
+          className={`rounded-2xl border p-4 text-sm font-semibold ${
+            value === bool
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border bg-card text-foreground"
+          }`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
-          {/* Stimmung */}
-          <SectionCard
-            title="Stimmung im Tagesverlauf"
-            subtitle="Wann hast du wie was erlebt? Tippe eine Stimmung — sie wird mit der aktuellen Uhrzeit erfasst."
-          >
-            {moodEntries.length > 0 && (
-              <ul className="mb-3 space-y-2">
-                {[...moodEntries]
-                  .sort((a, b) => a.time.localeCompare(b.time))
-                  .map((e) => {
-                    const m = moodById(e.mood);
-                    return (
-                      <li
-                        key={e.id}
-                        className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2"
-                      >
-                        <input
-                          type="time"
-                          value={e.time}
-                          onChange={(ev) => updateMood(e.id, { time: ev.target.value })}
-                          className="rounded-md bg-background/40 px-2 py-1 text-xs text-foreground outline-none"
-                        />
-                        <span className="text-base">{m?.emoji ?? "•"}</span>
-                        <span className="flex-1 text-sm text-foreground">
-                          {m?.label ?? e.mood}
-                        </span>
-                        <button
-                          onClick={() => removeMood(e.id)}
-                          className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
-                          aria-label="Entfernen"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </li>
-                    );
-                  })}
-              </ul>
-            )}
-            <div className="flex flex-wrap gap-2">
-              {MOODS.map((m) => (
-                <Chip key={m.id} onClick={() => addMood(m.id)}>
-                  <span>{m.emoji}</span>
-                  <span>{m.label}</span>
-                </Chip>
-              ))}
-            </div>
-          </SectionCard>
+function WizardInput({
+  item,
+  answer,
+  onAnswer,
+}: {
+  item: WellbeingItem;
+  answer?: WellbeingAnswer;
+  onAnswer: (answer: WellbeingAnswer) => void;
+}) {
+  const setValue = (value: WellbeingAnswer["value"], time?: string) =>
+    onAnswer({ itemId: item.id, slot: answer?.slot ?? "morning", value, time });
 
-          {/* Tätigkeiten */}
-          <SectionCard
-            title="Tätigkeiten im Tagesverlauf"
-            subtitle="Was hast du wann getan? Wird über der Kurve markiert."
+  if (item.kind === "boolean") {
+    return <BooleanInput value={answer?.value as boolean | undefined} onChange={setValue} />;
+  }
+  if (item.kind === "multiselect") {
+    const selected = (answer?.value as string[] | undefined) ?? [];
+    return (
+      <div className="flex flex-wrap gap-2">
+        {(item.options ?? []).map((option) => (
+          <Chip
+            key={option}
+            active={selected.includes(option)}
+            onClick={() =>
+              setValue(
+                selected.includes(option)
+                  ? selected.filter((entry) => entry !== option)
+                  : [...selected, option],
+              )
+            }
           >
-            {activityEntries.length > 0 && (
-              <ul className="mb-3 space-y-2">
-                {[...activityEntries]
-                  .sort((a, b) => a.time.localeCompare(b.time))
-                  .map((e) => {
-                    const a = activityById(e.activity);
-                    return (
-                      <li
-                        key={e.id}
-                        className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2"
-                      >
-                        <input
-                          type="time"
-                          value={e.time}
-                          onChange={(ev) =>
-                            updateActivity(e.id, { time: ev.target.value })
-                          }
-                          className="rounded-md bg-background/40 px-2 py-1 text-xs text-foreground outline-none"
-                        />
-                        <span className="text-base">{a?.emoji ?? "•"}</span>
-                        <span className="flex-1 text-sm text-foreground">
-                          {a?.label ?? e.activity}
-                        </span>
-                        <button
-                          onClick={() => removeActivity(e.id)}
-                          className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
-                          aria-label="Entfernen"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </li>
-                    );
-                  })}
-              </ul>
-            )}
-            <div className="flex items-center gap-2 text-muted-foreground mb-2">
-              <Briefcase className="h-4 w-4" />
-              <span className="text-xs">Hinzufügen</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {ACTIVITIES.map((a) => (
-                <Chip key={a.id} onClick={() => addActivity(a.id)}>
-                  <span>{a.emoji}</span>
-                  <span>{a.label}</span>
-                </Chip>
-              ))}
-            </div>
-          </SectionCard>
+            {option}
+          </Chip>
+        ))}
+      </div>
+    );
+  }
+  if (item.kind === "time") {
+    return (
+      <input
+        type="time"
+        value={answer?.time ?? ""}
+        onChange={(event) => setValue(event.target.value, event.target.value)}
+        className="w-full rounded-2xl border border-border bg-card p-4 text-lg font-semibold text-primary outline-none focus:border-primary"
+      />
+    );
+  }
+  return <ScaleInput value={answer?.value as number | undefined} onChange={setValue} />;
+}
 
-          {/* Schlaf */}
-          <SectionCard
-            title="Schlaf"
-            subtitle="So habe ich letzte Nacht geschlafen."
-          >
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Moon className="h-4 w-4" />
-              <span className="text-xs">Dauer</span>
-            </div>
-            <label className="mt-2 block">
-              <input
-                type="number"
-                step="0.5"
-                min="0"
-                max="14"
-                value={log.sleepHours ?? ""}
-                onChange={(e) =>
-                  onChange({ sleepHours: e.target.value ? Number(e.target.value) : undefined })
-                }
-                placeholder="Stunden, z. B. 7,5"
-                className="w-full rounded-lg border border-border bg-background/40 px-3 py-2.5 text-sm text-foreground outline-none"
+function SlotWizard({
+  slot,
+  log,
+  period,
+  items,
+  onClose,
+  onChange,
+}: {
+  slot: TimeSlot;
+  log: DayLog;
+  period: ObservationPeriod;
+  items: WellbeingItem[];
+  onClose: () => void;
+  onChange: Props["onChange"];
+}) {
+  const slotLog = log.slots[slot];
+  const questions = items.filter(
+    (item) =>
+      period.selectedWellbeingIds.includes(item.id) &&
+      (period.wellbeingSlots[item.id] ?? TIME_SLOTS).includes(slot),
+  );
+  const [index, setIndex] = useState(0);
+  const total = questions.length + 2;
+
+  const patchSlot = (patch: Partial<typeof slotLog>) => {
+    onChange({
+      slots: {
+        ...log.slots,
+        [slot]: { ...slotLog, status: "in_progress", ...patch },
+      },
+    });
+  };
+
+  const medQuestion = index === 0;
+  const noteQuestion = index === total - 1;
+  const item = questions[index - 1];
+
+  return (
+    <div className="fixed inset-0 z-30 bg-background/95 px-4 py-6 backdrop-blur">
+      <div className="mx-auto flex h-full max-w-md flex-col">
+        <div className="mb-4 flex items-center justify-between">
+          <button type="button" onClick={onClose} className="text-sm font-semibold text-primary">
+            Schließen
+          </button>
+          <span className="text-xs font-semibold text-muted-foreground">
+            {index + 1}/{total}
+          </span>
+        </div>
+        <div className="flex-1 rounded-3xl border border-border bg-card p-5">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+            {SLOT_LABELS[slot]}
+          </p>
+          {medQuestion && (
+            <div className="mt-4 space-y-4">
+              <h2 className="text-2xl font-semibold">Medikament genommen?</h2>
+              <BooleanInput
+                value={slotLog.medicationTaken}
+                onChange={(value) => patchSlot({ medicationTaken: value })}
               />
-            </label>
+              <label className="block rounded-2xl border border-border bg-background p-4">
+                <span className="text-xs font-semibold text-muted-foreground">Uhrzeit</span>
+                <input
+                  type="time"
+                  value={slotLog.medicationTime ?? period.timeSlots[slot]}
+                  onChange={(event) => patchSlot({ medicationTime: event.target.value })}
+                  className="mt-2 w-full bg-transparent text-lg font-semibold text-primary outline-none"
+                />
+              </label>
+            </div>
+          )}
+          {item && (
+            <div className="mt-4 space-y-5">
+              <h2 className="text-2xl font-semibold">{item.label}</h2>
+              <WizardInput
+                item={item}
+                answer={slotLog.answers[item.id]}
+                onAnswer={(answer) =>
+                  patchSlot({
+                    answers: {
+                      ...slotLog.answers,
+                      [item.id]: { ...answer, slot },
+                    },
+                  })
+                }
+              />
+            </div>
+          )}
+          {noteQuestion && (
+            <div className="mt-4 space-y-4">
+              <h2 className="text-2xl font-semibold">Optionale Notiz</h2>
+              <textarea
+                value={slotLog.note ?? ""}
+                onChange={(event) => patchSlot({ note: event.target.value })}
+                placeholder="Was ist für diesen Zeitpunkt wichtig?"
+                className="min-h-40 w-full resize-none rounded-2xl border border-border bg-background p-4 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
+              />
+            </div>
+          )}
+        </div>
+        <div className="mt-4 flex justify-between">
+          <button
+            type="button"
+            disabled={index === 0}
+            onClick={() => setIndex((value) => Math.max(0, value - 1))}
+            className="rounded-full px-4 py-2 text-sm font-semibold text-primary disabled:opacity-40"
+          >
+            Zurück
+          </button>
+          {index === total - 1 ? (
+            <button
+              type="button"
+              onClick={() => {
+                patchSlot({ status: "done" });
+                onClose();
+              }}
+              className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              Fertig
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIndex((value) => Math.min(total - 1, value + 1))}
+              className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              Weiter
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-            <div className="mt-4 flex items-center gap-2 text-muted-foreground">
-              <span className="text-xs">Qualität</span>
-            </div>
-            <div className="mt-2 flex gap-2">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => onChange({ sleepQuality: n })}
-                  className={`flex-1 rounded-xl border py-3 text-sm font-semibold transition-all active:scale-95 ${
-                    log.sleepQuality === n
-                      ? "border-primary bg-primary-soft text-foreground"
-                      : "border-border bg-card text-muted-foreground"
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
+export function TodayView({ log, settings, onChange, onSettingsChange }: Props) {
+  const period = getActivePeriod(settings);
+  const [activeSlot, setActiveSlot] = useState<TimeSlot | null>(null);
+  const items = useMemo(() => availableWellbeingItems(settings), [settings]);
 
-            <div className="mt-4 flex items-center gap-2 text-muted-foreground">
-              <span className="text-xs">Wie oft aufgewacht</span>
-            </div>
-            <div className="mt-2 flex gap-2">
-              {[0, 1, 2, 3, 4].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => onChange({ sleepWakeups: n })}
-                  className={`flex-1 rounded-xl border py-3 text-sm font-semibold transition-all active:scale-95 ${
-                    log.sleepWakeups === n
-                      ? "border-primary bg-primary-soft text-foreground"
-                      : "border-border bg-card text-muted-foreground"
-                  }`}
-                >
-                  {n === 4 ? "4+" : n}
-                </button>
-              ))}
-            </div>
-          </SectionCard>
+  if (!period) {
+    return <Onboarding settings={settings} onSettingsChange={onSettingsChange} />;
+  }
 
-          {/* Appetit */}
-          <SectionCard title="Appetit">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Utensils className="h-4 w-4" />
-              <span className="text-xs">Heute war eher…</span>
-            </div>
-            <div className="mt-2 grid grid-cols-4 gap-2">
-              {APPETITE.map((a) => a && (
-                <button
-                  key={a}
-                  onClick={() => onChange({ appetite: a })}
-                  className={`rounded-xl border py-2.5 text-xs font-medium transition-all active:scale-95 ${
-                    log.appetite === a
-                      ? "border-primary bg-primary-soft text-foreground"
-                      : "border-border bg-card text-muted-foreground"
-                  }`}
-                >
-                  {APPETITE_LABEL[a]}
-                </button>
-              ))}
-            </div>
-          </SectionCard>
+  return (
+    <div className="space-y-4 pb-32">
+      <header className="pt-2">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">
+          {new Date(log.date).toLocaleDateString("de-DE", {
+            weekday: "long",
+            day: "2-digit",
+            month: "long",
+          })}
+        </p>
+        <h1 className="mt-1 text-2xl font-semibold text-foreground">Heute erfassen</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{period.name}</p>
+      </header>
 
-          {/* Nebenwirkungen */}
-          <SectionCard title="Nebenwirkungen" subtitle="Alles, was heute spürbar war.">
-            <div className="flex items-center gap-2 text-muted-foreground mb-2">
-              <Activity className="h-4 w-4" />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {SIDE_EFFECTS.map((s) => (
-                <Chip key={s} active={log.sideEffects.includes(s)} onClick={() => toggleSide(s)}>
-                  {s}
-                </Chip>
-              ))}
-            </div>
-          </SectionCard>
-
-          {/* Tagesbewertung */}
-          <SectionCard title="Tag insgesamt">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Smile className="h-4 w-4" />
-                <span className="text-xs">Bewertung 1–10</span>
+      <div className="grid gap-3">
+        {TIME_SLOTS.map((slot) => {
+          const slotLog = log.slots[slot];
+          const answerCount = Object.keys(slotLog.answers).length;
+          return (
+            <button
+              key={slot}
+              type="button"
+              onClick={() => setActiveSlot(slot)}
+              className="rounded-3xl border border-border bg-card p-5 text-left shadow-sm transition-transform active:scale-[0.99]"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="mb-3 grid h-11 w-11 place-items-center rounded-2xl bg-primary text-primary-foreground">
+                    {slot === "morning" ? (
+                      <CalendarDays className="h-5 w-5" />
+                    ) : slot === "midday" ? (
+                      <Pill className="h-5 w-5" />
+                    ) : (
+                      <Clock className="h-5 w-5" />
+                    )}
+                  </div>
+                  <h2 className="text-xl font-semibold">{SLOT_LABELS[slot]}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Start um {period.timeSlots[slot]} · {answerCount} Antworten
+                  </p>
+                </div>
+                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                  {statusLabel(slotLog.status)}
+                </span>
               </div>
-              <span className="text-2xl font-semibold text-primary">
-                {log.rating ?? "—"}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={1}
-              max={10}
-              value={log.rating ?? 5}
-              onChange={(e) => onChange({ rating: Number(e.target.value) })}
-              className="mt-3 w-full accent-[var(--primary)]"
-            />
-          </SectionCard>
+            </button>
+          );
+        })}
+      </div>
 
-          {/* Notiz */}
-          <SectionCard title="Notiz" subtitle="Alles, was du dir merken möchtest.">
-            <textarea
-              value={log.note ?? ""}
-              onChange={(e) => onChange({ note: e.target.value })}
-              rows={3}
-              placeholder="Produktiver Morgen, aber gegen 16 Uhr ausgelaugt…"
-              className="w-full resize-none rounded-lg border border-border bg-background/40 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none"
-            />
-          </SectionCard>
-      </>
+      <SectionCard title="Heute im Blick" subtitle="Keine Kurven mehr: eine Frage pro Seite.">
+        <div className="grid grid-cols-3 gap-2 text-center">
+          {TIME_SLOTS.map((slot) => (
+            <div key={slot} className="rounded-2xl bg-primary/10 p-3">
+              <p className="text-xs text-muted-foreground">{SLOT_LABELS[slot]}</p>
+              <p className="mt-1 text-lg font-semibold text-primary">
+                {log.slots[slot].status === "done" ? "✓" : "–"}
+              </p>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      {activeSlot && (
+        <SlotWizard
+          slot={activeSlot}
+          log={log}
+          period={period}
+          items={items}
+          onClose={() => setActiveSlot(null)}
+          onChange={onChange}
+        />
+      )}
     </div>
   );
 }
