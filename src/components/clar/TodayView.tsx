@@ -824,7 +824,16 @@ function emotionStyle(val: number, positive: boolean | null, selected: boolean):
 function EmotionsInput({ value, onChange, childMode }: { value?: Record<string, number>; onChange: (value: Record<string, number>) => void; childMode?: boolean }) {
   const current = value ?? {};
   // Kindgerechte Emotions-Gruppen: reduziert auf wesentliche Gefühle
-  const CHILD_EMOTIONS = ["Traurig", "Wütend", "Ängstlich", "Ich fühle gar nichts", "Ruhig und okay", "Froh / glücklich", "Aufgeregt"];
+  const CHILD_EMOTIONS_CONFIG = [
+    { name: "Traurig",              color: "#85B7EB", textColor: "#0C447C" },
+    { name: "Wütend",               color: "#E24B4A", textColor: "#501313" },
+    { name: "Ängstlich",            color: "#F0997B", textColor: "#712B13" },
+    { name: "Ich fühle gar nichts", color: "#B4B2A9", textColor: "#444441" },
+    { name: "Ruhig und okay",        color: "#9FE1CB", textColor: "#085041" },
+    { name: "Froh / glücklich",     color: "#C0DD97", textColor: "#27500A" },
+    { name: "Aufgeregt",             color: "#FAC775", textColor: "#633806" },
+  ];
+  const CHILD_EMOTIONS = CHILD_EMOTIONS_CONFIG.map(e => e.name);
   const displayGroups = childMode
     ? [{ label: "Gefühle", positive: null, emotions: CHILD_EMOTIONS }]
     : EMOTION_GROUPS;
@@ -834,28 +843,43 @@ function EmotionsInput({ value, onChange, childMode }: { value?: Record<string, 
         <div key={group.label}>
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
           <div className="space-y-3">
-            {group.emotions.map((emotion) => (
+            {group.emotions.map((emotion) => {
+              const childCfg = childMode ? CHILD_EMOTIONS_CONFIG.find(e => e.name === emotion) : undefined;
+              return (
               <div key={emotion} className="rounded-xl border border-border bg-card px-3 py-3">
                 <p className="mb-2 text-sm font-medium">{childMode ? (CHILD_EMOTION_NAMES[emotion] ?? emotion) : emotion}</p>
-                <div className="grid grid-cols-4 gap-1 mb-1">
-                  {SCALE_STEPS.map((step) => (
-                    <button
-                      key={step.val}
-                      type="button"
-                      onClick={() => onChange({ ...current, [emotion]: step.val })}
-                      style={emotionStyle(step.val, group.positive, current[emotion] === step.val)}
-                      className="rounded-xl border py-2 text-[11px] font-semibold transition-all"
-                    >
-                      {step.label}
-                    </button>
-                  ))}
-                </div>
+                {childMode && childCfg ? (
+                  <div className="grid grid-cols-4 gap-1 mb-1">
+                    {SCALE_STEPS.map((step) => (
+                      <button key={step.val} type="button"
+                        onClick={() => onChange({ ...current, [emotion]: step.val })}
+                        className="rounded-xl border py-2 text-[11px] font-semibold transition-all"
+                        style={current[emotion] === step.val
+                          ? { background: childCfg.color, color: childCfg.textColor, borderColor: childCfg.color }
+                          : { background: "transparent", color: "#888780", borderColor: "#e0dfd8" }}>
+                        {step.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 gap-1 mb-1">
+                    {SCALE_STEPS.map((step) => (
+                      <button key={step.val} type="button"
+                        onClick={() => onChange({ ...current, [emotion]: step.val })}
+                        style={emotionStyle(step.val, group.positive, current[emotion] === step.val)}
+                        className="rounded-xl border py-2 text-[11px] font-semibold transition-all">
+                        {step.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="flex justify-between text-[9px] text-muted-foreground px-0.5">
                   <span>{group.positive === false ? "trifft gar nicht zu" : "gar nicht"}</span>
                   <span>{group.positive === false ? "trifft voll zu" : "sehr stark"}</span>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ))}
