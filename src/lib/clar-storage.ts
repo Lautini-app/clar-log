@@ -181,6 +181,46 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
   },
 ];
 
+export type ObserverRole = "parent" | "teacher" | "other";
+export type ObserverStatus = "pending" | "active";
+
+export type Observer = {
+  id: string;
+  ownerId: string;
+  observerUserId?: string;
+  email: string;
+  role: ObserverRole;
+  name?: string;
+  status: ObserverStatus;
+  createdAt: string;
+};
+
+export type TeacherLink = {
+  id: string;
+  ownerId: string;
+  periodId: string;
+  token: string;
+  active: boolean;
+  createdAt: string;
+  expiresAt: string;
+};
+
+export type ObserverObservation = {
+  id: string;
+  ownerId: string;
+  periodId: string;
+  date: string;
+  observerUserId?: string;
+  observerName?: string;
+  mood?: number;
+  behavior?: number;
+  concentration?: number;
+  note?: string;
+  createdAt: string;
+};
+
+export const MAX_OBSERVERS = 4;
+
 export type ObservationPeriod = {
   id: string;
   profile: ProfileType;

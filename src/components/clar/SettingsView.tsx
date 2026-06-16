@@ -1,20 +1,25 @@
 import { MedicationEditor } from "@/components/clar/TodayView";
-import { useState } from "react";
-import { Download, Loader2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Copy, Download, Loader2, Plus, Trash2 } from "lucide-react";
 
 import { SectionCard } from "./SectionCard";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteAccount } from "@/lib/account.functions";
 import { deleteAllUserData } from "@/lib/clar-sync";
+import { getActiveTeacherLink, inviteObserver, listObservers, removeObserver, rotateTeacherLink } from "@/lib/clar-observers";
 import type {
   Medication,
   MedicationType,
+  Observer,
+  ObserverRole,
   ObservationPeriod,
   Settings,
+  TeacherLink,
   TimeSlot,
   WellbeingItem,
 } from "@/lib/clar-storage";
 import {
+  MAX_OBSERVERS,
   MEDICATION_TYPE_LABELS,
   SLOT_LABELS,
   TIME_SLOTS,
@@ -23,6 +28,177 @@ import {
   createPeriod,
   getActivePeriod,
 } from "@/lib/clar-storage";
+
+const OBSERVER_ROLE_LABELS: Record<ObserverRole, string> = {
+  parent: "Elternteil",
+  teacher: "Lehrperson",
+  other: "Andere",
+};
+
+function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
+  const [observers, setObservers] = useState<Observer[]>([]);
+  const [teacherLink, setTeacherLink] = useState<TeacherLink | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<ObserverRole>("parent");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      const [obs, link] = await Promise.all([
+        listObservers(ownerId),
+        getActiveTeacherLink(ownerId, periodId),
+      ]);
+      setObservers(obs);
+      setTeacherLink(link);
+    } catch (err) {
+      console.warn("[clar] Beobachter laden fehlgeschlagen:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refresh();
+  }, [ownerId, periodId]);
+
+  const handleInvite = async () => {
+    const trimmed = email.trim();
+    if (!trimmed) return;
+    if (observers.length >= MAX_OBSERVERS) {
+      setError(`Maximal ${MAX_OBSERVERS} Beobachter pro Periode.`);
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await inviteObserver(ownerId, trimmed, role);
+      setEmail("");
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Einladung fehlgeschlagen.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRemove = async (observerId: string) => {
+    setBusy(true);
+    try {
+      await removeObserver(observerId);
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRotateLink = async () => {
+    setBusy(true);
+    try {
+      const link = await rotateTeacherLink(ownerId, periodId);
+      setTeacherLink(link);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const linkUrl = teacherLink && typeof window !== "undefined" ? `${window.location.origin}/beobachtung/${teacherLink.token}` : null;
+
+  if (loading) {
+    return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        {observers.length === 0 && <p className="text-sm text-muted-foreground">Noch keine Beobachter eingeladen.</p>}
+        {observers.map((observer) => (
+          <div key={observer.id} className="flex items-center gap-2 rounded-2xl border border-border bg-background p-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{observer.email}</p>
+              <p className="text-xs text-muted-foreground">
+                {OBSERVER_ROLE_LABELS[observer.role]} · {observer.status === "active" ? "Aktiv" : "Einladung ausstehend"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleRemove(observer.id)}
+              disabled={busy}
+              className="grid h-9 w-9 place-items-center rounded-full text-primary transition-colors hover:bg-primary/10 disabled:opacity-40"
+              aria-label="Beobachter entfernen"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {observers.length < MAX_OBSERVERS && (
+        <div className="space-y-2 rounded-2xl border border-border bg-background p-3">
+          <input
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="email@beispiel.de"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
+          />
+          <div className="grid grid-cols-3 gap-2">
+            {(Object.keys(OBSERVER_ROLE_LABELS) as ObserverRole[]).map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setRole(key)}
+                className={`rounded-xl border py-2 text-xs font-semibold ${
+                  role === key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"
+                }`}
+              >
+                {OBSERVER_ROLE_LABELS[key]}
+              </button>
+            ))}
+          </div>
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          <button
+            type="button"
+            onClick={handleInvite}
+            disabled={busy || !email.trim()}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+          >
+            <Plus className="h-4 w-4" /> Beobachter einladen
+          </button>
+        </div>
+      )}
+
+      <div className="space-y-2 rounded-2xl border border-border bg-background p-3">
+        <p className="text-xs font-semibold text-muted-foreground">Lehrperson-Link (ohne Login, 7 Tage gültig)</p>
+        {linkUrl ? (
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
+            <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{linkUrl}</span>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText(linkUrl)}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-primary hover:bg-primary/10"
+              aria-label="Link kopieren"
+            >
+              <Copy className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">Noch kein Link erstellt.</p>
+        )}
+        <button
+          type="button"
+          onClick={handleRotateLink}
+          disabled={busy}
+          className="w-full rounded-2xl border border-border bg-card p-2.5 text-sm font-semibold text-primary disabled:opacity-40"
+        >
+          {teacherLink ? "Neuen Link erstellen" : "Link erstellen"}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 type Props = {
   settings: Settings;
@@ -332,6 +508,12 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
               onChange={(medications) => updateActivePeriod({ medications })}
             />
           </SectionCard>
+
+          {userId && (
+            <SectionCard title="Beobachter" subtitle={`Bis zu ${MAX_OBSERVERS} Personen — Eltern, Lehrperson, Andere.`}>
+              <ObserverSettings ownerId={userId} periodId={activePeriod.id} />
+            </SectionCard>
+          )}
         </>
       )}
 

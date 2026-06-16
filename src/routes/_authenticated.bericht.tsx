@@ -16,6 +16,6 @@ export const Route = createFileRoute("/_authenticated/bericht")({
 });
 
 function BerichtRoute() {
-  const { store } = useStore();
-  return <ReportView logs={store.logs} settings={store.settings} />;
+  const { store, userId } = useStore();
+  return <ReportView logs={store.logs} settings={store.settings} ownerId={userId} />;
 }

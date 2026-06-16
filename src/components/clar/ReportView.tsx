@@ -1,12 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { SectionCard } from "./SectionCard";
-import type { DayLog, Settings, WellbeingAnswer } from "@/lib/clar-storage";
+import type { DayLog, ObserverObservation, Settings, WellbeingAnswer } from "@/lib/clar-storage";
 import { SLOT_LABELS, TIME_SLOTS, WELLBEING_CATALOG, getActivePeriod } from "@/lib/clar-storage";
+import { listObserverObservations } from "@/lib/clar-observers";
 
 type Props = {
   logs: Record<string, DayLog>;
   settings: Settings;
+  ownerId?: string | null;
 };
 
 const FILTERS = [7, 14, 30] as const;
@@ -51,9 +53,21 @@ function ChartFrame({ title, children }: { title: string; children: React.ReactN
   );
 }
 
-export function ReportView({ logs, settings }: Props) {
+export function ReportView({ logs, settings, ownerId }: Props) {
   const [range, setRange] = useState<(typeof FILTERS)[number]>(14);
+  const [observations, setObservations] = useState<ObserverObservation[]>([]);
   const period = getActivePeriod(settings);
+
+  useEffect(() => {
+    if (!ownerId || !period) {
+      setObservations([]);
+      return;
+    }
+    listObserverObservations(ownerId, period.id)
+      .then(setObservations)
+      .catch((err) => console.warn("[clar] Beobachtungen laden fehlgeschlagen:", err));
+  }, [ownerId, period?.id]);
+
   const days = useMemo(
     () =>
       Object.values(logs)
@@ -132,6 +146,39 @@ export function ReportView({ logs, settings }: Props) {
           })}
         </div>
       </SectionCard>
+
+      {observations.length > 0 && (
+        <SectionCard title="Perspektivenvergleich" subtitle="Eigene Einträge neben Fremdbeobachtungen (Eltern, Lehrperson).">
+          <div className="space-y-3">
+            {observations
+              .filter((entry) => days.some((day) => day.date === entry.date))
+              .sort((a, b) => b.date.localeCompare(a.date))
+              .map((entry) => {
+                const day = days.find((d) => d.date === entry.date);
+                const moodValue = day ? asNumber(collectAnswer(day, "base_mood")) : undefined;
+                return (
+                  <div key={entry.id} className="rounded-3xl border border-border bg-background p-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h3 className="text-sm font-semibold">{dateLabel(entry.date)}</h3>
+                      <span className="text-xs text-muted-foreground">{entry.observerName ?? "Beobachter"}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="rounded-2xl bg-primary/10 p-2 text-center">
+                        <p className="text-muted-foreground">Eigene Stimmung</p>
+                        <p className="font-semibold text-primary">{moodValue ?? "–"}</p>
+                      </div>
+                      <div className="rounded-2xl bg-primary/10 p-2 text-center">
+                        <p className="text-muted-foreground">Fremdeinschätzung</p>
+                        <p className="font-semibold text-primary">{entry.mood ?? "–"}</p>
+                      </div>
+                    </div>
+                    {entry.note && <p className="mt-2 text-xs text-muted-foreground">„{entry.note}“</p>}
+                  </div>
+                );
+              })}
+          </div>
+        </SectionCard>
+      )}
 
       <ChartFrame title="Schlaf-Balken">
         <div className="flex h-32 items-end gap-2">
