@@ -786,16 +786,15 @@ function SpeakButton({ text }: { text: string }) {
 }
 
 const CHILD_FACES = [
-  { value: 1, emoji: "😢", color: "bg-red-100 border-red-300 text-red-600" },
-  { value: 2, emoji: "🙁", color: "bg-orange-100 border-orange-300 text-orange-600" },
-  { value: 3, emoji: "😐", color: "bg-yellow-100 border-yellow-300 text-yellow-700" },
-  { value: 4, emoji: "🙂", color: "bg-lime-100 border-lime-300 text-lime-700" },
-  { value: 5, emoji: "😄", color: "bg-green-100 border-green-300 text-green-700" },
+  { value: 1, emoji: "🙁", color: "bg-orange-100 border-orange-300 text-orange-600" },
+  { value: 2, emoji: "😐", color: "bg-yellow-100 border-yellow-300 text-yellow-700" },
+  { value: 3, emoji: "🙂", color: "bg-lime-100 border-lime-300 text-lime-700" },
+  { value: 4, emoji: "😄", color: "bg-green-100 border-green-300 text-green-700" },
 ];
 
 function ChildScaleInput({ value, onChange }: { value?: number; onChange: (value: number) => void }) {
   return (
-    <div className="grid grid-cols-5 gap-2">
+    <div className="grid grid-cols-4 gap-2">
       {CHILD_FACES.map((face) => (
         <button
           key={face.value}
