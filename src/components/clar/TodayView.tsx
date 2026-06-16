@@ -629,6 +629,7 @@ const CHILD_EXCLUDED_ITEMS = new Set([
   "emotional_outbursts", // Emotionale Ausbrüche → Eltern beurteilen
   "drive",             // Antrieb → zu abstrakt
   "base_mood",         // Grundstimmung → abgedeckt durch Emotionen
+  "racing_thoughts",   // Gedankenrasen → zu abstrakt für Kind unter 12
 ]);
 
 const CHILD_LABELS: Record<string, string> = {
@@ -646,6 +647,8 @@ const CHILD_LABELS: Record<string, string> = {
   base_mood:             "Wie geht es dir insgesamt?",
   hunger:                "Hast du Hunger?",
   appetite:              "Hast du Lust zu essen?",
+  meal_hunger:           "Hast du Hunger?",
+  meal_appetite:         "Hast du Lust zu essen?",
   meal_eaten:            "Hast du gegessen?",
   meal_amount:           "Wie viel hast du gegessen?",
   breakfast_eaten:       "Hast du gefrühstückt?",
