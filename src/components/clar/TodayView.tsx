@@ -358,11 +358,11 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
         <div className="space-y-3">
           <label className="block rounded-2xl border border-border bg-card p-3">
             <span className="text-xs font-semibold text-muted-foreground">
-              {isParentFlow ? "Vorname des Kindes" : "Dein Vorname"}
+              {isParentFlow ? "Initialen des Kindes (z.B. L.M.)" : "Deine Initialen (z.B. R.B.)"}
             </span>
             <input
               value={draft.name.replace("Meine Periode", "")}
-              placeholder={isParentFlow ? "z.B. Luca" : "z.B. Jonas"}
+              placeholder={isParentFlow ? "z.B. L.M." : "z.B. R.B."}
               onChange={(event) => updateDraft({ name: event.target.value })}
               className="mt-1 w-full bg-transparent text-base font-semibold outline-none"
             />
