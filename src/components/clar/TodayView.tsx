@@ -1065,7 +1065,7 @@ function SlotWizard({
   const slotLog = localLog.slots[slot];
   const [groupIndex, setGroupIndex] = useState(0);
   const childMode = period.profile === "child_self" || period.profile === "child_parent" || period.profile === "child_both" || period.profile === "teen_self";
-  const speechEnabled = childMode || period.speechOutput === true;
+  const speechEnabled = period.speechOutput === true;
 
   const patchSlot = (patch: Partial<typeof slotLog>) => {
     const next: DayLog = { ...localLog, slots: { ...localLog.slots, [slot]: { ...slotLog, status: "in_progress", ...patch } } };
