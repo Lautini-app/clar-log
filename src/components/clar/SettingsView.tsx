@@ -254,7 +254,7 @@ function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId:
   );
 }
 
-function FamilySettings({ userId }: { userId: string }) {
+function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boolean }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState<"member" | "teen">("member");
@@ -366,7 +366,7 @@ function FamilySettings({ userId }: { userId: string }) {
             className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
           />
           <div className="grid grid-cols-2 gap-2">
-            {(["member", "teen"] as const).map((r) => (
+            {((childOnly ? ["teen"] : ["member", "teen"]) as const).map((r) => (
               <button key={r} type="button" onClick={() => setRole(r)}
                 className={`rounded-xl border py-2 text-xs font-semibold ${
                   role === r ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"
@@ -704,12 +704,26 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
             />
           </SectionCard>
 
-          {userId && (
-            <SectionCard title="Familie & Umfeld" subtitle="Bis zu 4 Mitglieder — erhalten eine Einladungs-E-Mail.">
-              <FamilySettings userId={userId} />
+          {/* Beobachter einladen: nur für Erwachsene (self) */}
+          {userId && activePeriod.profile === "self" && (
+            <SectionCard title="Beobachter" subtitle="Partner oder Familienmitglied — füllt täglich ein Kurzformular aus.">
+              <ObserverSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
-          {userId && (
+          {/* Kind/Jugendliche/r einladen: nur für Elternteile */}
+          {userId && (activePeriod.profile === "child_parent" || activePeriod.profile === "child_both") && (
+            <SectionCard title="Kind einladen" subtitle="Kind oder Jugendliche/r erhält Zugang auf eigenem Gerät.">
+              <FamilySettings userId={userId} childOnly />
+            </SectionCard>
+          )}
+          {/* Jugendliche/r einladen: für teen_self Elternteil */}
+          {userId && activePeriod.profile === "teen_self" && (
+            <SectionCard title="Jugendliche/r einladen" subtitle="Jugendliche/r erhält Zugang auf eigenem Gerät.">
+              <FamilySettings userId={userId} childOnly />
+            </SectionCard>
+          )}
+          {/* Lehrperson: für alle Profile mit Schulbezug */}
+          {userId && activePeriod.profile !== "self" && (
             <SectionCard title="Schule / Lehrperson" subtitle="Link ohne Login — 7 Tage gültig, keine personenbezogenen Daten.">
               <TeacherLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
@@ -786,5 +800,6 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
     </div>
   );
 }
+
 
 
