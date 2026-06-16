@@ -919,7 +919,7 @@ function SlotWizard({
                       className={`rounded-2xl border p-4 space-y-2 ${taken ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
                       <button
                         type="button"
-                        onClick={() => { console.log("[med] click", med.id, "taken:", taken); patchSlot({ medsTaken: { ...(slotLog.medsTaken ?? {}), [med.id]: !taken } }); }}
+                        onClick={() => { patchSlot({ medsTaken: { ...(slotLog.medsTaken ?? {}), [med.id]: !taken } }); }}
                         className="w-full flex items-center gap-3 text-left">
                         <div className={`h-8 w-8 rounded-full border-2 flex items-center justify-center text-sm font-bold flex-shrink-0 ${taken ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>
                           {taken ? "✓" : ""}
@@ -963,7 +963,8 @@ function SlotWizard({
                     <p className="flex-1 text-sm font-semibold text-muted-foreground">{item.label}</p>
                     <SpeakButton text={item.label} />
                   </div>
-                  {item.id === "tics_note" && slotLog.answers["tics"]?.value !== true ? null : (
+                  {item.id === "tics_note" && slotLog.answers["tics"]?.value !== true ? null :
+                   ["rebound_time","rebound_type","rebound_intensity","rebound_duration"].includes(item.id) && slotLog.answers["rebound_today"]?.value !== true ? null : (
                     <WizardInput item={item} answer={slotLog.answers[item.id]} childMode={childMode}
                       onAnswer={(answer) => patchSlot({ answers: { ...slotLog.answers, [item.id]: { ...answer, slot } } })} />
                   )}
