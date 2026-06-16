@@ -718,7 +718,6 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
         <div className="grid grid-cols-2 gap-2">
           {[
             ["de", "Deutsch"],
-            ["en", "English"],
           ].map(([key, label]) => (
             <button
               key={key}
