@@ -107,7 +107,7 @@ function statusLabel(status: string) {
   return "ausstehend";
 }
 
-function MedicationEditor({
+export function MedicationEditor({
   medications,
   onChange,
 }: {

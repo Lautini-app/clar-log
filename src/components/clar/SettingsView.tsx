@@ -1,3 +1,4 @@
+import { MedicationEditor } from "@/components/clar/TodayView";
 import { useState } from "react";
 import { Download, Loader2, Plus, Trash2 } from "lucide-react";
 
@@ -314,8 +315,8 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
       </SectionCard>
 
       {activePeriod && (
-        <SectionCard title="Medikamente CRUD">
-          <MedicationRows
+        <SectionCard title="Medikamente">
+          <MedicationEditor
             medications={activePeriod.medications}
             onChange={(medications) => updateActivePeriod({ medications })}
           />
