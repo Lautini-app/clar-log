@@ -77,12 +77,13 @@ export async function upsertLogToSupabase(
       {
         user_id: userId,
         date: log.date,
-        period_id: log.periodId,
+        period_id: log.periodId ?? null,
         data: log,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id,date" },
     );
+  if (dailyLogError) console.error("[sync] daily_logs error:", JSON.stringify(dailyLogError));
   if (!dailyLogError) return;
 
   const { error } = await supabase
