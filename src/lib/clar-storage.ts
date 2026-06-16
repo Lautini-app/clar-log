@@ -119,7 +119,7 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     id: "breakfast",
     title: "Frühstück & Appetit",
     slots: ["morning"],
-    items: ["breakfast", "hunger", "ate"],
+    items: ["breakfast", "ate"],
   },
   {
     id: "school_check",
@@ -168,10 +168,16 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     items: ["stress_level", "social_interactions", "conflicts", "special_events"],
   },
   {
+    id: "appetite_midday",
+    title: "Appetit",
+    slots: ["midday"],
+    items: ["hunger"],
+  },
+  {
     id: "appetite_evening",
     title: "Appetit & Mahlzeiten",
     slots: ["evening"],
-    items: ["hunger", "meals_today", "ate"],
+    items: ["hunger", "meals_today"],
   },
   {
     id: "cycle",

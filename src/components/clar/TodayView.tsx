@@ -780,18 +780,21 @@ function WizardInput({
     return <EmotionsInput value={answer?.value as Record<string, number> | undefined} onChange={setValue} />;
   }
   if (item.kind === "number") {
+    const isSleep = item.id === "sleep_duration";
     return (
       <div className="flex items-center gap-3">
         <input
           type="number"
+          inputMode="decimal"
           min={0}
-          max={240}
+          max={isSleep ? 24 : 240}
+          step={isSleep ? 0.5 : 1}
           value={answer?.value as number ?? ""}
           onChange={(e) => setValue(Number(e.target.value))}
           className="w-32 rounded-2xl border border-border bg-card px-4 py-3 text-2xl font-semibold text-primary outline-none focus:border-primary"
-          placeholder="0"
+          placeholder={isSleep ? "7.5" : "0"}
         />
-        <span className="text-sm text-muted-foreground">Minuten</span>
+        <span className="text-sm text-muted-foreground">{isSleep ? "Stunden" : "Minuten"}</span>
       </div>
     );
   }
