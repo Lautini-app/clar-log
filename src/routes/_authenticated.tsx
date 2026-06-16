@@ -74,6 +74,26 @@ function AuthenticatedLayout() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Observer-Rolle prüfen und weiterleiten
+  useEffect(() => {
+    if (!hydrated || !tokenChecked || !userId) return;
+    const pathname = window.location.pathname;
+    if (pathname === "/heute" || pathname === "/") {
+      // Prüfe ob User ein Beobachter ist (kein Admin)
+      import("@/integrations/supabase/client").then(({ supabase }) => {
+        supabase.schema("clar_log").from("observers")
+          .select("owner_id, period_id")
+          .eq("observer_user_id", userId)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data) {
+              navigate({ to: "/beobachten", replace: true });
+            }
+          });
+      });
+    }
+  }, [hydrated, tokenChecked, userId, navigate]);
+
   useEffect(() => {
     if (!hydrated || !tokenChecked) return;
     if (!userId && !tokenConsumed) {
