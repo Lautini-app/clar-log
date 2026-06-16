@@ -416,55 +416,6 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
       ),
     },
     {
-      title: "Befindlichkeiten",
-      body: (
-        <div className="space-y-4">
-          {categories.map((category) => (
-            <div key={category}>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {CATEGORY_LABEL[category]}
-              </p>
-              <div className="space-y-2">
-                {catalog
-                  .filter((item) => item.category === category)
-                  .map((item) => {
-                    const active = draft.selectedWellbeingIds.includes(item.id);
-                    return (
-                      <div key={item.id} className="rounded-2xl border border-border bg-card p-3">
-                        <button
-                          type="button"
-                          onClick={() => toggleItem(item.id)}
-                          className={`w-full text-left text-sm font-semibold ${
-                            active ? "text-primary" : "text-foreground"
-                          }`}
-                        >
-                          {active ? "✓ " : ""}
-                          {item.label}
-                        </button>
-                        {active && (
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {TIME_SLOTS.map((slot) => (
-                              <Chip
-                                key={slot}
-                                active={(draft.wellbeingSlots[item.id] ?? []).includes(slot)}
-                                onClick={() => toggleItemSlot(item.id, slot)}
-                                className="px-3 py-1.5 text-xs"
-                              >
-                                {SLOT_LABELS[slot]}
-                              </Chip>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          ))}
-        </div>
-      ),
-    },
-    {
       title: "Kalender-Export",
       body: (
         <div className="space-y-4">
