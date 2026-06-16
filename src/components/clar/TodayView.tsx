@@ -914,22 +914,7 @@ function SlotWizard({
                   );
                 })}
               </div>
-              <div className="flex gap-3">
-                {([true, false] as const).map((bool) => (
-                  <button key={String(bool)} type="button" onClick={() => patchSlot({ medicationTaken: bool })}
-                    className={"flex-1 rounded-2xl border p-4 text-sm font-semibold " + (slotLog.medicationTaken === bool ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground")}>
-                    {bool ? "Ja" : "Nein"}
-                  </button>
-                ))}
-              </div>
-              {slotLog.medicationTaken && (
-                <label className="block rounded-2xl border border-border bg-background p-3">
-                  <span className="text-xs font-semibold text-muted-foreground">Uhrzeit</span>
-                  <input type="time" value={slotLog.medicationTime ?? period.timeSlots[slot]}
-                    onChange={(e) => patchSlot({ medicationTime: e.target.value })}
-                    className="mt-2 w-full bg-transparent text-lg font-semibold text-primary outline-none" />
-                </label>
-              )}
+
             </div>
           )}
           {currentGroup && currentItems.length > 0 && (
