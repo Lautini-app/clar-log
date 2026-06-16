@@ -32,6 +32,19 @@ function collectAnswer(log: DayLog, itemId: string) {
   return undefined;
 }
 
+const NEGATIVE_EMOTIONS = new Set(["Verzweifelt", "Traurig", "Melancholisch", "Ängstlich", "Wütend", "Stumpf/Taub"]);
+
+/** Aggregiert die Emotionen-Antwort (1=trifft voll zu … 5=trifft gar nicht zu) zu einem
+ * einzelnen Stimmungswert (5=gut, 1=schlecht), passend zur Konvention der übrigen Skalen. */
+function moodScore(log: DayLog): number | undefined {
+  const values = collectAnswer(log, "emotions")?.value as Record<string, number> | undefined;
+  if (!values) return undefined;
+  const entries = Object.entries(values);
+  if (entries.length === 0) return undefined;
+  const scored = entries.map(([emotion, value]) => (NEGATIVE_EMOTIONS.has(emotion) ? value : 6 - value));
+  return scored.reduce((sum, value) => sum + value, 0) / scored.length;
+}
+
 function dayTone(value?: number, inverse = false) {
   if (value == null) return "bg-primary/10 text-primary";
   const score = inverse ? 6 - value : value;
@@ -81,7 +94,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
     date: day.date,
     value: asNumber(collectAnswer(day, "sleep_recovery")) ?? asNumber(collectAnswer(day, "sleep_latency")),
   }));
-  const mood = days.map((day) => ({ date: day.date, value: asNumber(collectAnswer(day, "base_mood")) }));
+  const mood = days.map((day) => ({ date: day.date, value: moodScore(day) }));
   const rebounds = days.map((day) => ({
     date: day.date,
     x: asTime(collectAnswer(day, "rebound_time")),
@@ -120,7 +133,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
           )}
           {days.map((day) => {
             const sleepValue = asNumber(collectAnswer(day, "sleep_recovery"));
-            const moodValue = asNumber(collectAnswer(day, "base_mood"));
+            const moodValue = moodScore(day);
             const reboundValue = asNumber(collectAnswer(day, "rebound_intensity"));
             return (
               <div key={day.date} className="rounded-3xl border border-border bg-background p-4">
@@ -135,7 +148,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
                     Schlaf {sleepValue ?? "–"}
                   </span>
                   <span className={`rounded-2xl p-2 text-center text-xs font-semibold ${dayTone(moodValue)}`}>
-                    Stimmung {moodValue ?? "–"}
+                    Stimmung {moodValue != null ? moodValue.toFixed(1) : "–"}
                   </span>
                   <span className={`rounded-2xl p-2 text-center text-xs font-semibold ${dayTone(reboundValue, true)}`}>
                     Rebound {reboundValue ?? "–"}
@@ -155,7 +168,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
               .sort((a, b) => b.date.localeCompare(a.date))
               .map((entry) => {
                 const day = days.find((d) => d.date === entry.date);
-                const moodValue = day ? asNumber(collectAnswer(day, "base_mood")) : undefined;
+                const moodValue = day ? moodScore(day) : undefined;
                 return (
                   <div key={entry.id} className="rounded-3xl border border-border bg-background p-4">
                     <div className="mb-2 flex items-center justify-between">
@@ -165,7 +178,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="rounded-2xl bg-primary/10 p-2 text-center">
                         <p className="text-muted-foreground">Eigene Stimmung</p>
-                        <p className="font-semibold text-primary">{moodValue ?? "–"}</p>
+                        <p className="font-semibold text-primary">{moodValue != null ? moodValue.toFixed(1) : "–"}</p>
                       </div>
                       <div className="rounded-2xl bg-primary/10 p-2 text-center">
                         <p className="text-muted-foreground">Fremdeinschätzung</p>
