@@ -319,7 +319,7 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   {
     id: "emotions",
     category: "mood",
-    label: "Emotionen heute",
+    label: "Emotionen im Moment",
     kind: "emotions",
     options: [
       "Verzweifelt", "Traurig", "Melancholisch", "Ängstlich", "Wütend", "Stumpf/Taub",
