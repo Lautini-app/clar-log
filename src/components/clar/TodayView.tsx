@@ -916,7 +916,7 @@ function SlotWizard({
                       className={`rounded-2xl border p-4 space-y-2 ${taken ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
                       <button
                         type="button"
-                        onClick={() => patchSlot({ medsTaken: { ...(slotLog.medsTaken ?? {}), [med.id]: !taken } })}
+                        onClick={() => { console.log("[med] click", med.id, "taken:", taken); patchSlot({ medsTaken: { ...(slotLog.medsTaken ?? {}), [med.id]: !taken } }); }}
                         className="w-full flex items-center gap-3 text-left">
                         <div className={`h-8 w-8 rounded-full border-2 flex items-center justify-center text-sm font-bold flex-shrink-0 ${taken ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>
                           {taken ? "✓" : ""}
