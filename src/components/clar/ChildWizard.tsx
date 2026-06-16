@@ -22,6 +22,9 @@ type ChildAnswers = {
   energy?: number;        // 1=leer 2=halb 3=voll
   wellSlept?: boolean;
   bodyOk?: boolean;       // false = Bauch/Kopfweh
+  headache?: boolean;
+  stomachache?: boolean;
+  thirsty?: boolean;
   schoolOk?: number;      // 1-4 Gesichter
   note?: string;
 };
@@ -99,7 +102,7 @@ function BigYesNo({ question, value, onChange }: { question: string; value?: boo
 export function ChildWizard({ period, log, onDone }: Props) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<ChildAnswers>({});
-  const childName = period.name || "du";
+  const childName = period.initialen || period.name || "du";
 
   const patch = (p: Partial<ChildAnswers>) => setAnswers((a) => ({ ...a, ...p }));
 
@@ -138,25 +141,30 @@ export function ChildWizard({ period, log, onDone }: Props) {
       ),
       canNext: () => answers.energy !== undefined,
     },
+
     {
-      question: "Wie hast du heute Nacht geschlafen?",
+      question: "Hast du Kopfweh?",
       hint: "",
       content: (
-        <div style={{ display: "flex", gap: 8 }}>
-          {(["Sehr gut", "Gut", "Nicht so gut", "Schlecht"] as const).map((label, i) => (
-            <FaceButton key={label} label={label} score={4 - i} selected={answers.wellSlept === (i < 2)} onSelect={() => patch({ wellSlept: i < 2 })} />
-          ))}
-        </div>
+        <BigYesNo question="" value={answers.headache} onChange={(v) => patch({ headache: v })} />
       ),
-      canNext: () => answers.wellSlept !== undefined,
+      canNext: () => answers.headache !== undefined,
     },
     {
-      question: "Hast du Bauchschmerzen oder Kopfschmerzen?",
+      question: "Hast du Bauchschmerzen?",
       hint: "",
       content: (
-        <BigYesNo question="" value={answers.bodyOk !== undefined ? !answers.bodyOk : undefined} onChange={(v) => patch({ bodyOk: !v })} />
+        <BigYesNo question="" value={answers.stomachache} onChange={(v) => patch({ stomachache: v })} />
       ),
-      canNext: () => answers.bodyOk !== undefined,
+      canNext: () => answers.stomachache !== undefined,
+    },
+    {
+      question: "Hast du Durst?",
+      hint: "",
+      content: (
+        <BigYesNo question="" value={answers.thirsty} onChange={(v) => patch({ thirsty: v })} />
+      ),
+      canNext: () => answers.thirsty !== undefined,
     },
     {
       question: "Wie war die Schule heute?",
@@ -200,6 +208,9 @@ export function ChildWizard({ period, log, onDone }: Props) {
       child_energy: { itemId: "child_energy", slot: "evening", value: answers.energy },
       child_slept: { itemId: "child_slept", slot: "evening", value: answers.wellSlept },
       child_body: { itemId: "child_body", slot: "evening", value: answers.bodyOk },
+      child_headache: { itemId: "child_headache", slot: "evening", value: answers.headache },
+      child_stomachache: { itemId: "child_stomachache", slot: "evening", value: answers.stomachache },
+      child_thirsty: { itemId: "child_thirsty", slot: "evening", value: answers.thirsty },
       child_school: { itemId: "child_school", slot: "evening", value: answers.schoolOk },
       child_note: { itemId: "child_note", slot: "evening", value: answers.note ?? "" },
     };
@@ -263,3 +274,4 @@ export function ChildWizard({ period, log, onDone }: Props) {
     </div>
   );
 }
+
