@@ -113,13 +113,13 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     id: "cognition_morning",
     title: "Konzentration & Kognition",
     slots: ["morning"],
-    items: ["focus", "distractibility", "impulsivity", "thought_racing", "hyperfocus"],
+    items: ["focus", "distractibility", "impulsivity", "thought_racing"],
   },
   {
     id: "breakfast",
-    title: "Frühstück",
+    title: "Frühstück & Appetit",
     slots: ["morning"],
-    items: ["breakfast"],
+    items: ["breakfast", "hunger", "ate"],
   },
   {
     id: "school_check",
@@ -308,7 +308,7 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "sleep_latency", category: "sleep", label: "Einschlafdauer (Minuten)", kind: "number", slots: ["morning"] },
   { id: "sleep_through", category: "sleep", label: "Durchgeschlafen", kind: "boolean", slots: ["morning"] },
   { id: "sleep_recovery", category: "sleep", label: "Erholungsgrad", kind: "scale", slots: ["morning"] },
-  { id: "sleep_duration", category: "sleep", label: "Schlafdauer (Stunden)", kind: "scale", slots: ["morning"] },
+  { id: "sleep_duration", category: "sleep", label: "Schlafdauer (Stunden)", kind: "number", slots: ["morning"] },
 
   {
     id: "emotions",
@@ -332,7 +332,7 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "distractibility", category: "concentration", label: "Ablenkbarkeit", kind: "scale" },
   { id: "impulsivity", category: "concentration", label: "Impulsivität", kind: "scale" },
   { id: "thought_racing", category: "concentration", label: "Gedankenrasen", kind: "scale" },
-  { id: "hyperfocus", category: "concentration", label: "Hyperfokus heute", kind: "boolean" },
+  { id: "hyperfocus", category: "concentration", label: "Hyperfokus heute", kind: "boolean", slots: ["evening"] },
   { id: "tasks_done", category: "concentration", label: "Aufgaben fertiggestellt", kind: "scale", slots: ["evening"] },
 
   { id: "rebound_time", category: "rebound", label: "Rebound-Zeitpunkt", kind: "time", slots: ["evening"] },

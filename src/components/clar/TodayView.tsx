@@ -878,8 +878,8 @@ function SlotWizard({
           {currentGroup && currentItems.length > 0 && (
             <div className="space-y-5">
               <h2 className="text-2xl font-semibold">{currentGroup.title}</h2>
-              {currentItems.map((item) => (
-                <div key={item.id} className="space-y-2">
+              {currentItems.map((item, idx) => (
+                <div key={item.id} className={`space-y-2 ${idx > 0 ? "pt-4 border-t border-border" : ""}`}>
                   <div className="flex items-center gap-2">
                     <QuestionIcon category={item.category} />
                     <p className="flex-1 text-sm font-semibold text-muted-foreground">{item.label}</p>
