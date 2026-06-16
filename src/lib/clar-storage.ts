@@ -75,6 +75,7 @@ export type WellbeingItem = {
   kind: AnswerKind;
   module?: ModuleKey;
   options?: string[];
+  slots?: TimeSlot[];
 };
 
 export type ObservationPeriod = {
@@ -161,11 +162,11 @@ export const MEDICATION_TYPE_LABELS: Record<MedicationType, string> = {
 };
 
 export const WELLBEING_CATALOG: WellbeingItem[] = [
-  { id: "sleep_latency", category: "sleep", label: "Einschlafdauer", kind: "scale" },
-  { id: "sleep_through", category: "sleep", label: "Durchgeschlafen", kind: "boolean" },
-  { id: "sleep_recovery", category: "sleep", label: "Erholungsgrad", kind: "scale" },
-  { id: "wake_mood", category: "sleep", label: "Aufwach-Stimmung", kind: "scale" },
-  { id: "sleep_duration", category: "sleep", label: "Schlafdauer (Stunden)", kind: "scale" },
+  { id: "sleep_latency", category: "sleep", label: "Einschlafdauer", kind: "scale", slots: ["morning"] },
+  { id: "sleep_through", category: "sleep", label: "Durchgeschlafen", kind: "boolean", slots: ["morning"] },
+  { id: "sleep_recovery", category: "sleep", label: "Erholungsgrad", kind: "scale", slots: ["morning"] },
+  { id: "wake_mood", category: "sleep", label: "Aufwach-Stimmung", kind: "scale", slots: ["morning"] },
+  { id: "sleep_duration", category: "sleep", label: "Schlafdauer (Stunden)", kind: "scale", slots: ["morning"] },
 
   { id: "base_mood", category: "mood", label: "Grundstimmung", kind: "scale" },
   { id: "irritability", category: "mood", label: "Reizbarkeit", kind: "scale" },
@@ -182,7 +183,7 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "hyperfocus", category: "concentration", label: "Hyperfokus heute", kind: "boolean" },
   { id: "tasks_done", category: "concentration", label: "Aufgaben fertiggestellt", kind: "scale" },
 
-  { id: "rebound_time", category: "rebound", label: "Rebound-Zeitpunkt", kind: "time" },
+  { id: "rebound_time", category: "rebound", label: "Rebound-Zeitpunkt", kind: "time", slots: ["evening"] },
   {
     id: "rebound_type",
     category: "rebound",
@@ -190,8 +191,8 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
     kind: "multiselect",
     options: ["Stimmungseinbruch", "Reizbarkeit", "Erschöpfung", "Hunger", "Kopfschmerzen", "Weinen"],
   },
-  { id: "rebound_intensity", category: "rebound", label: "Rebound-Intensität", kind: "scale" },
-  { id: "rebound_duration", category: "rebound", label: "Rebound-Dauer", kind: "scale" },
+  { id: "rebound_intensity", category: "rebound", label: "Rebound-Intensität", kind: "scale", slots: ["evening"] },
+  { id: "rebound_duration", category: "rebound", label: "Rebound-Dauer", kind: "scale", slots: ["evening"] },
 
   { id: "hunger", category: "appetite", label: "Hungergefühl", kind: "scale" },
   { id: "ate", category: "appetite", label: "Gegessen", kind: "boolean" },
@@ -208,10 +209,10 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "conflicts", category: "social", label: "Konflikte heute", kind: "boolean" },
   { id: "special_events", category: "social", label: "Besondere Ereignisse", kind: "scale" },
 
-  { id: "school_work_today", category: "school", label: "Schule / Arbeit heute", kind: "boolean" },
-  { id: "school_performance", category: "school", label: "Leistung in Schule / Arbeit", kind: "scale" },
-  { id: "school_social", category: "school", label: "Soziales in Schule / Arbeit", kind: "scale" },
-  { id: "school_conflicts", category: "school", label: "Konflikte in Schule / Arbeit", kind: "boolean" },
+  { id: "school_work_today", category: "school", label: "Schule / Arbeit heute", kind: "boolean", slots: ["midday"] },
+  { id: "school_performance", category: "school", label: "Leistung in Schule / Arbeit", kind: "scale", slots: ["evening"] },
+  { id: "school_social", category: "school", label: "Soziales in Schule / Arbeit", kind: "scale", slots: ["evening"] },
+  { id: "school_conflicts", category: "school", label: "Konflikte in Schule / Arbeit", kind: "boolean", slots: ["evening"] },
 
   {
     id: "cycle_phase",
