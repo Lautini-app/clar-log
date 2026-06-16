@@ -54,6 +54,7 @@ function PartnerBeobachtung() {
     if (!userId) return;
     // Suche ob dieser User als Observer eingeladen wurde
     supabase
+      .schema("clar_log")
       .from("observers")
       .select("owner_id, period_id, name")
       .eq("observer_user_id", userId)
@@ -140,3 +141,4 @@ function PartnerBeobachtung() {
     </div>
   );
 }
+
