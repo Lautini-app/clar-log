@@ -1,14 +1,25 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  Brain,
   CalendarDays,
   Check,
   ChevronLeft,
   ChevronRight,
   Clock,
   Download,
+  GraduationCap,
+  Heart,
+  HeartPulse,
+  Moon,
   Pill,
   Plus,
+  Smile,
+  Sparkles,
   Trash2,
+  Users,
+  Utensils,
+  Volume2,
+  Zap,
 } from "lucide-react";
 
 import { Chip } from "./Chip";
@@ -559,6 +570,77 @@ const EMOTION_GROUPS = [
   { label: "Positiv", emotions: ["Freudig", "Aufgeregt", "Euphorisch"] },
 ];
 
+const CATEGORY_ICONS: Record<WellbeingItem["category"], typeof Pill> = {
+  sleep: Moon,
+  mood: Smile,
+  rebound: Zap,
+  concentration: Brain,
+  appetite: Utensils,
+  body: HeartPulse,
+  social: Users,
+  school: GraduationCap,
+  cycle: Heart,
+  custom: Sparkles,
+};
+
+function QuestionIcon({ category }: { category: WellbeingItem["category"] }) {
+  const Icon = CATEGORY_ICONS[category] ?? Sparkles;
+  return (
+    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+      <Icon className="h-4 w-4" />
+    </span>
+  );
+}
+
+function speak(text: string) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "de-DE";
+  window.speechSynthesis.speak(utterance);
+}
+
+function SpeakButton({ text }: { text: string }) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => speak(text)}
+      aria-label="Frage vorlesen"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-primary"
+    >
+      <Volume2 className="h-4 w-4" />
+    </button>
+  );
+}
+
+const CHILD_FACES = [
+  { value: 1, emoji: "😢", color: "bg-red-100 border-red-300 text-red-600" },
+  { value: 2, emoji: "🙁", color: "bg-orange-100 border-orange-300 text-orange-600" },
+  { value: 3, emoji: "😐", color: "bg-yellow-100 border-yellow-300 text-yellow-700" },
+  { value: 4, emoji: "🙂", color: "bg-lime-100 border-lime-300 text-lime-700" },
+  { value: 5, emoji: "😄", color: "bg-green-100 border-green-300 text-green-700" },
+];
+
+function ChildScaleInput({ value, onChange }: { value?: number; onChange: (value: number) => void }) {
+  return (
+    <div className="grid grid-cols-5 gap-2">
+      {CHILD_FACES.map((face) => (
+        <button
+          key={face.value}
+          type="button"
+          onClick={() => onChange(face.value)}
+          className={`flex flex-col items-center justify-center rounded-2xl border-2 py-3 text-2xl ${
+            value === face.value ? `${face.color} ring-2 ring-offset-1` : "border-border bg-card"
+          }`}
+        >
+          {face.emoji}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function EmotionsInput({ value, onChange }: { value?: Record<string, number>; onChange: (value: Record<string, number>) => void }) {
   const current = value ?? {};
   return (
@@ -631,10 +713,12 @@ function WizardInput({
   item,
   answer,
   onAnswer,
+  childMode,
 }: {
   item: WellbeingItem;
   answer?: WellbeingAnswer;
   onAnswer: (answer: WellbeingAnswer) => void;
+  childMode?: boolean;
 }) {
   const setValue = (value: WellbeingAnswer["value"], time?: string) =>
     onAnswer({ itemId: item.id, slot: answer?.slot ?? "morning", value, time });
@@ -693,6 +777,9 @@ function WizardInput({
       </div>
     );
   }
+  if (childMode) {
+    return <ChildScaleInput value={answer?.value as number | undefined} onChange={setValue} />;
+  }
   return <ScaleInput value={answer?.value as number | undefined} onChange={setValue} itemId={item.id} />;
 }
 
@@ -709,6 +796,8 @@ function SlotWizard({
 }) {
   const slotLog = log.slots[slot];
   const [groupIndex, setGroupIndex] = useState(0);
+  const childMode = period.profile === "child_self";
+  const speechEnabled = childMode || period.speechOutput === true;
 
   const patchSlot = (patch: Partial<typeof slotLog>) => {
     onChange({ slots: { ...log.slots, [slot]: { ...slotLog, status: "in_progress", ...patch } } });
@@ -732,6 +821,12 @@ function SlotWizard({
   const currentItems = currentGroup
     ? (currentGroup.items.map((id) => items.find((i) => i.id === id)).filter(Boolean) as WellbeingItem[])
     : [];
+
+  useEffect(() => {
+    if (!speechEnabled) return;
+    const title = currentGroup?.title ?? (currentStep === "medication" ? "Medikament" : "Optionale Notiz");
+    speak(title);
+  }, [groupIndex, speechEnabled]);
 
   return (
     <div className="fixed inset-0 z-30 overflow-y-auto bg-background/95 px-4 py-6 backdrop-blur">
@@ -767,8 +862,12 @@ function SlotWizard({
               <h2 className="text-2xl font-semibold">{currentGroup.title}</h2>
               {currentItems.map((item) => (
                 <div key={item.id} className="space-y-2">
-                  <p className="text-sm font-semibold text-muted-foreground">{item.label}</p>
-                  <WizardInput item={item} answer={slotLog.answers[item.id]}
+                  <div className="flex items-center gap-2">
+                    <QuestionIcon category={item.category} />
+                    <p className="flex-1 text-sm font-semibold text-muted-foreground">{item.label}</p>
+                    <SpeakButton text={item.label} />
+                  </div>
+                  <WizardInput item={item} answer={slotLog.answers[item.id]} childMode={childMode}
                     onAnswer={(answer) => patchSlot({ answers: { ...slotLog.answers, [item.id]: { ...answer, slot } } })} />
                 </div>
               ))}
