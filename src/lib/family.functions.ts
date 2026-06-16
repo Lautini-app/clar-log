@@ -19,8 +19,12 @@ async function functionsPost(fnName: string, body: Record<string, unknown>): Pro
     body: JSON.stringify(body),
   });
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.error ?? `HTTP ${res.status}`);
+  let data: any;
+  try { data = await res.json(); } catch { data = {}; }
+  if (!res.ok) {
+    const msg = typeof data?.error === "string" ? data.error : JSON.stringify(data?.error ?? data);
+    throw new Error(msg || `HTTP ${res.status}`);
+  }
   return data;
 }
 
