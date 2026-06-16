@@ -260,6 +260,8 @@ export type DailySlotLog = {
   status: SlotStatus;
   medicationTaken?: boolean;
   medicationTime?: string;
+  medsTaken?: Record<string, boolean>;
+  medsDose?: Record<string, number>;
   answers: Record<string, WellbeingAnswer>;
   note?: string;
 };
