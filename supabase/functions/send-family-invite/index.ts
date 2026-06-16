@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "clar.log <einladung@send.lautini.ch>",
+        from: "clar.log <einladung@lautini.ch>",
         to: [toEmail],
         subject: `Einladung zu clar.log`,
         html,
