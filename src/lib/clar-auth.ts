@@ -6,8 +6,7 @@ type TokenParams = {
 };
 
 function getUrlParams(): URLSearchParams {
-  console.log('[clar-auth] hash:', window.location.hash);
-  console.log('[clar-auth] search:', window.location.search);
+
   const params = new URLSearchParams(window.location.search);
   const hash = window.location.hash.startsWith("#")
     ? window.location.hash.slice(1)
@@ -47,7 +46,6 @@ export async function consumeSessionTokenFromUrl(): Promise<boolean> {
   });
 
   if (error) {
-    console.warn("[clar-auth] token session failed:", error.message);
     return false;
   }
 
