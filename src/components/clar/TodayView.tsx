@@ -732,6 +732,49 @@ function EmotionsInput({ value, onChange }: { value?: Record<string, number>; on
   );
 }
 
+function EnergyInput({ value, onChange }: { value?: number; onChange: (v: number) => void }) {
+  const levels = [
+    { val: 1, label: "Leer",    bg: "#fee2e2", color: "#991b1b", border: "#fca5a5", fill: "#ef4444" },
+    { val: 2, label: "Niedrig", bg: "#fff7ed", color: "#9a3412", border: "#fdba74", fill: "#f97316" },
+    { val: 3, label: "Mittel",  bg: "#fefce8", color: "#854d0e", border: "#fde047", fill: "#eab308" },
+    { val: 4, label: "Voll",    bg: "#f0fdf4", color: "#14532d", border: "#86efac", fill: "#22c55e" },
+  ];
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-4 gap-2">
+        {levels.map((l) => (
+          <button key={l.val} type="button" onClick={() => onChange(l.val)}
+            style={value === l.val
+              ? { backgroundColor: l.bg, borderColor: l.border, color: l.color, borderWidth: 2 }
+              : { backgroundColor: "transparent", borderColor: "#e0dfd8", color: "#888780", borderWidth: 1 }}
+            className="rounded-2xl border py-4 flex flex-col items-center gap-2 transition-all">
+            <div className="flex gap-0.5 items-end h-6">
+              {[1,2,3,4].map(i => (
+                <div key={i} style={{
+                  width: 6, height: 6 + i * 4, borderRadius: 2,
+                  backgroundColor: i <= l.val ? (value === l.val ? l.fill : "#d1d5db") : "#f3f4f6"
+                }} />
+              ))}
+            </div>
+            <span className="text-[11px] font-semibold">{l.label}</span>
+          </button>
+        ))}
+      </div>
+      {value != null && (
+        <div className="flex items-center gap-2">
+          {[1,2,3,4].map(i => (
+            <div key={i} style={{
+              flex: 1, height: 10, borderRadius: 3,
+              backgroundColor: i <= value ? levels[value-1].fill : "#e5e7eb"
+            }} />
+          ))}
+          <span className="text-xs text-muted-foreground ml-1">{levels[value-1]?.label}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BooleanInput({
   value,
   onChange,
@@ -810,6 +853,9 @@ function WizardInput({
         className="w-full rounded-2xl border border-border bg-card p-4 text-lg font-semibold text-primary outline-none focus:border-primary"
       />
     );
+  }
+  if (item.kind === "energy") {
+    return <EnergyInput value={answer?.value as number | undefined} onChange={setValue} />;
   }
   if (item.kind === "text") {
     return (
