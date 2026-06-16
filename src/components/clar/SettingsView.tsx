@@ -495,10 +495,30 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
           <SectionCard title="Beobachtungsperiode">
             <button
               type="button"
-              onClick={() => onSettingsChange({ ...settings, periods: settings.periods.filter(p => p.id !== activePeriod?.id) })}
+              onClick={() => {
+                if (!confirm("Neue Periode starten? Die aktuelle Periode wird archiviert. Deine Logs bleiben erhalten.")) return;
+                const newPeriod = createPeriod({
+                  name: activePeriod.name,
+                  profile: activePeriod.profile,
+                  gender: activePeriod.gender,
+                  birthYear: activePeriod.birthYear,
+                  lifeContext: activePeriod.lifeContext,
+                  medications: activePeriod.medications,
+                  timeSlots: activePeriod.timeSlots,
+                  speechOutput: activePeriod.speechOutput,
+                  cycleTracking: activePeriod.cycleTracking,
+                  doctorEmail: activePeriod.doctorEmail,
+                });
+                onSettingsChange({
+                  ...settings,
+                  periods: [newPeriod, ...settings.periods.map(p =>
+                    p.id === activePeriod.id ? { ...p, endDate: new Date().toISOString().split("T")[0] } : p
+                  )],
+                });
+              }}
               className="w-full rounded-2xl border border-border bg-card p-3 text-sm font-semibold text-primary text-left"
             >
-              Periode neu einrichten →
+              Neue Periode starten (Archiv bleibt) →
             </button>
           </SectionCard>
 
@@ -567,15 +587,36 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
         </div>
       </SectionCard>
 
-      <button
-        type="button"
-        onClick={() => {
-          if (confirm("Alle lokalen Logs und Einstellungen löschen?")) onReset();
-        }}
-        className="w-full rounded-xl border border-primary/40 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
-      >
-        Daten auf diesem Gerät zurücksetzen
-      </button>
+      <SectionCard title="Datensicherung & Reset">
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => {
+              const data = JSON.stringify({ settings, exportedAt: new Date().toISOString() }, null, 2);
+              const blob = new Blob([data], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `clar-log-export-${new Date().toISOString().split("T")[0]}.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="w-full rounded-xl border border-border bg-card py-3 text-sm font-semibold text-primary text-left px-4"
+          >
+            Daten exportieren (JSON) →
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!confirm("Alle lokalen Logs und Einstellungen löschen?\n\nEmpfehlung: Vorher exportieren.")) return;
+              onReset();
+            }}
+            className="w-full rounded-xl border border-primary/40 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+          >
+            Daten auf diesem Gerät zurücksetzen
+          </button>
+        </div>
+      </SectionCard>
 
       <SectionCard
         title="Konto löschen (DSGVO)"
