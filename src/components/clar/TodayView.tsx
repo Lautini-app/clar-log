@@ -305,10 +305,10 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
       title: "Wer bist du?",
       body: (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Waehle deine Rolle. Du kannst das spaeter jederzeit anpassen.</p>
+          <p className="text-sm text-muted-foreground">Wähle deine Rolle. Du kannst das später jederzeit anpassen.</p>
           {([
-            ["self", "Ich selbst (ab 18)", "Ich fuehre das Tagebuch fuer mich."],
-            ["child_parent", "Ich bin Elternteil", "Ich fuehre das Tagebuch fuer mein Kind."],
+            ["self", "Ich selbst (ab 18)", "Ich führe das Tagebuch fuer mich."],
+            ["child_parent", "Ich bin Elternteil", "Ich führe das Tagebuch fuer mein Kind."],
           ] as const).map(([key, label, desc]) => (
             <button
               key={key}
@@ -326,11 +326,11 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
           ))}
           {isParentFlow && (
             <div className="rounded-2xl border border-border bg-card p-4 space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground">Wer fuellt das Tagebuch aus?</p>
+              <p className="text-xs font-semibold text-muted-foreground">Wer füllt das Tagebuch aus?</p>
               {([
-                ["child_parent", "Ich fuehre das Tagebuch (Kind unter 12)", "Du erfasst alle Daten. Das Kind kann mitmachen."],
-                ["child_both", "Kind und ich fuellen aus (ab 12)", "Das Kind hat eine eigene Ansicht auf seinem Geraet."],
-                ["child_self", "Kind fuellt alleine aus (ab 12)", "Das Kind fuellt selbst aus. Du siehst alle Daten."],
+                ["child_parent", "Ich führe das Tagebuch (Kind unter 12)", "Du erfasst alle Daten. Das Kind kann mitmachen."],
+                ["child_both", "Kind und ich füllen aus (ab 12)", "Das Kind hat eine eigene Ansicht auf seinem Gerät."],
+                ["child_self", "Kind füllt alleine aus (ab 12)", "Das Kind füllt selbst aus. Du siehst alle Daten."],
               ] as const).map(([key, label, desc]) => (
                 <button
                   key={key}
@@ -387,7 +387,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
           <div className="rounded-2xl border border-border bg-card p-3">
             <span className="text-xs font-semibold text-muted-foreground">Geschlecht</span>
             <div className="mt-2 grid grid-cols-3 gap-2">
-              {([["male", "Maennlich"], ["female", "Weiblich"], ["diverse", "Divers"]] as [string, string][]).map(([key, label]) => (
+              {([["male", "Männlich"], ["female", "Weiblich"], ["diverse", "Divers"]] as [string, string][]).map(([key, label]) => (
                 <button
                   key={key}
                   type="button"
@@ -405,13 +405,13 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
             </span>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {([
-                ["pupil", "Schueler/in"],
+                ["pupil", "Schüler/in"],
                 ["apprentice", "Lehrling / Ausbildung"],
                 ["student", "Studierend"],
-                ["employed", "Berufstaetig"],
+                ["employed", "Berufstätig"],
                 ["training", "In Weiterbildung"],
-                ["unemployed", "Nicht berufstaetig"],
-                ["unable_to_work", "Arbeitsunfaehig"],
+                ["unemployed", "Nicht berufstätig"],
+                ["unable_to_work", "Arbeitsunfähig"],
                 ["retired", "Pensioniert"],
               ] as [string, string][]).map(([key, label]) => (
                 <button
@@ -433,7 +433,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
       body: (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Trage alle Stimulanzien ein die {isParentFlow ? "dein Kind" : "du"} nimmt. Du kannst diese spaeter jederzeit anpassen.
+            Trage alle Stimulanzien ein, die {isParentFlow ? "dein Kind" : "du"} nimmt. Du kannst diese später jederzeit anpassen.
           </p>
           <MedicationEditor
             medications={draft.medications}
@@ -486,7 +486,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
       body: (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Optional: {isParentFlow ? "Der Arzt eures Kindes" : "Dein Arzt"} erhaelt am Ende der Beobachtungsperiode automatisch einen Bericht.
+            Optional: {isParentFlow ? "Der Arzt eures Kindes" : "Dein Arzt"} erhält am Ende der Beobachtungsperiode automatisch einen Bericht.
           </p>
           <label className="block rounded-2xl border border-border bg-card p-3">
             <span className="text-xs font-semibold text-muted-foreground">E-Mail des Arztes (optional)</span>
@@ -502,7 +502,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
             <p>Bericht jederzeit abrufbar</p>
             <p>Export als PDF oder per E-Mail</p>
             <p>Daten werden anonymisiert verarbeitet</p>
-            <p>Kein Medizinprodukt - Wellness-Tool gemaess DSGVO</p>
+            <p>Kein Medizinprodukt - Wellness-Tool gemäss DSGVO</p>
           </div>
         </div>
       ),
@@ -512,7 +512,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
       body: (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Dein Kind erhaelt eine Einladungs-E-Mail und kann sich auf seinem eigenen Geraet einloggen. Es sieht nur seine eigene Erfassungsmaske.
+            Dein Kind erhält eine Einladungs-E-Mail und kann sich auf seinem eigenen Gerät einloggen. Es sieht nur seine eigene Ansicht.
           </p>
           <label className="block rounded-2xl border border-border bg-card p-3">
             <span className="text-xs font-semibold text-muted-foreground">E-Mail des Kindes</span>
