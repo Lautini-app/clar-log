@@ -497,15 +497,17 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
               type="button"
               onClick={() => {
                 if (!confirm("Neue Periode starten? Das Onboarding startet neu. Deine bisherigen Logs bleiben erhalten.")) return;
-                onSettingsChange({
+                const next = {
                   ...settings,
-                  activePeriodId: undefined,
+                  activePeriodId: undefined as string | undefined,
                   periods: settings.periods.map(p =>
                     p.id === activePeriod.id
                       ? { ...p, endDate: new Date().toISOString().split("T")[0], active: false }
                       : p
                   ),
-                });
+                };
+                try { localStorage.removeItem("clar.tracker.v1"); } catch {}
+                onSettingsChange(next);
               }}
               className="w-full rounded-2xl border border-border bg-card p-3 text-sm font-semibold text-primary text-left"
             >
