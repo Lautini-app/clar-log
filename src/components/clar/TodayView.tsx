@@ -274,50 +274,87 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
     updateDraft({ wellbeingSlots: { ...draft.wellbeingSlots, [itemId]: next } });
   };
 
+  // Alter berechnen
+  const birthYear = draft.birthYear;
+  const age = birthYear ? new Date().getFullYear() - birthYear : null;
+  const isParentFlow = draft.profile === "child_parent" || draft.profile === "child_both" || draft.profile === "child_self";
+
   const steps = [
     {
-      title: "Für wen ist das Tagebuch?",
+      title: "Wer bist du?",
       body: (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Wähle aus, wer die Beobachtungen erfasst.</p>
+          <p className="text-sm text-muted-foreground">Waehle deine Rolle. Du kannst das spaeter jederzeit anpassen.</p>
           {([
-            ["self", "Für mich selbst", "Ich beobachte mich selbst und fülle täglich aus."],
-            ["child_parent", "Für mein Kind (ich fülle aus)", "Ich beobachte mein Kind und erfasse die Daten."],
-            ["child_self", "Für mein Kind (Kind füllt aus)", "Mein Kind füllt das Tagebuch selbst aus — kindgerechte Ansicht."],
-            ["child_both", "Für mein Kind (beide füllen aus)", "Kind und Elternteil füllen je eigene Ansichten aus."],
+            ["self", "Ich selbst (ab 18)", "Ich fuehre das Tagebuch fuer mich."],
+            ["child_parent", "Ich bin Elternteil", "Ich fuehre das Tagebuch fuer mein Kind."],
           ] as const).map(([key, label, desc]) => (
             <button
               key={key}
               type="button"
               onClick={() => updateDraft({ profile: key as ProfileType })}
               className={`w-full rounded-2xl border p-4 text-left ${
-                draft.profile === key
+                draft.profile === key || (key === "child_parent" && isParentFlow)
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-card text-foreground"
               }`}
             >
               <div className="text-sm font-semibold">{label}</div>
-              <div className={`text-xs mt-1 ${draft.profile === key ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{desc}</div>
+              <div className={`text-xs mt-1 ${draft.profile === key || (key === "child_parent" && isParentFlow) ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{desc}</div>
             </button>
           ))}
+          {isParentFlow && (
+            <div className="rounded-2xl border border-border bg-card p-4 space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground">Wer fuellt das Tagebuch aus?</p>
+              {([
+                ["child_parent", "Ich fuehre das Tagebuch (Kind unter 12)", "Du erfasst alle Daten. Das Kind kann mitmachen."],
+                ["child_both", "Kind und ich fuellen aus (ab 12)", "Das Kind hat eine eigene Ansicht auf seinem Geraet."],
+                ["child_self", "Kind fuellt alleine aus (ab 12)", "Das Kind fuellt selbst aus. Du siehst alle Daten."],
+              ] as const).map(([key, label, desc]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => updateDraft({ profile: key as ProfileType })}
+                  className={`w-full rounded-xl border p-3 text-left text-sm ${
+                    draft.profile === key
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-background text-foreground"
+                  }`}
+                >
+                  <div className="font-semibold">{label}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{desc}</div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       ),
     },
     {
-      title: "Schnellprofil",
+      title: isParentFlow ? "Angaben zum Kind" : "Angaben zu dir",
       body: (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Zwei Angaben genügen — der Rest wird automatisch eingerichtet.</p>
           <label className="block rounded-2xl border border-border bg-card p-3">
             <span className="text-xs font-semibold text-muted-foreground">
-              {draft.profile === "self" ? "Geburtsjahr" : "Geburtsjahr des Kindes"}
+              {isParentFlow ? "Vorname des Kindes" : "Dein Vorname"}
+            </span>
+            <input
+              value={draft.name.replace("Meine Periode", "")}
+              placeholder={isParentFlow ? "z.B. Luca" : "z.B. Jonas"}
+              onChange={(event) => updateDraft({ name: event.target.value })}
+              className="mt-1 w-full bg-transparent text-base font-semibold outline-none"
+            />
+          </label>
+          <label className="block rounded-2xl border border-border bg-card p-3">
+            <span className="text-xs font-semibold text-muted-foreground">
+              {isParentFlow ? "Geburtsjahr des Kindes" : "Dein Geburtsjahr"}
             </span>
             <input
               type="number"
               inputMode="numeric"
               min={1930}
               max={2025}
-              placeholder="z.B. 1990"
+              placeholder={isParentFlow ? "z.B. 2015" : "z.B. 1990"}
               value={draft.birthYear ?? ""}
               onChange={(event) => {
                 const raw = event.target.value;
@@ -329,7 +366,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
           <div className="rounded-2xl border border-border bg-card p-3">
             <span className="text-xs font-semibold text-muted-foreground">Geschlecht</span>
             <div className="mt-2 grid grid-cols-3 gap-2">
-              {([["male", "Männlich"], ["female", "Weiblich"], ["diverse", "Divers"]] as [string, string][]).map(([key, label]) => (
+              {([["male", "Maennlich"], ["female", "Weiblich"], ["diverse", "Divers"]] as [string, string][]).map(([key, label]) => (
                 <button
                   key={key}
                   type="button"
@@ -340,21 +377,20 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
                 >{label}</button>
               ))}
             </div>
-            {(draft.gender === "female" || draft.gender === "diverse") && (
-              <p className="mt-2 text-xs text-primary">Zyklusfragen werden automatisch eingebunden.</p>
-            )}
           </div>
           <div className="rounded-2xl border border-border bg-card p-3">
-            <span className="text-xs font-semibold text-muted-foreground">Lebenssituation</span>
+            <span className="text-xs font-semibold text-muted-foreground">
+              {isParentFlow ? "Lebenssituation des Kindes" : "Deine Lebenssituation"}
+            </span>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {([
-                ["pupil", "Schüler/in"],
+                ["pupil", "Schueler/in"],
                 ["apprentice", "Lehrling / Ausbildung"],
                 ["student", "Studierend"],
-                ["employed", "Berufstätig"],
+                ["employed", "Berufstaetig"],
                 ["training", "In Weiterbildung"],
-                ["unemployed", "Nicht berufstätig"],
-                ["unable_to_work", "Arbeitsunfähig"],
+                ["unemployed", "Nicht berufstaetig"],
+                ["unable_to_work", "Arbeitsunfaehig"],
                 ["retired", "Pensioniert"],
               ] as [string, string][]).map(([key, label]) => (
                 <button
@@ -368,106 +404,68 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
               ))}
             </div>
           </div>
-          <div className="rounded-2xl border border-border bg-card p-3">
-            <label className="flex items-center gap-3 text-sm">
-              <input
-                type="checkbox"
-                checked={draft.speechOutput ?? false}
-                onChange={(e) => updateDraft({ speechOutput: e.target.checked })}
-                className="h-4 w-4 rounded accent-primary"
-              />
-              <div>
-                <div className="font-semibold">Sprachausgabe</div>
-                <div className="text-xs text-muted-foreground">Alle Fragen werden vorgelesen</div>
-              </div>
-            </label>
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: "Name & Zeitraum",
-      body: (
-        <div className="space-y-3">
-          <label className="block rounded-2xl border border-border bg-card p-3">
-            <span className="text-xs font-semibold text-muted-foreground">Periodenname</span>
-            <input
-              value={draft.name}
-              onChange={(event) => updateDraft({ name: event.target.value })}
-              className="mt-1 w-full bg-transparent text-base font-semibold outline-none"
-            />
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              ["startDate", "Startdatum"],
-              ["endDate", "Enddatum"],
-            ].map(([key, label]) => (
-              <label key={key} className="block rounded-2xl border border-border bg-card p-3">
-                <span className="text-xs font-semibold text-muted-foreground">{label}</span>
-                <input
-                  type="date"
-                  value={draft[key as "startDate" | "endDate"]}
-                  onChange={(event) => updateDraft({ [key]: event.target.value })}
-                  className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
-                />
-              </label>
-            ))}
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: "Zeitpunkte",
-      body: (
-        <div className="grid gap-3">
-          {TIME_SLOTS.map((slot) => (
-            <label key={slot} className="rounded-2xl border border-border bg-card p-4">
-              <span className="text-sm font-semibold">{SLOT_LABELS[slot]}</span>
-              <input
-                type="time"
-                value={draft.timeSlots[slot]}
-                onChange={(event) =>
-                  updateDraft({ timeSlots: { ...draft.timeSlots, [slot]: event.target.value } })
-                }
-                className="mt-2 w-full bg-transparent text-lg font-semibold text-primary outline-none"
-              />
-            </label>
-          ))}
         </div>
       ),
     },
     {
       title: "Medikamente",
       body: (
-        <MedicationEditor
-          medications={draft.medications}
-          onChange={(medications) => updateDraft({ medications })}
-        />
-      ),
-    },
-    {
-      title: "Kalender-Export",
-      body: (
-        <div className="space-y-4">
-          <div className="rounded-3xl bg-primary/10 p-5 text-sm text-foreground">
-            Exportiere Erinnerungen für Morgen, Mittag und Abend als `.ics`.
-          </div>
-          <button
-            type="button"
-            onClick={() => downloadIcs(draft)}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
-          >
-            <Download className="h-4 w-4" /> .ics herunterladen
-          </button>
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Trage alle Stimulanzien ein die {isParentFlow ? "dein Kind" : "du"} nimmt. Du kannst diese spaeter jederzeit anpassen.
+          </p>
+          <MedicationEditor
+            medications={draft.medications}
+            onChange={(medications) => updateDraft({ medications })}
+          />
         </div>
       ),
     },
     {
-      title: "Arzt-Bericht",
+      title: "Zeitpunkte",
+      body: (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">Wann soll {isParentFlow ? "dein Kind" : "du"} erinnert werden?</p>
+          <div className="grid gap-3">
+            {TIME_SLOTS.map((slot) => (
+              <label key={slot} className="rounded-2xl border border-border bg-card p-4">
+                <span className="text-sm font-semibold">{SLOT_LABELS[slot]}</span>
+                <input
+                  type="time"
+                  value={draft.timeSlots[slot]}
+                  onChange={(event) =>
+                    updateDraft({ timeSlots: { ...draft.timeSlots, [slot]: event.target.value } })
+                  }
+                  className="mt-2 w-full bg-transparent text-lg font-semibold text-primary outline-none"
+                />
+              </label>
+            ))}
+          </div>
+          {isParentFlow && (
+            <div className="rounded-2xl border border-border bg-card p-3">
+              <label className="flex items-center gap-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={draft.speechOutput ?? false}
+                  onChange={(e) => updateDraft({ speechOutput: e.target.checked })}
+                  className="h-4 w-4 rounded accent-primary"
+                />
+                <div>
+                  <div className="font-semibold">Sprachausgabe fuer Kind</div>
+                  <div className="text-xs text-muted-foreground">Alle Fragen werden laut vorgelesen</div>
+                </div>
+              </label>
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: "Arzt / Fachperson",
       body: (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Der Arzt erhält am Ende der Beobachtungsperiode automatisch einen visuellen Bericht und eine Textzusammenfassung. Du kannst den Bericht auch jederzeit manuell versenden.
+            Optional: {isParentFlow ? "Der Arzt eures Kindes" : "Dein Arzt"} erhaelt am Ende der Beobachtungsperiode automatisch einen Bericht.
           </p>
           <label className="block rounded-2xl border border-border bg-card p-3">
             <span className="text-xs font-semibold text-muted-foreground">E-Mail des Arztes (optional)</span>
@@ -479,11 +477,11 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
               className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
             />
           </label>
-          <div className="rounded-2xl border border-border bg-card p-3 text-xs text-muted-foreground space-y-1">
-            <p>✓ Bericht jederzeit abrufbar — auch während der Periode</p>
-            <p>✓ Export als PDF oder per E-Mail</p>
-            <p>✓ Daten werden anonymisiert verarbeitet</p>
-            <p>✓ Kein Medizinprodukt — Wellness-Tool</p>
+          <div className="rounded-2xl border border-border bg-card p-3 text-xs text-muted-foreground space-y-2">
+            <p>Bericht jederzeit abrufbar</p>
+            <p>Export als PDF oder per E-Mail</p>
+            <p>Daten werden anonymisiert verarbeitet</p>
+            <p>Kein Medizinprodukt - Wellness-Tool gemaess DSGVO</p>
           </div>
         </div>
       ),
@@ -493,6 +491,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
   return (
     <div className="space-y-4 pb-32">
       <header className="pt-2">
+
         
         <h1 className="mt-1 text-2xl font-semibold">Beobachtungsperiode einrichten</h1>
       </header>
