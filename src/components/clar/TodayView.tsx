@@ -1016,7 +1016,7 @@ export function TodayView({ log, settings, onChange, onSettingsChange }: Props) 
         })}
       </div>
 
-      <SectionCard title="Heute im Blick" subtitle="Keine Kurven mehr: eine Frage pro Seite.">
+      <SectionCard title="Heute im Blick" >
         <div className="grid grid-cols-3 gap-2 text-center">
           {TIME_SLOTS.map((slot) => (
             <div key={slot} className="rounded-2xl bg-primary/10 p-3">
