@@ -206,7 +206,7 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
   },
 ];
 
-export type ObserverRole = "parent" | "teacher" | "other";
+export type ObserverRole = "parent" | "teacher" | "other" | "child";
 export type ObserverStatus = "pending" | "active";
 
 export type Observer = {
