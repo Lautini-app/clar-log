@@ -877,19 +877,13 @@ function SlotWizard({
                     (slotLog.medsTaken ?? {})[med.id] === true;
                   const takenDose = (slotLog.medsDose ?? {})[med.id] ?? med.mg;
                   return (
-                    <div key={med.id} className="rounded-2xl border border-border bg-card p-4 space-y-2">
+                    <div key={med.id}
+                      onClick={() => patchSlot({ medsTaken: { ...(slotLog.medsTaken ?? {}), [med.id]: !taken } })}
+                      className={`rounded-2xl border p-4 space-y-2 cursor-pointer ${taken ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
                       <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => patchSlot({ 
-                            medsTaken: { ...(slotLog.medsTaken ?? {}), [med.id]: !taken }
-                          })}
-                          className={`h-8 w-8 rounded-full border-2 flex items-center justify-center text-sm font-bold ${
-                            taken ? "border-primary bg-primary text-primary-foreground" : "border-border"
-                          }`}
-                        >
+                        <div className={`h-8 w-8 rounded-full border-2 flex items-center justify-center text-sm font-bold flex-shrink-0 ${taken ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>
                           {taken ? "✓" : ""}
-                        </button>
+                        </div>
                         <span className="flex-1 text-sm font-semibold">{med.name}</span>
                         <span className="text-xs text-muted-foreground">
                           {med.duration === "long" ? "Retard" : "Kurz"}
