@@ -1094,8 +1094,8 @@ function SlotWizard({
                 <div key={item.id} className={`space-y-2 ${idx > 0 ? "pt-4 border-t border-border" : ""}`}>
                   <div className="flex items-center gap-2">
                     <QuestionIcon category={item.category} />
-                    <p className="flex-1 text-sm font-semibold text-muted-foreground">{childLabel ?? item.label}</p>
-                    <SpeakButton text={childLabel ?? item.label} />
+                    <p className="flex-1 text-sm font-semibold text-muted-foreground">{(childMode ? CHILD_LABELS[item.id] : undefined) ?? item.label}</p>
+                    <SpeakButton text={(childMode ? CHILD_LABELS[item.id] : undefined) ?? item.label} />
                   </div>
                   {item.id === "tics_note" && slotLog.answers["tics"]?.value !== true ? null :
                    ["rebound_time","rebound_type","rebound_intensity","rebound_duration"].includes(item.id) && slotLog.answers["rebound_today"]?.value !== true ? null : (
