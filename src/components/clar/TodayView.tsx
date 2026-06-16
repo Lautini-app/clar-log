@@ -167,38 +167,40 @@ function MedicationEditor({
             {/* Zeile 2: Einnahme */}
             <div className="rounded-xl border border-border bg-card p-3">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Einnahme</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col gap-2">
                 {(["asBraucht", "morning", "midday", "evening"] as const).map((slot) => {
                   const labels: Record<string, string> = { asBraucht: "Bei Bedarf", morning: "Morgens", midday: "Mittags", evening: "Abends" };
                   const times = med.intakeTimes ?? [{ slot: med.intakeSlot }];
                   const active = times.some((t) => t.slot === slot);
+                  const entry = times.find((t) => t.slot === slot);
                   return (
-                    <button
-                      key={slot}
-                      type="button"
-                      onClick={() => {
-                        const current = med.intakeTimes ?? [{ slot: med.intakeSlot }];
-                        const next = active ? current.filter((t) => t.slot !== slot) : [...current, { slot }];
-                        update(med.id, { intakeTimes: next, intakeSlot: next[0]?.slot ?? "morning" });
-                      }}
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-                    >
-                      {labels[slot]}
-                    </button>
+                    <div key={slot}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = med.intakeTimes ?? [{ slot: med.intakeSlot }];
+                          const next = active ? current.filter((t) => t.slot !== slot) : [...current, { slot }];
+                          update(med.id, { intakeTimes: next, intakeSlot: next[0]?.slot ?? "morning" });
+                        }}
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                      >
+                        {labels[slot]}
+                      </button>
+                      {active && slot !== "asBraucht" && (
+                        <input
+                          type="time"
+                          value={entry?.time ?? ""}
+                          onChange={(e) => {
+                            const current = med.intakeTimes ?? [];
+                            const next = current.map((t) => t.slot === slot ? { ...t, time: e.target.value } : t);
+                            update(med.id, { intakeTimes: next });
+                          }}
+                          className="ml-2 rounded-lg border border-border bg-background px-2 py-1 text-sm outline-none"
+                        />
+                      )}
+                    </div>
                   );
                 })}
-              </div>
-              <div className="mt-2">
-                <input
-                  type="time"
-                  className="rounded-lg border border-border bg-background px-2 py-1 text-sm outline-none"
-                  placeholder="Uhrzeit"
-                  onChange={(e) => {
-                    const current = med.intakeTimes ?? [];
-                    const next = [...current.filter((t) => !t.time), { time: e.target.value }];
-                    update(med.id, { intakeTimes: next });
-                  }}
-                />
               </div>
             </div>
             {/* Erinnerungen */}
