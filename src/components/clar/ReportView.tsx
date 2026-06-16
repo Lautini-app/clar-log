@@ -1,9 +1,144 @@
 import { useEffect, useMemo, useState } from "react";
+import { Download, Loader2, Mail, Sparkles } from "lucide-react";
 
 import { SectionCard } from "./SectionCard";
-import type { DayLog, ObserverObservation, Settings, WellbeingAnswer } from "@/lib/clar-storage";
+import type { DayLog, ObservationPeriod, ObserverObservation, Settings, WellbeingAnswer } from "@/lib/clar-storage";
 import { SLOT_LABELS, TIME_SLOTS, WELLBEING_CATALOG, getActivePeriod } from "@/lib/clar-storage";
 import { listObserverObservations } from "@/lib/clar-observers";
+import { supabase } from "@/integrations/supabase/client";
+import { generateWordReport, listWordReports, sendReportToDoctor } from "@/lib/report.functions";
+
+type WordReport = { id: string; content: string; created_at: string; sent_to_doctor_at: string | null };
+
+function WordReportSection({ period }: { period: ObservationPeriod }) {
+  const [reports, setReports] = useState<WordReport[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) return;
+      const result = await listWordReports({ data: { accessToken, periodId: period.id } });
+      setReports(result as WordReport[]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refresh();
+  }, [period.id]);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setError(null);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Nicht eingeloggt");
+      await generateWordReport({ data: { accessToken, periodId: period.id, rangeDays: 30 } });
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Generierung fehlgeschlagen");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleSend = async (reportId: string) => {
+    if (!period.doctorEmail) {
+      setError("Keine Arzt-E-Mail in den Einstellungen hinterlegt.");
+      return;
+    }
+    setSendingId(reportId);
+    setError(null);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Nicht eingeloggt");
+      await sendReportToDoctor({ data: { accessToken, reportId, doctorEmail: period.doctorEmail } });
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Versand fehlgeschlagen");
+    } finally {
+      setSendingId(null);
+    }
+  };
+
+  const handleExportPdf = async (report: WordReport) => {
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text("clar.log — Wortbericht", 14, 18);
+    doc.setFontSize(10);
+    doc.text(new Date(report.created_at).toLocaleDateString("de-DE"), 14, 25);
+    doc.setFontSize(11);
+    const lines = doc.splitTextToSize(report.content, 180);
+    doc.text(lines, 14, 35);
+    doc.save(`clar-wortbericht-${report.created_at.slice(0, 10)}.pdf`);
+  };
+
+  const reportsThisMonth = reports.filter((r) => {
+    const created = new Date(r.created_at);
+    const now = new Date();
+    return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+  }).length;
+
+  return (
+    <SectionCard title="Wortbericht" subtitle="Anonymisierte Zusammenfassung, max. 2× pro Monat — jederzeit abrufbar.">
+      <div className="space-y-3">
+        <button
+          type="button"
+          onClick={handleGenerate}
+          disabled={generating || reportsThisMonth >= 2}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+        >
+          {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          {reportsThisMonth >= 2 ? "Limit erreicht (2/Monat)" : "Wortbericht generieren"}
+        </button>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        {loading ? (
+          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        ) : (
+          <div className="space-y-3">
+            {reports.length === 0 && <p className="text-sm text-muted-foreground">Noch kein Bericht erstellt.</p>}
+            {reports.map((report) => (
+              <div key={report.id} className="rounded-2xl border border-border bg-background p-4">
+                <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{new Date(report.created_at).toLocaleDateString("de-DE")}</span>
+                  {report.sent_to_doctor_at && <span>An Arzt gesendet</span>}
+                </div>
+                <p className="text-sm">{report.content}</p>
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleExportPdf(report)}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-primary"
+                  >
+                    <Download className="h-3.5 w-3.5" /> PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSend(report.id)}
+                    disabled={sendingId === report.id}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-primary disabled:opacity-40"
+                  >
+                    <Mail className="h-3.5 w-3.5" /> An Arzt senden
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </SectionCard>
+  );
+}
 
 type Props = {
   logs: Record<string, DayLog>;
@@ -267,6 +402,8 @@ export function ReportView({ logs, settings, ownerId }: Props) {
           })}
         </div>
       </SectionCard>
+
+      {period && ownerId && <WordReportSection period={period} />}
     </div>
   );
 }
