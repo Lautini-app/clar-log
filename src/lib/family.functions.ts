@@ -34,6 +34,8 @@ export async function inviteFamilyMember(params: {
   // Token in DB speichern
   const token = randomToken();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const appUrl = "https://clar.log.lautini.ch";
+  const inviteUrl = `${appUrl}/einladung/${token}`;
 
   const { error: insertError } = await supabase
     .schema("clar_log")
