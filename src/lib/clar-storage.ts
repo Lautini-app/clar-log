@@ -521,10 +521,9 @@ export const defaultSettings: Settings = {
 };
 
 export function getActivePeriod(settings: Settings): ObservationPeriod | undefined {
-  return (
-    settings.periods.find((period) => period.id === settings.activePeriodId) ??
-    settings.periods[0]
-  );
+  const byId = settings.periods.find((p) => p.id === settings.activePeriodId && p.active !== false);
+  if (byId) return byId;
+  return settings.periods.find((p) => p.active !== false);
 }
 
 function emptySlot(status: SlotStatus = "pending"): DailySlotLog {
