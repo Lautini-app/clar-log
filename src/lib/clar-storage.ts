@@ -521,9 +521,8 @@ export const defaultSettings: Settings = {
 };
 
 export function getActivePeriod(settings: Settings): ObservationPeriod | undefined {
-  const byId = settings.periods.find((p) => p.id === settings.activePeriodId && p.active !== false);
-  if (byId) return byId;
-  return settings.periods.find((p) => p.active !== false);
+  if (!settings.activePeriodId) return undefined;
+  return settings.periods.find((p) => p.id === settings.activePeriodId && p.active !== false);
 }
 
 function emptySlot(status: SlotStatus = "pending"): DailySlotLog {
@@ -604,7 +603,7 @@ function normalizeSettings(incoming?: LegacySettings): Settings {
   if (incoming?.periods && incoming.periods.length > 0) {
     const periods = incoming.periods.map((period) => createPeriod(period));
     return {
-      activePeriodId: incoming.activePeriodId ?? periods[0]?.id,
+      activePeriodId: incoming.activePeriodId,
       periods,
       customWellbeingItems: incoming.customWellbeingItems ?? [],
       language: incoming.language ?? "de",
