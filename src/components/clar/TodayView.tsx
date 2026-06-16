@@ -871,6 +871,49 @@ function SlotWizard({
           {currentStep === "medication" && (
             <div className="space-y-4">
               <h2 className="text-2xl font-semibold">Medikament</h2>
+              <div className="space-y-2">
+                {period.medications.map((med) => {
+                  const taken = slotLog.medicationTaken === true || 
+                    (slotLog.medsTaken ?? {})[med.id] === true;
+                  const takenDose = (slotLog.medsDose ?? {})[med.id] ?? med.mg;
+                  return (
+                    <div key={med.id} className="rounded-2xl border border-border bg-card p-4 space-y-2">
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => patchSlot({ 
+                            medsTaken: { ...(slotLog.medsTaken ?? {}), [med.id]: !taken }
+                          })}
+                          className={`h-8 w-8 rounded-full border-2 flex items-center justify-center text-sm font-bold ${
+                            taken ? "border-primary bg-primary text-primary-foreground" : "border-border"
+                          }`}
+                        >
+                          {taken ? "✓" : ""}
+                        </button>
+                        <span className="flex-1 text-sm font-semibold">{med.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {med.duration === "long" ? "Retard" : "Kurz"}
+                        </span>
+                      </div>
+                      {taken && (
+                        <div className="flex items-center gap-2 pl-11">
+                          <input
+                            type="number"
+                            value={takenDose}
+                            onChange={(e) => patchSlot({
+                              medsDose: { ...(slotLog.medsDose ?? {}), [med.id]: Number(e.target.value) }
+                            })}
+                            className="w-20 rounded-xl border border-border bg-background px-2 py-1 text-sm font-semibold outline-none"
+                            min={0}
+                            step={5}
+                          />
+                          <span className="text-xs text-muted-foreground">mg</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
               <div className="flex gap-3">
                 {([true, false] as const).map((bool) => (
                   <button key={String(bool)} type="button" onClick={() => patchSlot({ medicationTaken: bool })}
