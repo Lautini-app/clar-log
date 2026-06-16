@@ -34,7 +34,8 @@ export async function loadFromSupabase(userId: string): Promise<RemoteStore> {
           ? {
               ...defaultSettings,
               periods,
-              activePeriodId: periods[0]?.id,
+              activePeriodId: (settingsRes?.data as Record<string,unknown>)?.activePeriodId as string | undefined
+                ?? periods.find((p: Record<string,unknown>) => p.active !== false)?.id,
             }
           : null,
     };
