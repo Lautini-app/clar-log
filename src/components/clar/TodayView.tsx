@@ -299,7 +299,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
   // Alter berechnen
   const birthYear = draft.birthYear;
   const age = birthYear ? new Date().getFullYear() - birthYear : null;
-  const isParentFlow = draft.profile === "child_parent" || draft.profile === "child_both" || draft.profile === "child_self";
+  const isParentFlow = draft.profile === "child_parent";
   const isTeenFlow = draft.profile === "teen_self";
 
   const steps = [
@@ -310,8 +310,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
           <p className="text-sm text-muted-foreground">Wähle deine Rolle. Du kannst das später jederzeit anpassen.</p>
           {([
             ["self", "Ich selbst (ab 18)", "Ich führe das Tagebuch für mich."],
-            ["teen_self", "Ich bin Jugendliche/r (12–17)", "Vereinfachte Sprache, volles Tagebuch."],
-            ["child_parent", "Ich bin Elternteil (Kind unter 12)", "Ich führe das Tagebuch für mein Kind."],
+            ["child_parent", "Ich bin Elternteil", "Ich führe das Tagebuch für mein Kind."],
           ] as const).map(([key, label, desc]) => (
             <button
               key={key}
@@ -331,9 +330,8 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
             <div className="rounded-2xl border border-border bg-card p-4 space-y-2">
               <p className="text-xs font-semibold text-muted-foreground">Wer füllt das Tagebuch aus?</p>
               {([
-                ["child_parent", "Ich führe das Tagebuch (Kind unter 12)", "Du erfasst alle Daten. Das Kind kann mitmachen."],
-                ["child_both", "Kind und ich füllen aus (ab 12)", "Das Kind hat eine eigene Ansicht auf seinem Gerät."],
-                ["child_self", "Kind füllt alleine aus (ab 12)", "Das Kind füllt selbst aus. Du siehst alle Daten."],
+                ["child_parent", "Kind unter 12", "Du führst das Tagebuch. Das Kind kann mitmachen."],
+                ["teen_self", "Jugendliche/r (12–17)", "Das Kind erhält eine Einladung und füllt auf eigenem Gerät aus."],
               ] as const).map(([key, label, desc]) => (
                 <button
                   key={key}
@@ -516,7 +514,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
         </div>
       ),
     },
-    ...(isParentFlow && (draft.profile === "child_both" || draft.profile === "child_self") ? [{
+    ...(draft.profile === "teen_self" ? [{
       title: "Kind einladen",
       body: (
         <div className="space-y-3">
