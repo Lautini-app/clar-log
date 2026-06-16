@@ -152,7 +152,7 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
   {
     id: "body",
     title: "Körper & Nebenwirkungen",
-    slots: ["evening"],
+    slots: ["morning", "midday", "evening"],
     items: ["heart_racing", "chest_tightness", "headache", "stomachache", "dry_mouth", "tics"],
   },
   {
