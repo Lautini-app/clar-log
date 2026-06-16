@@ -493,7 +493,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
       body: (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Optional: {isParentFlow ? "Der Arzt eures Kindes" : "Dein Arzt"} erhält am Ende der Beobachtungsperiode automatisch einen Bericht.
+            Optional: Du kannst am Ende der Beobachtungsperiode einen Bericht erstellen und ihn selbst an den Arzt senden.
           </p>
           <label className="block rounded-2xl border border-border bg-card p-3">
             <span className="text-xs font-semibold text-muted-foreground">E-Mail des Arztes (optional)</span>
