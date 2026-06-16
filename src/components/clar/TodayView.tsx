@@ -178,7 +178,8 @@ function MedicationEditor({
                       <input
                         type="checkbox"
                         checked={active}
-                        onChange={() => {
+                        onChange={(e) => {
+                          e.stopPropagation();
                           const current = med.intakeTimes ?? [{ slot: med.intakeSlot }];
                           const next = active ? current.filter((t) => t.slot !== slot) : [...current, { slot }];
                           update(med.id, { intakeTimes: next, intakeSlot: next[0]?.slot ?? "morning" });
