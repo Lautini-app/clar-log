@@ -315,22 +315,24 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
       </SectionCard>
 
       {activePeriod && (
-        <SectionCard title="Beobachtungsperiode">
-        <button
-          type="button"
-          onClick={() => onSettingsChange({ ...settings, periods: settings.periods.filter(p => p.id !== activePeriod?.id) })}
-          className="w-full rounded-2xl border border-border bg-card p-3 text-sm font-semibold text-primary text-left"
-        >
-          Periode neu einrichten →
-        </button>
-      </SectionCard>
+        <>
+          <SectionCard title="Beobachtungsperiode">
+            <button
+              type="button"
+              onClick={() => onSettingsChange({ ...settings, periods: settings.periods.filter(p => p.id !== activePeriod?.id) })}
+              className="w-full rounded-2xl border border-border bg-card p-3 text-sm font-semibold text-primary text-left"
+            >
+              Periode neu einrichten →
+            </button>
+          </SectionCard>
 
-      <SectionCard title="Medikamente">
-          <MedicationEditor
-            medications={activePeriod.medications}
-            onChange={(medications) => updateActivePeriod({ medications })}
-          />
-        </SectionCard>
+          <SectionCard title="Medikamente">
+            <MedicationEditor
+              medications={activePeriod.medications}
+              onChange={(medications) => updateActivePeriod({ medications })}
+            />
+          </SectionCard>
+        </>
       )}
 
       <SectionCard title="Eigene Befindlichkeiten hinzufügen">

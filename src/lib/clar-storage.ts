@@ -78,6 +78,109 @@ export type WellbeingItem = {
   slots?: TimeSlot[];
 };
 
+export type QuestionGroup = {
+  id: string;
+  title: string;
+  slots: TimeSlot[];
+  items: string[];
+  condition?: {
+    itemId: string;
+    value: boolean | string;
+  };
+  variant?: "school" | "general";
+};
+
+export const QUESTION_GROUPS: QuestionGroup[] = [
+  {
+    id: "medication_morning",
+    title: "Medikament",
+    slots: ["morning"],
+    items: [],
+  },
+  {
+    id: "sleep",
+    title: "Schlaf",
+    slots: ["morning"],
+    items: ["sleep_latency", "sleep_through", "sleep_recovery", "sleep_duration"],
+  },
+  {
+    id: "emotions",
+    title: "Emotionen",
+    slots: ["morning", "evening"],
+    items: ["emotions"],
+  },
+  {
+    id: "cognition_morning",
+    title: "Konzentration & Kognition",
+    slots: ["morning"],
+    items: ["focus", "distractibility", "impulsivity", "thought_racing", "hyperfocus"],
+  },
+  {
+    id: "breakfast",
+    title: "Frühstück",
+    slots: ["morning"],
+    items: ["breakfast"],
+  },
+  {
+    id: "school_check",
+    title: "Schule / Arbeit / Ausbildung",
+    slots: ["midday", "evening"],
+    items: ["school_work_today"],
+  },
+  {
+    id: "cognition_school",
+    title: "Konzentration in Schule / Arbeit",
+    slots: ["midday", "evening"],
+    items: ["focus", "distractibility", "impulsivity", "school_performance", "school_social", "school_conflicts"],
+    condition: { itemId: "school_work_today", value: true },
+    variant: "school",
+  },
+  {
+    id: "cognition_general",
+    title: "Konzentration heute",
+    slots: ["midday", "evening"],
+    items: ["focus", "distractibility", "impulsivity"],
+    condition: { itemId: "school_work_today", value: false },
+    variant: "general",
+  },
+  {
+    id: "rebound_check",
+    title: "Rebound",
+    slots: ["evening"],
+    items: ["rebound_time", "rebound_type", "rebound_intensity", "rebound_duration"],
+  },
+  {
+    id: "body",
+    title: "Körper & Nebenwirkungen",
+    slots: ["evening"],
+    items: ["heart_racing", "chest_tightness", "headache", "stomachache", "dry_mouth", "tics"],
+  },
+  {
+    id: "mood_evening",
+    title: "Stimmung & Befinden",
+    slots: ["evening"],
+    items: ["drive", "inner_tension", "frustration_tolerance", "emotional_outbursts", "crying_outbursts"],
+  },
+  {
+    id: "social",
+    title: "Soziales & Stress",
+    slots: ["evening"],
+    items: ["stress_level", "social_interactions", "conflicts", "special_events"],
+  },
+  {
+    id: "appetite_evening",
+    title: "Appetit & Mahlzeiten",
+    slots: ["evening"],
+    items: ["hunger", "meals_today", "ate"],
+  },
+  {
+    id: "cycle",
+    title: "Zyklus",
+    slots: ["evening"],
+    items: ["cycle_phase", "cycle_mood", "pms_symptoms"],
+  },
+];
+
 export type ObservationPeriod = {
   id: string;
   profile: ProfileType;
