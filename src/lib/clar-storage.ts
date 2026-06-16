@@ -117,21 +117,39 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
   },
   {
     id: "breakfast",
-    title: "Frühstück & Appetit",
+    title: "Frühstück",
     slots: ["morning"],
-    items: ["breakfast", "ate", "appetite"],
+    items: ["breakfast_eaten", "meal_hunger", "meal_appetite", "meal_amount", "meal_note"],
+  },
+  {
+    id: "meal_midday",
+    title: "Mittagessen",
+    slots: ["midday"],
+    items: ["meal_eaten", "meal_hunger", "meal_appetite", "meal_amount", "meal_note"],
+  },
+  {
+    id: "meal_evening",
+    title: "Abendessen",
+    slots: ["evening"],
+    items: ["meal_eaten", "meal_hunger", "meal_appetite", "meal_amount", "meal_note"],
   },
   {
     id: "school_check",
-    title: "Schule / Arbeit / Ausbildung",
-    slots: ["midday", "evening"],
+    title: "Schule / Arbeit heute?",
+    slots: ["midday"],
+    items: ["school_work_today"],
+  },
+  {
+    id: "school_evening",
+    title: "Schule / Arbeit Nachmittag",
+    slots: ["evening"],
     items: ["school_work_today"],
   },
   {
     id: "cognition_school",
     title: "Konzentration in Schule / Arbeit",
     slots: ["midday", "evening"],
-    items: ["focus", "distractibility", "impulsivity", "school_performance", "school_social", "school_conflicts"],
+    items: ["focus", "distractibility", "impulsivity", "school_performance", "school_social"],
     condition: { itemId: "school_work_today", value: true },
     variant: "school",
   },
@@ -147,7 +165,7 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     id: "rebound_check",
     title: "Rebound",
     slots: ["evening"],
-    items: ["rebound_time", "rebound_type", "rebound_intensity", "rebound_duration"],
+    items: ["rebound_today", "rebound_time", "rebound_type", "rebound_intensity", "rebound_duration"],
   },
   {
     id: "body",
@@ -167,18 +185,7 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     slots: ["evening"],
     items: ["stress_level", "social_interactions", "conflicts", "special_events"],
   },
-  {
-    id: "appetite_midday",
-    title: "Appetit",
-    slots: ["midday"],
-    items: ["hunger"],
-  },
-  {
-    id: "appetite_evening",
-    title: "Appetit & Mahlzeiten",
-    slots: ["evening"],
-    items: ["hunger", "meals_today"],
-  },
+
   {
     id: "cycle",
     title: "Zyklus",
@@ -343,6 +350,7 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "hyperfocus", category: "concentration", label: "Hyperfokus heute", kind: "boolean", slots: ["evening"] },
   { id: "tasks_done", category: "concentration", label: "Aufgaben fertiggestellt", kind: "scale", slots: ["evening"] },
 
+  { id: "rebound_today", category: "rebound", label: "Hattest du heute einen Rebound?", kind: "boolean" },
   { id: "rebound_time", category: "rebound", label: "Rebound-Zeitpunkt", kind: "time", slots: ["evening"] },
   {
     id: "rebound_type",
@@ -357,6 +365,11 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "breakfast", category: "appetite", label: "Gefrühstückt?", kind: "boolean", slots: ["morning"] },
   { id: "hunger", category: "appetite", label: "Hungergefühl", kind: "scale" },
   { id: "appetite", category: "appetite", label: "Appetit (Lust auf Essen)", kind: "scale" },
+  { id: "breakfast_eaten", category: "appetite", label: "Gefrühstückt?", kind: "boolean" },
+  { id: "meal_eaten", category: "appetite", label: "Gegessen?", kind: "boolean" },
+  { id: "meal_hunger", category: "appetite", label: "Hunger", kind: "scale" },
+  { id: "meal_appetite", category: "appetite", label: "Appetit", kind: "scale" },
+  { id: "meal_amount", category: "appetite", label: "Menge gegessen", kind: "scale" },
   { id: "meal_note", category: "appetite", label: "Kommentar zur Mahlzeit", kind: "text" },
   { id: "ate", category: "appetite", label: "Gegessen", kind: "boolean" },
   { id: "meals_today", category: "appetite", label: "Mahlzeiten heute", kind: "scale", slots: ["evening"] },
