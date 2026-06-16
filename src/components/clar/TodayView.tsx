@@ -678,6 +678,22 @@ function WizardInput({
   if (item.kind === "emotions") {
     return <EmotionsInput value={answer?.value as Record<string, number> | undefined} onChange={setValue} />;
   }
+  if (item.kind === "number") {
+    return (
+      <div className="flex items-center gap-3">
+        <input
+          type="number"
+          min={0}
+          max={240}
+          value={answer?.value as number ?? ""}
+          onChange={(e) => setValue(Number(e.target.value))}
+          className="w-32 rounded-2xl border border-border bg-card px-4 py-3 text-2xl font-semibold text-primary outline-none focus:border-primary"
+          placeholder="0"
+        />
+        <span className="text-sm text-muted-foreground">Minuten</span>
+      </div>
+    );
+  }
   return <ScaleInput value={answer?.value as number | undefined} onChange={setValue} itemId={item.id} />;
 }
 

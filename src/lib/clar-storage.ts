@@ -162,7 +162,7 @@ export const MEDICATION_TYPE_LABELS: Record<MedicationType, string> = {
 };
 
 export const WELLBEING_CATALOG: WellbeingItem[] = [
-  { id: "sleep_latency", category: "sleep", label: "Einschlafdauer (Minuten)", kind: "scale", slots: ["morning"] },
+  { id: "sleep_latency", category: "sleep", label: "Einschlafdauer (Minuten)", kind: "number", slots: ["morning"] },
   { id: "sleep_through", category: "sleep", label: "Durchgeschlafen", kind: "boolean", slots: ["morning"] },
   { id: "sleep_recovery", category: "sleep", label: "Erholungsgrad", kind: "scale", slots: ["morning"] },
   { id: "sleep_duration", category: "sleep", label: "Schlafdauer (Stunden)", kind: "scale", slots: ["morning"] },
@@ -178,12 +178,12 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
       "Freudig", "Aufgeregt", "Euphorisch"
     ],
   },
-  { id: "irritability", category: "mood", label: "Reizbarkeit", kind: "scale" },
+
   { id: "drive", category: "mood", label: "Antrieb / Motivation", kind: "scale" },
   { id: "inner_tension", category: "mood", label: "Innere Unruhe / Anspannung", kind: "scale" },
   { id: "frustration_tolerance", category: "mood", label: "Frustrationstoleranz", kind: "scale" },
   { id: "emotional_outbursts", category: "mood", label: "Emotionale Überreaktionen (RSD)", kind: "boolean" },
-  { id: "crying_outbursts", category: "mood", label: "Weinen / Gefühlsausbrüche", kind: "boolean" },
+  { id: "crying_outbursts", category: "mood", label: "Weinen / Gefühlsausbrüche", kind: "boolean", slots: ["evening"] },
 
   { id: "focus", category: "concentration", label: "Konzentration / Fokus", kind: "scale" },
   { id: "distractibility", category: "concentration", label: "Ablenkbarkeit", kind: "scale" },
@@ -203,6 +203,7 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "rebound_intensity", category: "rebound", label: "Rebound-Intensität", kind: "scale", slots: ["evening"] },
   { id: "rebound_duration", category: "rebound", label: "Rebound-Dauer", kind: "scale", slots: ["evening"] },
 
+  { id: "breakfast", category: "appetite", label: "Gefrühstückt?", kind: "boolean", slots: ["morning"] },
   { id: "hunger", category: "appetite", label: "Hungergefühl", kind: "scale" },
   { id: "ate", category: "appetite", label: "Gegessen", kind: "boolean" },
   { id: "meals_today", category: "appetite", label: "Mahlzeiten heute", kind: "scale", slots: ["evening"] },
