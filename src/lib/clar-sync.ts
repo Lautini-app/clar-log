@@ -104,10 +104,13 @@ export async function upsertSettingsToSupabase(
     if (!periodError) return;
   }
 
+  const settingsData = settings.activePeriodId
+    ? settings
+    : { ...settings, activePeriodId: null };
   const { error } = await supabase.from("tracker_settings").upsert(
     {
       user_id: userId,
-      data: settings,
+      data: settingsData,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id" },
