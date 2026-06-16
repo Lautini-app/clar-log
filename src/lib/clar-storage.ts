@@ -190,7 +190,7 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "impulsivity", category: "concentration", label: "Impulsivität", kind: "scale" },
   { id: "thought_racing", category: "concentration", label: "Gedankenrasen", kind: "scale" },
   { id: "hyperfocus", category: "concentration", label: "Hyperfokus heute", kind: "boolean" },
-  { id: "tasks_done", category: "concentration", label: "Aufgaben fertiggestellt", kind: "scale" },
+  { id: "tasks_done", category: "concentration", label: "Aufgaben fertiggestellt", kind: "scale", slots: ["evening"] },
 
   { id: "rebound_time", category: "rebound", label: "Rebound-Zeitpunkt", kind: "time", slots: ["evening"] },
   {

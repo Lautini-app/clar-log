@@ -735,8 +735,8 @@ function SlotWizard({
   const item = questions[index - 1];
 
   return (
-    <div className="fixed inset-0 z-30 bg-background/95 px-4 py-6 backdrop-blur">
-      <div className="mx-auto flex h-full max-w-md flex-col">
+    <div className="fixed inset-0 z-30 overflow-y-auto bg-background/95 px-4 py-6 backdrop-blur">
+      <div className="mx-auto flex min-h-full max-w-md flex-col">
         <div className="mb-4 flex items-center justify-between">
           <button type="button" onClick={onClose} className="text-sm font-semibold text-primary">
             Schließen
@@ -745,7 +745,7 @@ function SlotWizard({
             {index + 1}/{total}
           </span>
         </div>
-        <div className="flex-1 rounded-3xl border border-border bg-card p-5">
+        <div className="rounded-3xl border border-border bg-card p-5">
           <p className="text-xs uppercase tracking-wider text-muted-foreground">
             {SLOT_LABELS[slot]}
           </p>
