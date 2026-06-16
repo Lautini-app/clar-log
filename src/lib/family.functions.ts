@@ -32,7 +32,7 @@ function randomToken(length = 24) {
  * Sendet eine Einladungs-E-Mail via Resend — kein Name im Link.
  */
 export const inviteFamilyMember = createServerFn({ method: "POST" })
-  .inputValidator((data: { accessToken: string; email: string; role: "member" | "child" | "teen" }) => {
+  .inputValidator((data: { accessToken: string; email: string; role: "member" | "child" | "teen"; name?: string }) => {
     if (!data?.accessToken || !data?.email || !data?.role) throw new Error("accessToken, email and role required");
     return data;
   })
@@ -80,6 +80,7 @@ export const inviteFamilyMember = createServerFn({ method: "POST" })
         admin_user_id: inviter.id,
         email: data.email,
         role: data.role,
+        name: data.name ?? null,
         token,
         expires_at: expiresAt,
         status: "pending",
@@ -93,6 +94,7 @@ export const inviteFamilyMember = createServerFn({ method: "POST" })
     const inviteUrl = `${appUrl}/einladung/${token}`;
 
     const roleText = data.role === "teen" ? "Jugendliche/r" : data.role === "child" ? "Kind" : "Familienmitglied";
+    const displayName = data.name ? ` (${data.name})` : "";
 
     await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -107,7 +109,7 @@ export const inviteFamilyMember = createServerFn({ method: "POST" })
         html: `
           <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px;">
             <p style="font-size: 16px; color: #1a1a1a; margin-bottom: 16px;">
-              Du wurdest als <strong>${roleText}</strong> zu clar.log eingeladen.
+              Du wurdest als <strong>${roleText}${displayName}</strong> zu clar.log eingeladen.
             </p>
             <p style="font-size: 14px; color: #666; margin-bottom: 24px;">
               clar.log ist ein Stimulanzien-Tagebuch für Menschen mit ADHS. Du kannst tägliche Beobachtungen erfassen, die deiner Familie helfen, die Wirkung der Medikation zu verstehen.
