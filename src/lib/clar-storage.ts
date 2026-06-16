@@ -707,9 +707,13 @@ export function useStore() {
         await migrateLocalToSupabase(uid, localStore);
         const remote = await loadFromSupabase(uid);
         setStoreState((prev) => {
+          const remoteSettings = remote.settings ?? prev.settings;
+          const mergedSettings: typeof remoteSettings = remote.settings
+            ? { ...remoteSettings, activePeriodId: (remote.settings as Settings).activePeriodId ?? undefined }
+            : prev.settings;
           const merged = normalizeStore({
             logs: { ...prev.logs, ...remote.logs },
-            settings: remote.settings ?? prev.settings,
+            settings: mergedSettings,
           });
           save(merged);
           return merged;
