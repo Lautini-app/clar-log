@@ -300,6 +300,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
   const birthYear = draft.birthYear;
   const age = birthYear ? new Date().getFullYear() - birthYear : null;
   const isParentFlow = draft.profile === "child_parent" || draft.profile === "child_both" || draft.profile === "child_self";
+  const isTeenFlow = draft.profile === "teen_self";
 
   const steps = [
     {
@@ -308,8 +309,9 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">Wähle deine Rolle. Du kannst das später jederzeit anpassen.</p>
           {([
-            ["self", "Ich selbst (ab 18)", "Ich führe das Tagebuch fuer mich."],
-            ["child_parent", "Ich bin Elternteil", "Ich führe das Tagebuch fuer mein Kind."],
+            ["self", "Ich selbst (ab 18)", "Ich führe das Tagebuch für mich."],
+            ["teen_self", "Ich bin Jugendliche/r (12–17)", "Vereinfachte Sprache, volles Tagebuch."],
+            ["child_parent", "Ich bin Elternteil (Kind unter 12)", "Ich führe das Tagebuch für mein Kind."],
           ] as const).map(([key, label, desc]) => (
             <button
               key={key}
@@ -619,6 +621,16 @@ const SCALE_STEPS = [
   { val: 4, label: "sehr/viel" },
 ];
 
+// Items die für Kinder unter 12 nicht angezeigt werden (child_parent Profil)
+const CHILD_EXCLUDED_ITEMS = new Set([
+  "chest_tightness",   // Engegefühl in der Brust → nicht kindgerecht
+  "dry_mouth",         // Mundtrockenheit → nicht relevant
+  "inner_tension",     // Innere Unruhe → zu abstrakt (Eltern beobachten)
+  "emotional_outbursts", // Emotionale Ausbrüche → Eltern beurteilen
+  "drive",             // Antrieb → zu abstrakt
+  "base_mood",         // Grundstimmung → abgedeckt durch Emotionen
+]);
+
 const CHILD_LABELS: Record<string, string> = {
   sleep_recovery:        "Bist du fit und gut erholt?",
   sleep_latency:         "Wie lange hast du zum Einschlafen gebraucht?",
@@ -652,6 +664,29 @@ const CHILD_LABELS: Record<string, string> = {
   social_interactions:   "Wie war es heute mit anderen Kindern?",
   energy_level:          "Wie viel Energie hast du?",
   emotions:              "Wie fühlst du dich gerade?",
+};
+
+// Kindgerechte Gruppen-Titel
+const CHILD_GROUP_TITLES: Record<string, string> = {
+  "Schlaf": "Schlaf",
+  "Emotionen": "Gefühle",
+  "Energie": "Energie",
+  "Konzentration & Kognition": "Aufpassen & Denken",
+  "Körper & Nebenwirkungen": "Körpergefühl",
+  "Mahlzeit": "Essen",
+  "Rebound": "Später am Tag",
+  "Schule / Arbeit": "Schule",
+  "Reflexion": "Rückblick",
+};
+
+// Kindgerechte Emotions-Namen (ersetzt Erwachsenen-Begriffe)
+const CHILD_EMOTION_NAMES: Record<string, string> = {
+  "Verzweifelt": "Ich weiss nicht mehr weiter",
+  "Melancholisch": "Ein bisschen traurig ohne Grund",
+  "Euphorisch": "Sehr sehr glücklich",
+  "Neutral": "Weder gut noch schlecht",
+  "Ausgeglichen": "Ruhig und okay",
+  "Stärke": "Stärke",
 };
 
 function scaleStyle(val: number, positive: boolean, selected: boolean): React.CSSProperties {
@@ -782,17 +817,22 @@ function emotionStyle(val: number, positive: boolean | null, selected: boolean):
   return scaleStyle(val, positive, selected);
 }
 
-function EmotionsInput({ value, onChange }: { value?: Record<string, number>; onChange: (value: Record<string, number>) => void }) {
+function EmotionsInput({ value, onChange, childMode }: { value?: Record<string, number>; onChange: (value: Record<string, number>) => void; childMode?: boolean }) {
   const current = value ?? {};
+  // Kindgerechte Emotions-Gruppen: reduziert auf wesentliche Gefühle
+  const CHILD_EMOTIONS = ["Traurig", "Wütend", "Ängstlich", "Ich fühle gar nichts", "Ruhig und okay", "Froh / glücklich", "Aufgeregt"];
+  const displayGroups = childMode
+    ? [{ label: "Gefühle", positive: null, emotions: CHILD_EMOTIONS }]
+    : EMOTION_GROUPS;
   return (
     <div className="space-y-4">
-      {EMOTION_GROUPS.map((group) => (
+      {displayGroups.map((group) => (
         <div key={group.label}>
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
           <div className="space-y-3">
             {group.emotions.map((emotion) => (
               <div key={emotion} className="rounded-xl border border-border bg-card px-3 py-3">
-                <p className="mb-2 text-sm font-medium">{emotion}</p>
+                <p className="mb-2 text-sm font-medium">{childMode ? (CHILD_EMOTION_NAMES[emotion] ?? emotion) : emotion}</p>
                 <div className="grid grid-cols-4 gap-1 mb-1">
                   {SCALE_STEPS.map((step) => (
                     <button
@@ -957,7 +997,7 @@ function WizardInput({
     );
   }
   if (item.kind === "emotions") {
-    return <EmotionsInput value={answer?.value as Record<string, number> | undefined} onChange={setValue} />;
+    return <EmotionsInput value={answer?.value as Record<string, number> | undefined} onChange={setValue} childMode={childMode} />;
   }
   if (item.kind === "number") {
     const isSleep = item.id === "sleep_duration";
@@ -998,7 +1038,7 @@ function SlotWizard({
   const [localLog, setLocalLog] = useState<DayLog>(log);
   const slotLog = localLog.slots[slot];
   const [groupIndex, setGroupIndex] = useState(0);
-  const childMode = period.profile === "child_self" || period.profile === "child_parent" || period.profile === "child_both";
+  const childMode = period.profile === "child_self" || period.profile === "child_parent" || period.profile === "child_both" || period.profile === "teen_self";
   const speechEnabled = childMode || period.speechOutput === true;
 
   const patchSlot = (patch: Partial<typeof slotLog>) => {
@@ -1089,8 +1129,10 @@ function SlotWizard({
           )}
           {currentGroup && currentItems.length > 0 && (
             <div className="space-y-5">
-              <h2 className="text-2xl font-semibold">{currentGroup.title}</h2>
-              {currentItems.map((item, idx) => (
+              <h2 className="text-2xl font-semibold">{childMode ? (CHILD_GROUP_TITLES[currentGroup.title] ?? currentGroup.title) : currentGroup.title}</h2>
+              {currentItems.filter(item =>
+                !(period.profile === "child_parent" && CHILD_EXCLUDED_ITEMS.has(item.id))
+              ).map((item, idx) => (
                 <div key={item.id} className={`space-y-2 ${idx > 0 ? "pt-4 border-t border-border" : ""}`}>
                   <div className="flex items-center gap-2">
                     <QuestionIcon category={item.category} />
@@ -1138,7 +1180,7 @@ export function TodayView({ log, settings, onChange, onSettingsChange }: Props) 
   const [activeSlot, setActiveSlot] = useState<TimeSlot | null>(null);
   const [childPhase, setChildPhase] = useState(false);
   const items = useMemo(() => availableWellbeingItems(settings), [settings]);
-  const isChildParent = period?.profile === "child_parent";
+  const isChildParent = period?.profile === "child_parent" || period?.profile === "child_both";
 
   if (!period) {
     return <Onboarding settings={settings} onSettingsChange={onSettingsChange} />;
