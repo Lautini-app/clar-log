@@ -500,21 +500,54 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
   );
 }
 
-function ScaleInput({ value, onChange }: { value?: number; onChange: (value: number) => void }) {
+const SCALE_LABELS: Record<string, [string, string]> = {
+  sleep_latency: ["sehr lang", "sehr kurz"],
+  sleep_recovery: ["gar nicht", "sehr erholt"],
+  wake_mood: ["sehr schlecht", "sehr gut"],
+  sleep_duration: ["sehr kurz", "sehr lang"],
+  base_mood: ["sehr schlecht", "sehr gut"],
+  irritability: ["sehr reizbar", "ausgeglichen"],
+  drive: ["kein Antrieb", "sehr motiviert"],
+  inner_tension: ["sehr unruhig", "sehr ruhig"],
+  frustration_tolerance: ["sehr niedrig", "sehr hoch"],
+  focus: ["gar nicht", "sehr gut"],
+  distractibility: ["sehr ablenkbar", "sehr fokussiert"],
+  impulsivity: ["sehr impulsiv", "gut kontrolliert"],
+  thought_racing: ["starkes Rasen", "ruhig/klar"],
+  rebound_intensity: ["sehr stark", "kaum spürbar"],
+  rebound_duration: ["sehr lang", "sehr kurz"],
+  hunger: ["kein Hunger", "normaler Hunger"],
+  meals_today: ["keine", "viele"],
+  stress_level: ["kein Stress", "sehr hoher Stress"],
+  social_interactions: ["sehr schwierig", "sehr gut"],
+  school_performance: ["sehr schlecht", "sehr gut"],
+  school_social: ["sehr schwierig", "sehr gut"],
+};
+
+function ScaleInput({ value, onChange, itemId }: { value?: number; onChange: (value: number) => void; itemId?: string }) {
+  const labels = itemId ? SCALE_LABELS[itemId] : undefined;
   return (
-    <div className="grid grid-cols-5 gap-2">
-      {[1, 2, 3, 4, 5].map((item) => (
-        <button
-          key={item}
-          type="button"
-          onClick={() => onChange(item)}
-          className={`rounded-2xl py-3 text-sm font-semibold ${
-            value === item ? "bg-primary text-primary-foreground" : "bg-card text-primary"
-          }`}
-        >
-          {item}
-        </button>
-      ))}
+    <div>
+      <div className="grid grid-cols-5 gap-2">
+        {[1, 2, 3, 4, 5].map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => onChange(item)}
+            className={`rounded-2xl py-3 text-sm font-semibold ${
+              value === item ? "bg-primary text-primary-foreground" : "bg-card text-primary"
+            }`}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+      {labels && (
+        <div className="mt-2 flex justify-between text-xs text-muted-foreground px-1">
+          <span>1 = {labels[0]}</span>
+          <span>5 = {labels[1]}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -596,7 +629,7 @@ function WizardInput({
       />
     );
   }
-  return <ScaleInput value={answer?.value as number | undefined} onChange={setValue} />;
+  return <ScaleInput value={answer?.value as number | undefined} onChange={setValue} itemId={item.id} />;
 }
 
 function SlotWizard({
