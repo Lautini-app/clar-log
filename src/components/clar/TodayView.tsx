@@ -728,7 +728,9 @@ function EmotionsInput({ value, onChange }: { value?: Record<string, number>; on
           </div>
         </div>
       ))}
-
+    </div>
+  );
+}
 
 function BooleanInput({
   value,
