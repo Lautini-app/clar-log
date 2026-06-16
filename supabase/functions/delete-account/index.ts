@@ -12,9 +12,9 @@ serve(async (req) => {
   try {
     const { accessToken } = await req.json();
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const SERVICE_KEY = Deno.env.get("SERVICE_ROLE_KEY")!;
 
-    const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, { auth: { persistSession: false } });
+    const userClient = createClient(SUPABASE_URL, Deno.env.get("ANON_KEY")!, { auth: { persistSession: false } });
     const { data: userData } = await userClient.auth.getUser(accessToken);
     if (!userData?.user) throw new Error("Unauthorized");
     const userId = userData.user.id;
