@@ -79,7 +79,7 @@ function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: st
       setEmail("");
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Einladung fehlgeschlagen.");
+      setError(err instanceof Error ? err.message : typeof err === "object" ? JSON.stringify(err) : "Einladung fehlgeschlagen.");
     } finally {
       setBusy(false);
     }
@@ -296,7 +296,7 @@ function FamilySettings({ userId }: { userId: string }) {
       setSuccess(true);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Einladung fehlgeschlagen.");
+      setError(err instanceof Error ? err.message : typeof err === "object" ? JSON.stringify(err) : "Einladung fehlgeschlagen.");
     } finally {
       setBusy(false);
     }
