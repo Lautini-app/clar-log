@@ -663,7 +663,7 @@ function EmotionsInput({ value, onChange }: { value?: Record<string, number>; on
   const current = value ?? {};
   return (
     <div className="space-y-3">
-      <div className="flex justify-between px-1 text-[10px] text-muted-foreground">
+      <div className="sticky top-0 z-10 flex justify-between bg-background px-1 py-1 text-[10px] text-muted-foreground">
         <span>1 = trifft voll zu</span>
         <span>5 = trifft gar nicht zu</span>
       </div>
