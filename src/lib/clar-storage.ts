@@ -119,7 +119,7 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     id: "breakfast",
     title: "Frühstück & Appetit",
     slots: ["morning"],
-    items: ["breakfast", "ate"],
+    items: ["breakfast", "ate", "appetite"],
   },
   {
     id: "school_check",
@@ -354,6 +354,7 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
 
   { id: "breakfast", category: "appetite", label: "Gefrühstückt?", kind: "boolean", slots: ["morning"] },
   { id: "hunger", category: "appetite", label: "Hungergefühl", kind: "scale" },
+  { id: "appetite", category: "appetite", label: "Appetit (Lust auf Essen)", kind: "scale" },
   { id: "ate", category: "appetite", label: "Gegessen", kind: "boolean" },
   { id: "meals_today", category: "appetite", label: "Mahlzeiten heute", kind: "scale", slots: ["evening"] },
 
