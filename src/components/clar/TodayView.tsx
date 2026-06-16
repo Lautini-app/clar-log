@@ -776,6 +776,17 @@ function WizardInput({
       />
     );
   }
+  if (item.kind === "text") {
+    return (
+      <textarea
+        value={answer?.value as string ?? ""}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="Optional..."
+        rows={2}
+        className="w-full resize-none rounded-2xl border border-border bg-card px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
+      />
+    );
+  }
   if (item.kind === "emotions") {
     return <EmotionsInput value={answer?.value as Record<string, number> | undefined} onChange={setValue} />;
   }

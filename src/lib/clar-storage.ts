@@ -355,6 +355,7 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "breakfast", category: "appetite", label: "Gefrühstückt?", kind: "boolean", slots: ["morning"] },
   { id: "hunger", category: "appetite", label: "Hungergefühl", kind: "scale" },
   { id: "appetite", category: "appetite", label: "Appetit (Lust auf Essen)", kind: "scale" },
+  { id: "meal_note", category: "appetite", label: "Kommentar zur Mahlzeit", kind: "text" },
   { id: "ate", category: "appetite", label: "Gegessen", kind: "boolean" },
   { id: "meals_today", category: "appetite", label: "Mahlzeiten heute", kind: "scale", slots: ["evening"] },
 
