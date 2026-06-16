@@ -489,27 +489,14 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
       ),
     },
     {
-      title: "Arzt / Fachperson",
+      title: "Datenschutz & Bericht",
       body: (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Optional: Du kannst am Ende der Beobachtungsperiode einen Bericht erstellen und ihn selbst an den Arzt senden.
-          </p>
-          <label className="block rounded-2xl border border-border bg-card p-3">
-            <span className="text-xs font-semibold text-muted-foreground">E-Mail des Arztes (optional)</span>
-            <input
-              type="email"
-              placeholder="arzt@praxis.ch"
-              value={draft.doctorEmail ?? ""}
-              onChange={(e) => updateDraft({ doctorEmail: e.target.value })}
-              className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
-            />
-          </label>
-          <div className="rounded-2xl border border-border bg-card p-3 text-xs text-muted-foreground space-y-2">
-            <p>Bericht jederzeit abrufbar</p>
-            <p>Export als PDF oder per E-Mail</p>
-            <p>Daten werden anonymisiert verarbeitet</p>
-            <p>Kein Medizinprodukt - Wellness-Tool gemäss DSGVO</p>
+          <div className="rounded-2xl border border-border bg-card p-3 text-sm text-muted-foreground space-y-2">
+            <p>✓ Berichte jederzeit im Dossier abrufbar</p>
+            <p>✓ PDF-Download oder Versand — du entscheidest</p>
+            <p>✓ Daten werden anonymisiert verarbeitet</p>
+            <p>✓ Kein Medizinprodukt — Wellness-Tool gemäss DSGVO</p>
           </div>
         </div>
       ),
