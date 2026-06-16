@@ -998,7 +998,7 @@ function SlotWizard({
   const [localLog, setLocalLog] = useState<DayLog>(log);
   const slotLog = localLog.slots[slot];
   const [groupIndex, setGroupIndex] = useState(0);
-  const childMode = period.profile === "child_self";
+  const childMode = period.profile === "child_self" || period.profile === "child_parent" || period.profile === "child_both";
   const speechEnabled = childMode || period.speechOutput === true;
 
   const patchSlot = (patch: Partial<typeof slotLog>) => {
