@@ -45,11 +45,13 @@ type Props = {
 
 const CATEGORY_LABEL: Record<WellbeingItem["category"], string> = {
   sleep: "Schlaf",
-  mood: "Stimmung",
+  mood: "Emotionales Befinden",
   rebound: "Rebound",
-  concentration: "Konzentration",
+  concentration: "Konzentration & Kognition",
   appetite: "Appetit",
-  body: "Körper",
+  body: "Körper & Nebenwirkungen",
+  social: "Soziales & Stress",
+  school: "Schule / Arbeit / Ausbildung",
   cycle: "Zyklus",
   custom: "Eigene",
 };

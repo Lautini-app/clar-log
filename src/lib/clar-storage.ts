@@ -26,6 +26,8 @@ export type WellbeingCategory =
   | "concentration"
   | "appetite"
   | "body"
+  | "social"
+  | "school"
   | "cycle"
   | "custom";
 
@@ -163,67 +165,77 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "sleep_through", category: "sleep", label: "Durchgeschlafen", kind: "boolean" },
   { id: "sleep_recovery", category: "sleep", label: "Erholungsgrad", kind: "scale" },
   { id: "wake_mood", category: "sleep", label: "Aufwach-Stimmung", kind: "scale" },
-  { id: "tension", category: "sleep", label: "Verspannungen", kind: "scale" },
+  { id: "sleep_duration", category: "sleep", label: "Schlafdauer (Stunden)", kind: "scale" },
+
   { id: "base_mood", category: "mood", label: "Grundstimmung", kind: "scale" },
   { id: "irritability", category: "mood", label: "Reizbarkeit", kind: "scale" },
-  { id: "drive", category: "mood", label: "Antrieb", kind: "scale" },
-  { id: "crying_outbursts", category: "mood", label: "Weinen/Gefühlsausbrüche", kind: "scale" },
+  { id: "drive", category: "mood", label: "Antrieb / Motivation", kind: "scale" },
+  { id: "inner_tension", category: "mood", label: "Innere Unruhe / Anspannung", kind: "scale" },
+  { id: "frustration_tolerance", category: "mood", label: "Frustrationstoleranz", kind: "scale" },
+  { id: "emotional_outbursts", category: "mood", label: "Emotionale Überreaktionen (RSD)", kind: "boolean" },
+  { id: "crying_outbursts", category: "mood", label: "Weinen / Gefühlsausbrüche", kind: "boolean" },
+
+  { id: "focus", category: "concentration", label: "Konzentration / Fokus", kind: "scale" },
+  { id: "distractibility", category: "concentration", label: "Ablenkbarkeit", kind: "scale" },
+  { id: "impulsivity", category: "concentration", label: "Impulsivität", kind: "scale" },
+  { id: "thought_racing", category: "concentration", label: "Gedankenrasen", kind: "scale" },
+  { id: "hyperfocus", category: "concentration", label: "Hyperfokus heute", kind: "boolean" },
+  { id: "tasks_done", category: "concentration", label: "Aufgaben fertiggestellt", kind: "scale" },
+
   { id: "rebound_time", category: "rebound", label: "Rebound-Zeitpunkt", kind: "time" },
   {
     id: "rebound_type",
     category: "rebound",
     label: "Rebound-Art",
     kind: "multiselect",
-    options: ["Unruhe", "Traurigkeit", "Wut", "Müdigkeit", "Kopfschmerz"],
+    options: ["Stimmungseinbruch", "Reizbarkeit", "Erschöpfung", "Hunger", "Kopfschmerzen", "Weinen"],
   },
   { id: "rebound_intensity", category: "rebound", label: "Rebound-Intensität", kind: "scale" },
   { id: "rebound_duration", category: "rebound", label: "Rebound-Dauer", kind: "scale" },
-  { id: "focus", category: "concentration", label: "Fokus", kind: "scale" },
-  { id: "distractibility", category: "concentration", label: "Ablenkbarkeit", kind: "scale" },
-  { id: "tasks_done", category: "concentration", label: "Aufgaben fertiggestellt", kind: "scale" },
+
   { id: "hunger", category: "appetite", label: "Hungergefühl", kind: "scale" },
   { id: "ate", category: "appetite", label: "Gegessen", kind: "boolean" },
   { id: "meals_today", category: "appetite", label: "Mahlzeiten heute", kind: "scale" },
-  { id: "food_amount", category: "appetite", label: "Essmenge", kind: "scale" },
-  {
-    id: "stomach_pain",
-    category: "body",
-    label: "Bauchschmerzen",
-    kind: "scale",
-    module: "bodyFocus",
-  },
-  {
-    id: "headache",
-    category: "body",
-    label: "Kopfschmerzen",
-    kind: "scale",
-    module: "bodyFocus",
-  },
-  {
-    id: "heart_racing",
-    category: "body",
-    label: "Herzrasen",
-    kind: "scale",
-    module: "bodyFocus",
-  },
-  { id: "tics", category: "body", label: "Tics", kind: "scale", module: "bodyFocus" },
+
+  { id: "headache", category: "body", label: "Kopfschmerzen", kind: "boolean" },
+  { id: "stomachache", category: "body", label: "Bauchschmerzen", kind: "boolean" },
+  { id: "heart_racing", category: "body", label: "Herzrasen", kind: "boolean" },
+  { id: "dry_mouth", category: "body", label: "Mundtrockenheit", kind: "boolean" },
+  { id: "tics", category: "body", label: "Tics", kind: "scale" },
+
+  { id: "stress_level", category: "social", label: "Stresslevel", kind: "scale" },
+  { id: "social_interactions", category: "social", label: "Soziale Interaktionen", kind: "scale" },
+  { id: "conflicts", category: "social", label: "Konflikte heute", kind: "boolean" },
+  { id: "special_events", category: "social", label: "Besondere Ereignisse", kind: "scale" },
+
+  { id: "school_work_today", category: "school", label: "Schule / Arbeit heute", kind: "boolean" },
+  { id: "school_performance", category: "school", label: "Leistung in Schule / Arbeit", kind: "scale" },
+  { id: "school_social", category: "school", label: "Soziales in Schule / Arbeit", kind: "scale" },
+  { id: "school_conflicts", category: "school", label: "Konflikte in Schule / Arbeit", kind: "boolean" },
+
   {
     id: "cycle_phase",
     category: "cycle",
     label: "Zyklusphase",
     kind: "multiselect",
+    options: ["Menstruation", "Follikelphase", "Eisprung", "Lutealphase"],
     module: "cycleTracking",
-    options: ["Menstruation", "Follikelphase", "Ovulation", "Lutealphase", "Unklar"],
   },
   {
-    id: "hormonal_mood",
+    id: "cycle_mood",
     category: "cycle",
-    label: "Hormonelle Stimmung",
+    label: "Hormoneller Einfluss auf Stimmung",
     kind: "scale",
     module: "cycleTracking",
   },
+  {
+    id: "pms_symptoms",
+    category: "cycle",
+    label: "PMS-Symptome",
+    kind: "boolean",
+    module: "cycleTracking",
+  },
 ];
-
 const KEY = "clar.tracker.v1";
 
 function id(prefix: string) {
