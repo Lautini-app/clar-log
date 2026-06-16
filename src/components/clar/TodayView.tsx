@@ -405,7 +405,13 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
               {isParentFlow ? "Lebenssituation des Kindes" : "Deine Lebenssituation"}
             </span>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {([
+              {(isParentFlow ? [
+                ["kindergarten", "Kindergarten / Kita"],
+                ["primary", "Primarschule (1.–6. Kl.)"],
+                ["secondary", "Sekundarschule (7.–9. Kl.)"],
+                ["home", "Zu Hause (nicht in Schule)"],
+                ["apprentice", "In Ausbildung / Lehre"],
+              ] : [
                 ["pupil", "Schüler/in"],
                 ["apprentice", "Lehrling / Ausbildung"],
                 ["student", "Studierend"],
