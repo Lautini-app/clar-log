@@ -262,49 +262,95 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
 
   const steps = [
     {
-      title: "Profil & Module",
+      title: "Für wen ist das Tagebuch?",
       body: (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(PROFILE_LABELS).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => updateDraft({ profile: key as ProfileType })}
-                className={`rounded-2xl border p-4 text-left text-sm font-semibold ${
-                  draft.profile === key
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card text-foreground"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          {[
-            ["cycleTracking", "Zyklus-Tracking"],
-            ["bodyFocus", "Körper-Fokus"],
-          ].map(([key, label]) => (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">Wähle aus, wer die Beobachtungen erfasst.</p>
+          {([
+            ["self", "Für mich selbst", "Ich beobachte mich selbst und fülle täglich aus."],
+            ["child_parent", "Für mein Kind (ich fülle aus)", "Ich beobachte mein Kind und erfasse die Daten."],
+            ["child_self", "Für mein Kind (Kind füllt aus)", "Mein Kind füllt das Tagebuch selbst aus — kindgerechte Ansicht."],
+            ["child_both", "Für mein Kind (beide füllen aus)", "Kind und Elternteil füllen je eigene Ansichten aus."],
+          ] as const).map(([key, label, desc]) => (
             <button
               key={key}
               type="button"
-              onClick={() =>
-                updateDraft({
-                  modules: {
-                    ...draft.modules,
-                    [key]: !draft.modules[key as keyof ObservationPeriod["modules"]],
-                  },
-                })
-              }
-              className={`w-full rounded-2xl border p-4 text-left text-sm font-semibold ${
-                draft.modules[key as keyof ObservationPeriod["modules"]]
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-card text-muted-foreground"
+              onClick={() => updateDraft({ profile: key as ProfileType })}
+              className={`w-full rounded-2xl border p-4 text-left ${
+                draft.profile === key
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-card text-foreground"
               }`}
             >
-              {label}
+              <div className="text-sm font-semibold">{label}</div>
+              <div className={`text-xs mt-1 ${draft.profile === key ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{desc}</div>
             </button>
           ))}
+        </div>
+      ),
+    },
+    {
+      title: "Angaben zur Person",
+      body: (
+        <div className="space-y-3">
+          {(draft.profile !== "self") && (
+            <label className="block rounded-2xl border border-border bg-card p-3">
+              <span className="text-xs font-semibold text-muted-foreground">Geburtsjahr des Kindes</span>
+              <input
+                type="number"
+                min={2000}
+                max={2020}
+                placeholder="z.B. 2015"
+                value={draft.birthYear ?? ""}
+                onChange={(e) => updateDraft({ birthYear: Number(e.target.value) })}
+                className="mt-1 w-full bg-transparent text-base font-semibold outline-none"
+              />
+            </label>
+          )}
+          {draft.profile === "self" && (
+            <label className="block rounded-2xl border border-border bg-card p-3">
+              <span className="text-xs font-semibold text-muted-foreground">Geburtsjahr</span>
+              <input
+                type="number"
+                min={1950}
+                max={2010}
+                placeholder="z.B. 1990"
+                value={draft.birthYear ?? ""}
+                onChange={(e) => updateDraft({ birthYear: Number(e.target.value) })}
+                className="mt-1 w-full bg-transparent text-base font-semibold outline-none"
+              />
+            </label>
+          )}
+          <div className="rounded-2xl border border-border bg-card p-3">
+            <span className="text-xs font-semibold text-muted-foreground">Geschlecht</span>
+            <div className="mt-2 flex gap-2">
+              {([["male", "Männlich"], ["female", "Weiblich"], ["diverse", "Divers"]]).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => updateDraft({ gender: key as any, cycleTracking: key === "female" || key === "diverse" })}
+                  className={`flex-1 rounded-xl border py-2 text-xs font-semibold ${
+                    draft.gender === key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground"
+                  }`}
+                >{label}</button>
+              ))}
+            </div>
+            {(draft.gender === "female" || draft.gender === "diverse") && (
+              <p className="mt-2 text-xs text-muted-foreground">Zyklusfragen werden automatisch eingebunden.</p>
+            )}
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-3">
+            <span className="text-xs font-semibold text-muted-foreground">Barrierefreiheit</span>
+            <label className="mt-2 flex items-center gap-3 text-sm">
+              <input
+                type="checkbox"
+                checked={draft.speechOutput ?? false}
+                onChange={(e) => updateDraft({ speechOutput: e.target.checked })}
+                className="h-4 w-4 rounded accent-primary"
+              />
+              Sprachausgabe aktivieren (alle Fragen werden vorgelesen)
+            </label>
+          </div>
         </div>
       ),
     },
@@ -434,6 +480,32 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
         </div>
       ),
     },
+    {
+      title: "Arzt-Bericht",
+      body: (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Der Arzt erhält am Ende der Beobachtungsperiode automatisch einen visuellen Bericht und eine Textzusammenfassung. Du kannst den Bericht auch jederzeit manuell versenden.
+          </p>
+          <label className="block rounded-2xl border border-border bg-card p-3">
+            <span className="text-xs font-semibold text-muted-foreground">E-Mail des Arztes (optional)</span>
+            <input
+              type="email"
+              placeholder="arzt@praxis.ch"
+              value={draft.doctorEmail ?? ""}
+              onChange={(e) => updateDraft({ doctorEmail: e.target.value })}
+              className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
+            />
+          </label>
+          <div className="rounded-2xl border border-border bg-card p-3 text-xs text-muted-foreground space-y-1">
+            <p>✓ Bericht jederzeit abrufbar — auch während der Periode</p>
+            <p>✓ Export als PDF oder per E-Mail</p>
+            <p>✓ Daten werden anonymisiert verarbeitet</p>
+            <p>✓ Kein Medizinprodukt — Wellness-Tool</p>
+          </div>
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -442,7 +514,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
         
         <h1 className="mt-1 text-2xl font-semibold">Beobachtungsperiode einrichten</h1>
       </header>
-      <SectionCard title={steps[step].title} subtitle={`Schritt ${step + 1} von 6`}>
+      <SectionCard title={steps[step].title} subtitle={`Schritt ${step + 1} von ${steps.length}`}>
         {steps[step].body}
         <div className="mt-5 flex items-center justify-between">
           <button

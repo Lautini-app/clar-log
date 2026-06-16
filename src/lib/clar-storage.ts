@@ -8,7 +8,9 @@ import {
   upsertSettingsToSupabase,
 } from "./clar-sync";
 
-export type ProfileType = "child" | "youth" | "adult" | "self";
+export type ProfileType = "self" | "child_self" | "child_parent" | "child_both";
+export type GenderType = "male" | "female" | "diverse";
+export type AgeGroup = "child" | "youth" | "adult";
 export type TimeSlot = "morning" | "midday" | "evening";
 export type MedicationType = "stimulant" | "antidepressant" | "other";
 export type MedType = "retard" | "instant" | "antidepressant";
@@ -75,6 +77,12 @@ export type WellbeingItem = {
 export type ObservationPeriod = {
   id: string;
   profile: ProfileType;
+  gender?: GenderType;
+  birthYear?: number;
+  ageGroup?: AgeGroup;
+  cycleTracking?: boolean;
+  speechOutput?: boolean;
+  doctorEmail?: string;
   modules: Record<ModuleKey, boolean>;
   name: string;
   startDate: string;
