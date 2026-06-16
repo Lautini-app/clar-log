@@ -256,6 +256,7 @@ function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId:
 
 function FamilySettings({ userId }: { userId: string }) {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [role, setRole] = useState<"member" | "teen">("member");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -291,8 +292,9 @@ function FamilySettings({ userId }: { userId: string }) {
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
       if (!accessToken) throw new Error("Nicht eingeloggt");
-      await inviteFamilyMember({ data: { accessToken, email: email.trim(), role } });
+      await inviteFamilyMember({ data: { accessToken, email: email.trim(), role, name: name.trim() || undefined } });
       setEmail("");
+      setName("");
       setSuccess(true);
       await refresh();
     } catch (err) {
@@ -320,15 +322,15 @@ function FamilySettings({ userId }: { userId: string }) {
           {members.map((m) => (
             <div key={m.member_user_id} className="flex items-center justify-between rounded-2xl border border-border bg-background p-3">
               <div>
-                <p className="text-sm font-semibold">{ROLE_LABELS[m.role] ?? m.role}</p>
-                <p className="text-xs text-muted-foreground">Aktiv</p>
+                <p className="text-sm font-semibold">{(m as any).name || ROLE_LABELS[m.role] || m.role}</p>
+                <p className="text-xs text-muted-foreground">{ROLE_LABELS[m.role]} · Aktiv</p>
               </div>
             </div>
           ))}
           {pending.map((p) => (
             <div key={p.email} className="flex items-center justify-between rounded-2xl border border-border bg-background p-3">
               <div>
-                <p className="text-sm font-semibold">{p.email}</p>
+                <p className="text-sm font-semibold">{(p as any).name || p.email}</p>
                 <p className="text-xs text-muted-foreground">{ROLE_LABELS[p.role] ?? p.role} · Einladung ausstehend</p>
               </div>
             </div>
@@ -338,6 +340,13 @@ function FamilySettings({ userId }: { userId: string }) {
 
       {members.length + pending.length < 4 && (
         <div className="space-y-3 rounded-2xl border border-border bg-background p-3">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Name oder Initialen (z.B. Mama, L.M.)"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
+          />
           <input
             type="email"
             value={email}
