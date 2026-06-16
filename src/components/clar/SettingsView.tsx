@@ -268,10 +268,7 @@ function FamilySettings({ userId }: { userId: string }) {
   const refresh = async () => {
     setLoading(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) return;
-      const result = await listFamilyMembers({ data: { accessToken } });
+      const result = await listFamilyMembers();
       setMembers(result.members);
       setPending(result.pendingInvites);
     } catch {
@@ -289,10 +286,7 @@ function FamilySettings({ userId }: { userId: string }) {
     setError(null);
     setSuccess(false);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) throw new Error("Nicht eingeloggt");
-      await inviteFamilyMember({ data: { accessToken, email: email.trim(), role, name: name.trim() || undefined } });
+      await inviteFamilyMember({ email: email.trim(), role, name: name.trim() || undefined });
       setEmail("");
       setName("");
       setSuccess(true);
