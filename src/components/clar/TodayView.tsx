@@ -290,65 +290,64 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
       ),
     },
     {
-      title: "Angaben zur Person",
+      title: "Schnellprofil",
       body: (
         <div className="space-y-3">
-          {(draft.profile !== "self") && (
-            <label className="block rounded-2xl border border-border bg-card p-3">
-              <span className="text-xs font-semibold text-muted-foreground">Geburtsjahr des Kindes</span>
-              <input
-                type="number"
-                min={2000}
-                max={2020}
-                placeholder="z.B. 2015"
-                value={draft.birthYear ?? ""}
-                onChange={(e) => updateDraft({ birthYear: Number(e.target.value) })}
-                className="mt-1 w-full bg-transparent text-base font-semibold outline-none"
-              />
-            </label>
-          )}
-          {draft.profile === "self" && (
-            <label className="block rounded-2xl border border-border bg-card p-3">
-              <span className="text-xs font-semibold text-muted-foreground">Geburtsjahr</span>
-              <input
-                type="number"
-                min={1950}
-                max={2010}
-                placeholder="z.B. 1990"
-                value={draft.birthYear ?? ""}
-                onChange={(e) => updateDraft({ birthYear: Number(e.target.value) })}
-                className="mt-1 w-full bg-transparent text-base font-semibold outline-none"
-              />
-            </label>
-          )}
+          <p className="text-sm text-muted-foreground">Zwei Angaben genügen — der Rest wird automatisch eingerichtet.</p>
           <div className="rounded-2xl border border-border bg-card p-3">
             <span className="text-xs font-semibold text-muted-foreground">Geschlecht</span>
-            <div className="mt-2 flex gap-2">
-              {([["male", "Männlich"], ["female", "Weiblich"], ["diverse", "Divers"]]).map(([key, label]) => (
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {([["male", "Männlich"], ["female", "Weiblich"], ["diverse", "Divers"]] as [string, string][]).map(([key, label]) => (
                 <button
                   key={key}
                   type="button"
                   onClick={() => updateDraft({ gender: key as any, cycleTracking: key === "female" || key === "diverse" })}
-                  className={`flex-1 rounded-xl border py-2 text-xs font-semibold ${
+                  className={`rounded-xl border py-2 text-xs font-semibold ${
                     draft.gender === key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground"
                   }`}
                 >{label}</button>
               ))}
             </div>
             {(draft.gender === "female" || draft.gender === "diverse") && (
-              <p className="mt-2 text-xs text-muted-foreground">Zyklusfragen werden automatisch eingebunden.</p>
+              <p className="mt-2 text-xs text-primary">Zyklusfragen werden automatisch eingebunden.</p>
             )}
           </div>
           <div className="rounded-2xl border border-border bg-card p-3">
-            <span className="text-xs font-semibold text-muted-foreground">Barrierefreiheit</span>
-            <label className="mt-2 flex items-center gap-3 text-sm">
+            <span className="text-xs font-semibold text-muted-foreground">Lebenssituation</span>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {([
+                ["pupil", "Schüler/in"],
+                ["apprentice", "Lehrling / Ausbildung"],
+                ["student", "Studierend"],
+                ["employed", "Berufstätig"],
+                ["training", "In Weiterbildung"],
+                ["unemployed", "Nicht berufstätig"],
+                ["unable_to_work", "Arbeitsunfähig"],
+                ["retired", "Pensioniert"],
+              ] as [string, string][]).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => updateDraft({ lifeContext: key as any })}
+                  className={`rounded-xl border px-2 py-2 text-xs font-semibold text-left ${
+                    draft.lifeContext === key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground"
+                  }`}
+                >{label}</button>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-3">
+            <label className="flex items-center gap-3 text-sm">
               <input
                 type="checkbox"
                 checked={draft.speechOutput ?? false}
                 onChange={(e) => updateDraft({ speechOutput: e.target.checked })}
                 className="h-4 w-4 rounded accent-primary"
               />
-              Sprachausgabe aktivieren (alle Fragen werden vorgelesen)
+              <div>
+                <div className="font-semibold">Sprachausgabe</div>
+                <div className="text-xs text-muted-foreground">Alle Fragen werden vorgelesen</div>
+              </div>
             </label>
           </div>
         </div>

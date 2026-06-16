@@ -11,6 +11,7 @@ import {
 export type ProfileType = "self" | "child_self" | "child_parent" | "child_both";
 export type GenderType = "male" | "female" | "diverse";
 export type AgeGroup = "child" | "youth" | "adult";
+export type LifeContext = "pupil" | "apprentice" | "student" | "employed" | "training" | "unemployed" | "unable_to_work" | "retired";
 export type TimeSlot = "morning" | "midday" | "evening";
 export type MedicationType = "stimulant" | "antidepressant" | "other";
 export type MedType = "retard" | "instant" | "antidepressant";
@@ -83,6 +84,7 @@ export type ObservationPeriod = {
   cycleTracking?: boolean;
   speechOutput?: boolean;
   doctorEmail?: string;
+  lifeContext?: LifeContext;
   modules: Record<ModuleKey, boolean>;
   name: string;
   startDate: string;
@@ -275,6 +277,13 @@ export function createPeriod(patch: Partial<ObservationPeriod> = {}): Observatio
   return {
     id: patch.id ?? id("period"),
     profile: patch.profile ?? "self",
+    gender: patch.gender ?? undefined,
+    birthYear: patch.birthYear ?? undefined,
+    ageGroup: patch.ageGroup ?? undefined,
+    cycleTracking: patch.cycleTracking ?? false,
+    speechOutput: patch.speechOutput ?? false,
+    doctorEmail: patch.doctorEmail ?? undefined,
+    lifeContext: patch.lifeContext ?? undefined,
     modules,
     name: patch.name ?? "Beobachtungsperiode",
     startDate: start,
