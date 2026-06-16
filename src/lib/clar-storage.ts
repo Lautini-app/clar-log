@@ -123,6 +123,7 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     title: "Konzentration & Kognition",
     slots: ["morning"],
     items: ["focus", "distractibility", "impulsivity", "thought_racing"],
+    childExclude: true,
   },
   {
     id: "breakfast",
@@ -174,7 +175,7 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     id: "rebound_check",
     title: "Rebound",
     slots: ["evening"],
-    items: ["rebound_today", "rebound_time", "rebound_type", "rebound_intensity", "rebound_duration"],
+    items: ["rebound_today", "rebound_time", "rebound_type", "rebound_intensity"],
   },
   {
     id: "body",
