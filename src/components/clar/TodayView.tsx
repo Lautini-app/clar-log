@@ -728,45 +728,7 @@ function EmotionsInput({ value, onChange }: { value?: Record<string, number>; on
           </div>
         </div>
       ))}
-    </div>
-  );
-}: { value?: Record<string, number>; onChange: (value: Record<string, number>) => void }) {
-  const current = value ?? {};
-  return (
-    <div className="space-y-3">
-      <div className="sticky top-0 z-10 flex justify-between bg-background px-1 py-1 text-[10px] text-muted-foreground">
-        <span>1 = trifft voll zu</span>
-        <span>5 = trifft gar nicht zu</span>
-      </div>
-      {EMOTION_GROUPS.map((group) => (
-        <div key={group.label}>
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
-          <div className="space-y-1">
-            {group.emotions.map((emotion) => (
-              <div key={emotion} className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
-                <p className="flex-1 text-sm font-medium">{emotion}</p>
-                <div className="grid grid-cols-5 gap-1">
-                  {[1, 2, 3, 4, 5].map((val) => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => onChange({ ...current, [emotion]: val })}
-                      className={`h-7 w-7 rounded-lg text-xs font-semibold ${
-                        current[emotion] === val ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground border border-border"
-                      }`}
-                    >
-                      {val}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+
 
 function BooleanInput({
   value,
