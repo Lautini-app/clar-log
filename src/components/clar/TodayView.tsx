@@ -895,21 +895,22 @@ function SlotWizard({
                           {med.duration === "long" ? "Retard" : "Kurz"}
                         </span>
                       </div>
-                      {taken && (
-                        <div className="flex items-center gap-2 pl-11">
-                          <input
-                            type="number"
-                            value={takenDose}
-                            onChange={(e) => patchSlot({
-                              medsDose: { ...(slotLog.medsDose ?? {}), [med.id]: Number(e.target.value) }
-                            })}
-                            className="w-20 rounded-xl border border-border bg-background px-2 py-1 text-sm font-semibold outline-none"
-                            min={0}
-                            step={5}
-                          />
-                          <span className="text-xs text-muted-foreground">mg</span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2 pl-11">
+                        <input
+                          type="number"
+                          value={takenDose}
+                          onChange={(e) => patchSlot({
+                            medsDose: { ...(slotLog.medsDose ?? {}), [med.id]: Number(e.target.value) }
+                          })}
+                          className="w-20 rounded-xl border border-border bg-background px-2 py-1 text-sm font-semibold outline-none"
+                          min={0}
+                          step={5}
+                        />
+                        <span className="text-xs text-muted-foreground">mg</span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          {taken ? "✓ genommen" : "nicht genommen"}
+                        </span>
+                      </div>
                     </div>
                   );
                 })}
