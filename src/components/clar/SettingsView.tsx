@@ -302,6 +302,17 @@ function FamilySettings({ userId }: { userId: string }) {
     }
   };
 
+  const handleRemovePending = async (email: string) => {
+    try {
+      await import("@/lib/clar-observers").then(m => {});
+      const { supabase } = await import("@/lib/supabase");
+      await supabase.schema("clar_log").from("family_invites").delete().eq("email", email).eq("admin_user_id", userId);
+      await refresh();
+    } catch (err) {
+      console.warn("Einladung löschen fehlgeschlagen:", err);
+    }
+  };
+
   const ROLE_LABELS: Record<string, string> = {
     member: "Familienmitglied / Partner",
     teen: "Jugendliche/r (12–17)",
@@ -331,6 +342,8 @@ function FamilySettings({ userId }: { userId: string }) {
                 <p className="text-sm font-semibold">{(p as any).name || p.email}</p>
                 <p className="text-xs text-muted-foreground">{ROLE_LABELS[p.role] ?? p.role} · Einladung ausstehend</p>
               </div>
+              <button type="button" onClick={() => handleRemovePending(p.email)}
+                className="text-xs text-destructive font-semibold shrink-0 ml-2">Entfernen</button>
             </div>
           ))}
         </>
@@ -781,3 +794,4 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
     </div>
   );
 }
+
