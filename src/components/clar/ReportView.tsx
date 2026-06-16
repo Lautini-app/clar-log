@@ -20,10 +20,7 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
   const refresh = async () => {
     setLoading(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) return;
-      const result = await listWordReports({ data: { accessToken, periodId: period.id } });
+      const result = await listWordReports({ periodId: period.id });
       setReports(result as WordReport[]);
     } finally {
       setLoading(false);
@@ -36,10 +33,7 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
     setGenerating(true);
     setError(null);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) throw new Error("Nicht eingeloggt");
-      await generateWordReport({ data: { accessToken, periodId: period.id, rangeDays: 30 } });
+      await generateWordReport({ periodId: period.id, rangeDays: 30 });
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Generierung fehlgeschlagen");
@@ -53,10 +47,7 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
     setSendingId(reportId);
     setError(null);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) throw new Error("Nicht eingeloggt");
-      await sendReportToDoctor({ data: { accessToken, reportId, doctorEmail: period.doctorEmail } });
+      await sendReportToDoctor({ reportId, doctorEmail: period.doctorEmail });
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Versand fehlgeschlagen");
