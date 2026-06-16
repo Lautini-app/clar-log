@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ChildWizard } from "./ChildWizard";
 import {
   Brain,
   CalendarDays,
@@ -1093,9 +1094,9 @@ function SlotWizard({
 export function TodayView({ log, settings, onChange, onSettingsChange }: Props) {
   const period = getActivePeriod(settings);
   const [activeSlot, setActiveSlot] = useState<TimeSlot | null>(null);
+  const [childPhase, setChildPhase] = useState(false);
   const items = useMemo(() => availableWellbeingItems(settings), [settings]);
-
-  console.log("[today] activePeriodId:", settings.activePeriodId, "period:", period?.id, "periods:", settings.periods?.map(p => p.id + ":" + p.active));
+  const isChildParent = period?.profile === "child_parent";
 
   if (!period) {
     return <Onboarding settings={settings} onSettingsChange={onSettingsChange} />;
@@ -1123,7 +1124,15 @@ export function TodayView({ log, settings, onChange, onSettingsChange }: Props) 
             <button
               key={slot}
               type="button"
-              onClick={() => setActiveSlot(slot)}
+              onClick={() => {
+                if (isChildParent && slot === "evening") {
+                  const childDone = (log.slots.evening as any).childDone;
+                  if (!childDone) { setChildPhase(true); }
+                  setActiveSlot(slot);
+                } else {
+                  setActiveSlot(slot);
+                }
+              }}
               className="rounded-3xl border border-border bg-card p-5 text-left shadow-sm transition-transform active:scale-[0.99]"
             >
               <div className="flex items-start justify-between gap-3">
@@ -1164,7 +1173,25 @@ export function TodayView({ log, settings, onChange, onSettingsChange }: Props) 
         </div>
       </SectionCard>
 
-      {activeSlot && (
+      {activeSlot && isChildParent && activeSlot === "evening" && childPhase && (
+        <div className="fixed inset-0 z-30 bg-background overflow-y-auto">
+          <div className="flex items-center justify-between px-4 py-4">
+            <button type="button" onClick={() => { setChildPhase(false); setActiveSlot(null); }}
+              className="text-sm font-semibold text-primary">Schliessen</button>
+            <span className="text-xs text-muted-foreground">Kind-Teil</span>
+          </div>
+          <ChildWizard
+            period={period}
+            log={log}
+            onDone={(patch) => {
+              onChange(patch);
+              setChildPhase(false);
+            }}
+          />
+        </div>
+      )}
+
+      {activeSlot && !(isChildParent && activeSlot === "evening" && childPhase) && (
         <SlotWizard
           slot={activeSlot}
           log={log}
