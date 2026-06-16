@@ -716,7 +716,7 @@ function SlotWizard({
   const questions = items.filter(
     (item) =>
       period.selectedWellbeingIds.includes(item.id) &&
-      (period.wellbeingSlots[item.id] ?? TIME_SLOTS).includes(slot),
+      (item.slots ?? period.wellbeingSlots[item.id] ?? TIME_SLOTS).includes(slot),
   );
   const [index, setIndex] = useState(0);
   const total = questions.length + 2;
