@@ -18,7 +18,7 @@ export type MedType = "retard" | "instant" | "antidepressant";
 export type ModuleKey = "cycleTracking" | "bodyFocus";
 export type Language = "de" | "en";
 export type SlotStatus = "pending" | "in_progress" | "done";
-export type AnswerKind = "scale" | "boolean" | "multiselect" | "time" | "emotions";
+export type AnswerKind = "scale" | "boolean" | "multiselect" | "time" | "emotions" | "number" | "text" | "energy";
 export type WellbeingCategory =
   | "sleep"
   | "mood"
@@ -110,6 +110,12 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     items: ["emotions"],
   },
   {
+    id: "energy",
+    title: "Energie",
+    slots: ["morning", "midday", "evening"],
+    items: ["energy_level"],
+  },
+  {
     id: "cognition_morning",
     title: "Konzentration & Kognition",
     slots: ["morning"],
@@ -186,6 +192,12 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     items: ["stress_level", "social_interactions", "conflicts", "special_events"],
   },
 
+  {
+    id: "reflection",
+    title: "Reflexion",
+    slots: ["evening"],
+    items: ["reflection_what_worked", "reflection_strategies"],
+  },
   {
     id: "cycle",
     title: "Zyklus",
@@ -371,6 +383,9 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "meal_appetite", category: "appetite", label: "Appetit", kind: "scale" },
   { id: "meal_amount", category: "appetite", label: "Menge gegessen", kind: "scale" },
   { id: "meal_note", category: "appetite", label: "Kommentar zur Mahlzeit", kind: "text" },
+  { id: "energy_level", category: "mood", label: "Energie", kind: "energy" },
+  { id: "reflection_what_worked", category: "reflection", label: "Was hat heute geklappt?", kind: "text" },
+  { id: "reflection_strategies", category: "reflection", label: "Welche Strategien haben geholfen?", kind: "text" },
   { id: "ate", category: "appetite", label: "Gegessen", kind: "boolean" },
   { id: "meals_today", category: "appetite", label: "Mahlzeiten heute", kind: "scale", slots: ["evening"] },
 
