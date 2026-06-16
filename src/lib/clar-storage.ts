@@ -18,7 +18,7 @@ export type MedType = "retard" | "instant" | "antidepressant";
 export type ModuleKey = "cycleTracking" | "bodyFocus";
 export type Language = "de" | "en";
 export type SlotStatus = "pending" | "in_progress" | "done";
-export type AnswerKind = "scale" | "boolean" | "multiselect" | "time";
+export type AnswerKind = "scale" | "boolean" | "multiselect" | "time" | "emotions";
 export type WellbeingCategory =
   | "sleep"
   | "mood"
@@ -162,13 +162,22 @@ export const MEDICATION_TYPE_LABELS: Record<MedicationType, string> = {
 };
 
 export const WELLBEING_CATALOG: WellbeingItem[] = [
-  { id: "sleep_latency", category: "sleep", label: "Einschlafdauer", kind: "scale", slots: ["morning"] },
+  { id: "sleep_latency", category: "sleep", label: "Einschlafdauer (Minuten)", kind: "scale", slots: ["morning"] },
   { id: "sleep_through", category: "sleep", label: "Durchgeschlafen", kind: "boolean", slots: ["morning"] },
   { id: "sleep_recovery", category: "sleep", label: "Erholungsgrad", kind: "scale", slots: ["morning"] },
-  { id: "wake_mood", category: "sleep", label: "Aufwach-Stimmung", kind: "scale", slots: ["morning"] },
   { id: "sleep_duration", category: "sleep", label: "Schlafdauer (Stunden)", kind: "scale", slots: ["morning"] },
 
-  { id: "base_mood", category: "mood", label: "Grundstimmung", kind: "scale" },
+  {
+    id: "emotions",
+    category: "mood",
+    label: "Emotionen heute",
+    kind: "emotions",
+    options: [
+      "Verzweifelt", "Traurig", "Melancholisch", "Ängstlich", "Wütend", "Stumpf/Taub",
+      "Neutral", "Ausgeglichen",
+      "Freudig", "Aufgeregt", "Euphorisch"
+    ],
+  },
   { id: "irritability", category: "mood", label: "Reizbarkeit", kind: "scale" },
   { id: "drive", category: "mood", label: "Antrieb / Motivation", kind: "scale" },
   { id: "inner_tension", category: "mood", label: "Innere Unruhe / Anspannung", kind: "scale" },
@@ -196,11 +205,12 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
 
   { id: "hunger", category: "appetite", label: "Hungergefühl", kind: "scale" },
   { id: "ate", category: "appetite", label: "Gegessen", kind: "boolean" },
-  { id: "meals_today", category: "appetite", label: "Mahlzeiten heute", kind: "scale" },
+  { id: "meals_today", category: "appetite", label: "Mahlzeiten heute", kind: "scale", slots: ["evening"] },
 
   { id: "headache", category: "body", label: "Kopfschmerzen", kind: "boolean" },
   { id: "stomachache", category: "body", label: "Bauchschmerzen", kind: "boolean" },
   { id: "heart_racing", category: "body", label: "Herzrasen", kind: "boolean" },
+  { id: "chest_tightness", category: "body", label: "Engegefühl in der Brust", kind: "boolean" },
   { id: "dry_mouth", category: "body", label: "Mundtrockenheit", kind: "boolean" },
   { id: "tics", category: "body", label: "Tics", kind: "scale" },
 
