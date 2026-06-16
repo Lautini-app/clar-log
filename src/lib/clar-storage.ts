@@ -8,7 +8,10 @@ import {
   upsertSettingsToSupabase,
 } from "./clar-sync";
 
-export type ProfileType = "self" | "child_self" | "child_parent" | "child_both";
+export type ProfileType = "self" | "teen_self" | "child_self" | "child_parent" | "child_both";
+// self = Erwachsen ab 18, Fachbegriffe
+// teen_self = Jugendliche 12-17, vereinfachte Sprache (CHILD_LABELS), volles Katalog
+// child_parent = Kind unter 12, Eltern führen, reduzierter Katalog
 export type GenderType = "male" | "female" | "diverse";
 export type AgeGroup = "child" | "youth" | "adult";
 export type LifeContext = "pupil" | "apprentice" | "student" | "employed" | "training" | "unemployed" | "unable_to_work" | "retired";
