@@ -559,36 +559,34 @@ const EMOTION_GROUPS = [
   { label: "Positiv", emotions: ["Freudig", "Aufgeregt", "Euphorisch"] },
 ];
 
-const LIKERT = ["trifft voll zu", "trifft zu", "neutral", "trifft wenig zu", "trifft gar nicht zu"];
-
 function EmotionsInput({ value, onChange }: { value?: Record<string, number>; onChange: (value: Record<string, number>) => void }) {
   const current = value ?? {};
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      <div className="flex justify-between px-1 text-[10px] text-muted-foreground">
+        <span>1 = trifft voll zu</span>
+        <span>5 = trifft gar nicht zu</span>
+      </div>
       {EMOTION_GROUPS.map((group) => (
         <div key={group.label}>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
-          <div className="space-y-2">
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
+          <div className="space-y-1">
             {group.emotions.map((emotion) => (
-              <div key={emotion} className="rounded-xl border border-border bg-card p-3">
-                <p className="mb-2 text-sm font-semibold">{emotion}</p>
+              <div key={emotion} className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
+                <p className="flex-1 text-sm font-medium">{emotion}</p>
                 <div className="grid grid-cols-5 gap-1">
                   {[1, 2, 3, 4, 5].map((val) => (
                     <button
                       key={val}
                       type="button"
                       onClick={() => onChange({ ...current, [emotion]: val })}
-                      className={`rounded-lg py-1.5 text-xs font-semibold ${
+                      className={`h-7 w-7 rounded-lg text-xs font-semibold ${
                         current[emotion] === val ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground border border-border"
                       }`}
                     >
                       {val}
                     </button>
                   ))}
-                </div>
-                <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-                  <span>trifft voll zu</span>
-                  <span>trifft gar nicht zu</span>
                 </div>
               </div>
             ))}
