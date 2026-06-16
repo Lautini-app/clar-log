@@ -284,7 +284,11 @@ export function createPeriod(patch: Partial<ObservationPeriod> = {}): Observatio
     patch.selectedWellbeingIds ??
     WELLBEING_CATALOG.filter((item) => !item.module || modules[item.module]).map((item) => item.id);
   const wellbeingSlots = Object.fromEntries(
-    selectedWellbeingIds.map((itemId) => [itemId, patch.wellbeingSlots?.[itemId] ?? TIME_SLOTS]),
+    selectedWellbeingIds.map((itemId) => {
+      const catalogItem = WELLBEING_CATALOG.find((i) => i.id === itemId);
+      const defaultSlots = catalogItem?.slots ?? TIME_SLOTS;
+      return [itemId, patch.wellbeingSlots?.[itemId] ?? defaultSlots];
+    }),
   );
 
   return {
