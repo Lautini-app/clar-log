@@ -167,25 +167,25 @@ function MedicationEditor({
             {/* Zeile 2: Einnahme */}
             <div className="rounded-xl border border-border bg-card p-3">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Einnahme</p>
-              <div className="flex flex-col gap-2">
-                {(["asBraucht", "morning", "midday", "evening"] as const).map((slot) => {
+              <div className="flex flex-col divide-y divide-border">
+                {(["morning", "midday", "evening", "asBraucht"] as const).map((slot) => {
                   const labels: Record<string, string> = { asBraucht: "Bei Bedarf", morning: "Morgens", midday: "Mittags", evening: "Abends" };
                   const times = med.intakeTimes ?? [{ slot: med.intakeSlot }];
                   const active = times.some((t) => t.slot === slot);
                   const entry = times.find((t) => t.slot === slot);
                   return (
-                    <div key={slot}>
-                      <button
-                        type="button"
-                        onClick={() => {
+                    <div key={slot} className="flex items-center gap-3 py-2">
+                      <input
+                        type="checkbox"
+                        checked={active}
+                        onChange={() => {
                           const current = med.intakeTimes ?? [{ slot: med.intakeSlot }];
                           const next = active ? current.filter((t) => t.slot !== slot) : [...current, { slot }];
                           update(med.id, { intakeTimes: next, intakeSlot: next[0]?.slot ?? "morning" });
                         }}
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-                      >
-                        {labels[slot]}
-                      </button>
+                        className="h-4 w-4 rounded accent-primary"
+                      />
+                      <span className="flex-1 text-sm font-medium">{labels[slot]}</span>
                       {active && slot !== "asBraucht" && (
                         <input
                           type="time"
@@ -195,7 +195,7 @@ function MedicationEditor({
                             const next = current.map((t) => t.slot === slot ? { ...t, time: e.target.value } : t);
                             update(med.id, { intakeTimes: next });
                           }}
-                          className="ml-2 rounded-lg border border-border bg-background px-2 py-1 text-sm outline-none"
+                          className="rounded-lg border border-border bg-background px-2 py-1 text-sm outline-none w-28"
                         />
                       )}
                     </div>
