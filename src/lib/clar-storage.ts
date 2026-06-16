@@ -106,7 +106,7 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
   {
     id: "emotions",
     title: "Emotionen",
-    slots: ["morning", "evening"],
+    slots: ["morning", "midday", "evening"],
     items: ["emotions"],
   },
   {
