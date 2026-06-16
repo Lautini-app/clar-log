@@ -496,29 +496,19 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
             <button
               type="button"
               onClick={() => {
-                if (!confirm("Neue Periode starten? Die aktuelle Periode wird archiviert. Deine Logs bleiben erhalten.")) return;
-                const newPeriod = createPeriod({
-                  name: activePeriod.name,
-                  profile: activePeriod.profile,
-                  gender: activePeriod.gender,
-                  birthYear: activePeriod.birthYear,
-                  lifeContext: activePeriod.lifeContext,
-                  medications: activePeriod.medications,
-                  timeSlots: activePeriod.timeSlots,
-                  speechOutput: activePeriod.speechOutput,
-                  cycleTracking: activePeriod.cycleTracking,
-                  doctorEmail: activePeriod.doctorEmail,
-                });
+                if (!confirm("Neue Periode starten? Das Onboarding startet neu. Deine bisherigen Logs bleiben erhalten.")) return;
                 onSettingsChange({
                   ...settings,
-                  periods: [newPeriod, ...settings.periods.map(p =>
-                    p.id === activePeriod.id ? { ...p, endDate: new Date().toISOString().split("T")[0] } : p
-                  )],
+                  periods: settings.periods.map(p =>
+                    p.id === activePeriod.id
+                      ? { ...p, endDate: new Date().toISOString().split("T")[0], active: false }
+                      : p
+                  ),
                 });
               }}
               className="w-full rounded-2xl border border-border bg-card p-3 text-sm font-semibold text-primary text-left"
             >
-              Neue Periode starten (Archiv bleibt) →
+              Neue Periode starten → Onboarding
             </button>
           </SectionCard>
 
