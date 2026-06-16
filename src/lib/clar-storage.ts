@@ -26,14 +26,22 @@ export type WellbeingCategory =
   | "cycle"
   | "custom";
 
+export type IntakeTime = {
+  slot?: TimeSlot;
+  time?: string;
+};
+
 export type Medication = {
   id: string;
   name: string;
   mg: number;
   intakeSlot: TimeSlot;
+  intakeTimes?: IntakeTime[];
   type: MedicationType;
   duration?: "short" | "long";
   customName?: string;
+  remindPush?: boolean;
+  remindCalendar?: boolean;
 };
 
 export type Dose = {

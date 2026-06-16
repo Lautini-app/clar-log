@@ -136,83 +136,85 @@ function MedicationEditor({
             </button>
           </div>
           <div className="mt-3 grid grid-cols-1 gap-2">
-            <div className="rounded-xl border border-border bg-card p-2 text-center">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Dosis</p>
-              <div className="mt-2 flex items-center gap-2">
-                <input
-                  type="number"
-                  value={med.mg}
-                  onChange={(e) => update(med.id, { mg: Number(e.target.value) })}
-                  className="w-20 rounded-lg border border-border bg-background px-2 py-1 text-sm font-semibold outline-none"
-                  min={0}
-                  step={5}
-                />
-                <span className="text-sm text-muted-foreground">mg</span>
+            {/* Zeile 1: Dosis + Wirkdauer */}
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-3">
+              <input
+                type="number"
+                value={med.mg}
+                onChange={(e) => update(med.id, { mg: Number(e.target.value) })}
+                className="w-20 rounded-lg border border-border bg-background px-2 py-1 text-sm font-semibold outline-none"
+                min={0}
+                step={5}
+              />
+              <span className="text-sm text-muted-foreground">mg</span>
+              <div className="ml-auto flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => update(med.id, { duration: "short" })}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${(med.duration ?? "short") === "short" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                >
+                  Kurz
+                </button>
+                <button
+                  type="button"
+                  onClick={() => update(med.id, { duration: "long" })}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${med.duration === "long" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                >
+                  Retard
+                </button>
               </div>
             </div>
-            <label className="rounded-xl border border-border bg-card p-2">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Einnahme
-              </span>
-              <select
-                value={med.intakeSlot}
-                onChange={(event) => update(med.id, { intakeSlot: event.target.value as TimeSlot })}
-                className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
-              >
-                {TIME_SLOTS.map((slot) => (
-                  <option key={slot} value={slot}>
-                    {SLOT_LABELS[slot]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="rounded-xl border border-border bg-card p-2">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Typ
-              </span>
-              <select
-                value={med.type}
-                onChange={(event) =>
-                  update(med.id, { type: event.target.value as MedicationType })
-                }
-                className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
-              >
-                {Object.entries(MEDICATION_TYPE_LABELS).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {med.type === "stimulant" && (
-              <label className="rounded-xl border border-border bg-card p-2">
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Wirkdauer
-                </span>
-                <select
-                  value={med.duration ?? "short"}
-                  onChange={(e) => update(med.id, { duration: e.target.value as "short" | "long" })}
-                  className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
-                >
-                  <option value="short">Kurzwirksam</option>
-                  <option value="long">Langwirksam (Retard)</option>
-                </select>
-              </label>
-            )}
-            {med.type === "other" && (
-              <label className="rounded-xl border border-border bg-card p-2">
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Bezeichnung
-                </span>
+            {/* Zeile 2: Einnahme */}
+            <div className="rounded-xl border border-border bg-card p-3">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Einnahme</p>
+              <div className="flex flex-wrap gap-2">
+                {(["asBraucht", "morning", "midday", "evening"] as const).map((slot) => {
+                  const labels: Record<string, string> = { asBraucht: "Bei Bedarf", morning: "Morgens", midday: "Mittags", evening: "Abends" };
+                  const times = med.intakeTimes ?? [{ slot: med.intakeSlot }];
+                  const active = times.some((t) => t.slot === slot);
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => {
+                        const current = med.intakeTimes ?? [{ slot: med.intakeSlot }];
+                        const next = active ? current.filter((t) => t.slot !== slot) : [...current, { slot }];
+                        update(med.id, { intakeTimes: next, intakeSlot: next[0]?.slot ?? "morning" });
+                      }}
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                    >
+                      {labels[slot]}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-2">
                 <input
-                  type="text"
-                  value={med.customName ?? ""}
-                  onChange={(e) => update(med.id, { customName: e.target.value })}
-                  placeholder="z.B. Melatonin"
-                  className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
+                  type="time"
+                  className="rounded-lg border border-border bg-background px-2 py-1 text-sm outline-none"
+                  placeholder="Uhrzeit"
+                  onChange={(e) => {
+                    const current = med.intakeTimes ?? [];
+                    const next = [...current.filter((t) => !t.time), { time: e.target.value }];
+                    update(med.id, { intakeTimes: next });
+                  }}
                 />
-              </label>
-            )}
+              </div>
+            </div>
+            {/* Erinnerungen */}
+            <div className="rounded-xl border border-border bg-card p-3">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">Erinnerungen</p>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={med.remindPush ?? false} onChange={(e) => update(med.id, { remindPush: e.target.checked })} className="rounded" />
+                  Push-Benachrichtigung
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={med.remindCalendar ?? false} onChange={(e) => update(med.id, { remindCalendar: e.target.checked })} className="rounded" />
+                  Kalender-Eintrag erstellen
+                </label>
+              </div>
+            </div>
           </div>
         </div>
       ))}
