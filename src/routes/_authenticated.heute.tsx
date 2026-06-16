@@ -5,7 +5,7 @@ import { useStore, todayKey, emptyLog, getActivePeriod } from "@/lib/clar-storag
 export const Route = createFileRoute("/_authenticated/heute")({
   head: () => ({
     meta: [
-      { title: "Heute — clar.tracker" },
+      { title: "Heute — clar.log" },
       {
         name: "description",
         content:

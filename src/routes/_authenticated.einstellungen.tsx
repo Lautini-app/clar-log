@@ -5,7 +5,7 @@ import { useStore } from "@/lib/clar-storage";
 export const Route = createFileRoute("/_authenticated/einstellungen")({
   head: () => ({
     meta: [
-      { title: "Konto — clar.tracker" },
+      { title: "Konto — clar.log" },
       {
         name: "description",
         content: "Periode, Medikamente, eigene Befindlichkeiten, Sprache und Datenschutz verwalten.",
@@ -25,7 +25,7 @@ function EinstellungenRoute() {
       onReset={() => {
         setStore({ logs: {}, settings: store.settings });
         try {
-          localStorage.removeItem("clar.tracker.v1");
+          localStorage.removeItem("clar.log.v1");
         } catch {}
       }}
     />

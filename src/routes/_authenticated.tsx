@@ -105,7 +105,7 @@ function AuthenticatedLayout() {
             <span className="text-sm font-bold">c.</span>
           </div>
           <span className="text-sm font-medium tracking-tight text-foreground">
-            clar.<span className="text-muted-foreground">tracker</span>
+            clar.<span className="text-muted-foreground">log</span>
           </span>
         </div>
 

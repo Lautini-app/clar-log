@@ -5,7 +5,7 @@ import { useStore } from "@/lib/clar-storage";
 export const Route = createFileRoute("/_authenticated/bericht")({
   head: () => ({
     meta: [
-      { title: "Verlauf — clar.tracker" },
+      { title: "Verlauf — clar.log" },
       {
         name: "description",
         content: "7/14/30-Tage Verlauf mit Ampel-Karten und clar v2 Charts.",
