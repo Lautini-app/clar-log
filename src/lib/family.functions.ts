@@ -7,19 +7,21 @@ function randomToken(length = 24): string {
     .slice(0, length);
 }
 
+/**
+ * Familienmitglied einladen.
+ * Speichert Token in DB + sendet Supabase Magic Link mit redirectTo auf /einladung/TOKEN.
+ * Kein Service Role Key nötig, kein Edge Function Deploy.
+ */
 export async function inviteFamilyMember(params: {
   email: string;
   name?: string;
   role: "member" | "teen";
-}): Promise<{ ok: boolean }> {
+}): Promise<{ ok: boolean; inviteUrl: string }> {
   const { data: sessionData } = await supabase.auth.getSession();
-  const accessToken = sessionData.session?.access_token;
-  if (!accessToken) throw new Error("Nicht eingeloggt");
-
   const userId = sessionData.session?.user?.id;
   if (!userId) throw new Error("Nicht eingeloggt");
 
-  // Mitglieder-Limit prüfen (max 4)
+  // Limit prüfen
   const { count } = await supabase
     .schema("clar_log")
     .from("family_invites")
@@ -29,7 +31,7 @@ export async function inviteFamilyMember(params: {
 
   if ((count ?? 0) >= 4) throw new Error("Maximal 4 Familienmitglieder erlaubt.");
 
-  // Token erstellen
+  // Token in DB speichern
   const token = randomToken();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -48,23 +50,22 @@ export async function inviteFamilyMember(params: {
 
   if (insertError) throw new Error(insertError.message);
 
-  // E-Mail via Supabase Edge Function senden
-  const { error: fnError } = await supabase.functions.invoke("send-family-invite", {
-    body: {
-      accessToken,
-      email: params.email,
-      name: params.name,
-      role: params.role,
-      token,
+  const appUrl = "https://clar.log.lautini.ch";
+  const inviteUrl = `${appUrl}/einladung/${token}`;
+
+  // Supabase sendet Magic Link — Person klickt → landet auf /einladung/TOKEN
+  const { error: otpError } = await supabase.auth.signInWithOtp({
+    email: params.email,
+    options: {
+      emailRedirectTo: inviteUrl,
+      shouldCreateUser: true,
+      data: { clar_invite_token: token, clar_role: params.role },
     },
   });
 
-  if (fnError) {
-    console.warn("[clar] E-Mail-Versand fehlgeschlagen:", fnError);
-    // Einladung trotzdem gültig — Token ist in DB
-  }
+  if (otpError) throw new Error(`Einladungsmail fehlgeschlagen: ${otpError.message}`);
 
-  return { ok: true };
+  return { ok: true, inviteUrl };
 }
 
 export async function listFamilyMembers(): Promise<{
@@ -73,7 +74,7 @@ export async function listFamilyMembers(): Promise<{
 }> {
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData.session?.user?.id;
-  if (!userId) throw new Error("Nicht eingeloggt");
+  if (!userId) return { members: [], pendingInvites: [] };
 
   const [membersRes, pendingRes] = await Promise.all([
     supabase
@@ -97,30 +98,15 @@ export async function listFamilyMembers(): Promise<{
   };
 }
 
-export async function acceptFamilyInvite(token: string): Promise<{ adminUserId: string; role: string }> {
+export async function acceptFamilyInvite(token: string): Promise<void> {
   const { data: sessionData } = await supabase.auth.getSession();
-  const accessToken = sessionData.session?.access_token;
   const userId = sessionData.session?.user?.id;
-  const email = sessionData.session?.user?.email;
-  if (!accessToken || !userId) throw new Error("Nicht eingeloggt");
+  if (!userId) throw new Error("Nicht eingeloggt");
 
-  // Invite prüfen
-  const { data: invite, error } = await supabase
-    .schema("clar_log")
-    .from("family_invites")
-    .select("*")
-    .eq("token", token)
-    .eq("status", "pending")
-    .gt("expires_at", new Date().toISOString())
-    .maybeSingle();
-
-  if (error || !invite) throw new Error("Einladung abgelaufen oder ungültig.");
-
-  // Via Edge Function akzeptieren (braucht Service Role für family_members Insert)
-  const { data, error: fnError } = await supabase.functions.invoke("accept-family-invite", {
-    body: { accessToken, token, userId, email },
+  const { error } = await supabase.rpc("accept_family_invite_token", {
+    input_token: token,
+    input_user_id: userId,
   });
 
-  if (fnError) throw new Error(fnError.message);
-  return data;
+  if (error) throw new Error(error.message);
 }
