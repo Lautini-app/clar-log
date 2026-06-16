@@ -5,6 +5,7 @@ import { Copy, Download, Loader2, Plus, Trash2 } from "lucide-react";
 import { SectionCard } from "./SectionCard";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteAccount } from "@/lib/account.functions";
+import { inviteFamilyMember, listFamilyMembers } from "@/lib/family.functions";
 import { deleteAllUserData } from "@/lib/clar-sync";
 import { getActiveTeacherLink, inviteObserver, listObservers, removeObserver, rotateTeacherLink } from "@/lib/clar-observers";
 import type {
@@ -206,6 +207,165 @@ type Props = {
   onReset: () => void;
   userId: string | null;
 };
+
+function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
+  const [teacherLink, setTeacherLink] = useState<{ token: string; url: string; expiresAt: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const handleCreate = async () => {
+    setBusy(true);
+    try {
+      const { getActiveTeacherLink, rotateTeacherLink } = await import("@/lib/clar-observers");
+      const link = await rotateTeacherLink(ownerId, periodId);
+      const url = typeof window !== "undefined" ? `${window.location.origin}/beobachtung/${link.token}` : "";
+      setTeacherLink({ token: link.token, url, expiresAt: link.expiresAt });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">
+        Lehrperson oder Therapeut·in erhält einen Link — kein Login, kein Name im Link. Formular einmal täglich oder wöchentlich ausfüllbar.
+      </p>
+      {teacherLink ? (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
+            <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{teacherLink.url}</span>
+            <button type="button" onClick={() => navigator.clipboard.writeText(teacherLink.url)}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-primary hover:bg-primary/10"
+              aria-label="Link kopieren">
+              <Copy className="h-4 w-4" />
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Gültig bis {new Date(teacherLink.expiresAt).toLocaleDateString("de-DE")}
+          </p>
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">Noch kein Link erstellt.</p>
+      )}
+      <button type="button" onClick={handleCreate} disabled={busy}
+        className="w-full rounded-2xl border border-border bg-card p-2.5 text-sm font-semibold text-primary disabled:opacity-40">
+        {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : teacherLink ? "Neuen Link erstellen" : "Link erstellen"}
+      </button>
+    </div>
+  );
+}
+
+function FamilySettings({ userId }: { userId: string }) {
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"member" | "teen">("member");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [members, setMembers] = useState<{ member_user_id: string; role: string }[]>([]);
+  const [pending, setPending] = useState<{ email: string; role: string; expires_at: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) return;
+      const result = await listFamilyMembers({ data: { accessToken } });
+      setMembers(result.members);
+      setPending(result.pendingInvites);
+    } catch {
+      // Tabellen noch nicht angelegt — kein Fehler zeigen
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { refresh(); }, [userId]);
+
+  const handleInvite = async () => {
+    if (!email.trim()) return;
+    setBusy(true);
+    setError(null);
+    setSuccess(false);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Nicht eingeloggt");
+      await inviteFamilyMember({ data: { accessToken, email: email.trim(), role } });
+      setEmail("");
+      setSuccess(true);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Einladung fehlgeschlagen.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const ROLE_LABELS: Record<string, string> = {
+    member: "Familienmitglied / Partner",
+    teen: "Jugendliche/r (12–17)",
+    child: "Kind unter 12",
+  };
+
+  return (
+    <div className="space-y-4">
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+      ) : (
+        <>
+          {members.length === 0 && pending.length === 0 && (
+            <p className="text-sm text-muted-foreground">Noch keine Mitglieder eingeladen.</p>
+          )}
+          {members.map((m) => (
+            <div key={m.member_user_id} className="flex items-center justify-between rounded-2xl border border-border bg-background p-3">
+              <div>
+                <p className="text-sm font-semibold">{ROLE_LABELS[m.role] ?? m.role}</p>
+                <p className="text-xs text-muted-foreground">Aktiv</p>
+              </div>
+            </div>
+          ))}
+          {pending.map((p) => (
+            <div key={p.email} className="flex items-center justify-between rounded-2xl border border-border bg-background p-3">
+              <div>
+                <p className="text-sm font-semibold">{p.email}</p>
+                <p className="text-xs text-muted-foreground">{ROLE_LABELS[p.role] ?? p.role} · Einladung ausstehend</p>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+
+      {members.length + pending.length < 4 && (
+        <div className="space-y-3 rounded-2xl border border-border bg-background p-3">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="email@beispiel.ch"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
+          />
+          <div className="grid grid-cols-2 gap-2">
+            {(["member", "teen"] as const).map((r) => (
+              <button key={r} type="button" onClick={() => setRole(r)}
+                className={`rounded-xl border py-2 text-xs font-semibold ${
+                  role === r ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"
+                }`}>
+                {ROLE_LABELS[r]}
+              </button>
+            ))}
+          </div>
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          {success && <p className="text-xs text-primary">Einladung gesendet!</p>}
+          <button type="button" onClick={handleInvite} disabled={busy || !email.trim()}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
+            <Plus className="h-4 w-4" /> Einladen
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function makeIcs(period: ObservationPeriod) {
   const stamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
@@ -523,8 +683,13 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
           </SectionCard>
 
           {userId && (
-            <SectionCard title="Beobachter" subtitle={`Bis zu ${MAX_OBSERVERS} Personen — Eltern, Lehrperson, Andere.`}>
-              <ObserverSettings ownerId={userId} periodId={activePeriod.id} />
+            <SectionCard title="Familie & Umfeld" subtitle="Bis zu 4 Mitglieder — erhalten eine Einladungs-E-Mail.">
+              <FamilySettings userId={userId} />
+            </SectionCard>
+          )}
+          {userId && (
+            <SectionCard title="Schule / Lehrperson" subtitle="Link ohne Login — 7 Tage gültig, keine personenbezogenen Daten.">
+              <TeacherLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
         </>
