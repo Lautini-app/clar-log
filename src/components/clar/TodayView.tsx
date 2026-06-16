@@ -629,7 +629,7 @@ const CHILD_LABELS: Record<string, string> = {
   distractibility:       "Wirst du schnell abgelenkt?",
   impulsivity:           "Machst du manchmal Dinge ohne nachzudenken?",
   inner_tension:         "Bist du innerlich ruhig oder unruhig?",
-  frustration_tolerance: "Wirst du schnell ungeduldig wenn etwas nicht klappt?",
+  frustration_tolerance: "Warst du heute schnell ungeduldig, wenn etwas nicht geklappt hat?",
   emotional_outbursts:   "Hast du heute geweint oder einen Wutausbruch gehabt?",
   drive:                 "Hast du Lust etwas zu tun?",
   base_mood:             "Wie geht es dir insgesamt?",
@@ -1065,6 +1065,7 @@ function SlotWizard({
     if (!group.slots.includes(slot)) return false;
     if (group.items.length === 0) return false;
     if (group.id === "cycle" && period.cycleTracking !== true) return false;
+    if ((group as any).childExclude && (period.profile === "child_parent" || period.profile === "child_both")) return false;
     if (group.condition) {
       const a = slotLog.answers[group.condition.itemId];
       if (!a || a.value !== group.condition.value) return false;
@@ -1302,4 +1303,5 @@ export function TodayView({ log, settings, onChange, onSettingsChange }: Props) 
     </div>
   );
 }
+
 
