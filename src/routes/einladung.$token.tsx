@@ -30,11 +30,11 @@ function EinladungRoute() {
     });
   }, []);
 
-  const handleAccept = async (accessToken: string) => {
+  const handleAccept = async (_accessToken?: string) => {
     setBusy(true);
     setError(null);
     try {
-      await acceptFamilyInvite({ data: { accessToken, token } });
+      await acceptFamilyInvite(token);
       setStep("done");
       setTimeout(() => navigate({ to: "/heute" }), 2000);
     } catch (err) {
@@ -157,4 +157,5 @@ function EinladungRoute() {
     </div>
   );
 }
+
 
