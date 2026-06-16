@@ -507,7 +507,7 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
                   ),
                 };
                 try { localStorage.removeItem("clar.tracker.v1"); } catch {}
-                onSettingsChange(next);
+                onChange(next);
               }}
               className="w-full rounded-2xl border border-border bg-card p-3 text-sm font-semibold text-primary text-left"
             >
