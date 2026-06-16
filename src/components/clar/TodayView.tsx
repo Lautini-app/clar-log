@@ -530,62 +530,88 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
   );
 }
 
-const SCALE_LABELS: Record<string, [string, string]> = {
-  sleep_latency: ["sehr lang", "sehr kurz"],
-  sleep_recovery: ["gar nicht", "sehr erholt"],
-  wake_mood: ["sehr schlecht", "sehr gut"],
-  sleep_duration: ["sehr kurz", "sehr lang"],
-  base_mood: ["sehr schlecht", "sehr gut"],
-  irritability: ["sehr reizbar", "ausgeglichen"],
-  drive: ["kein Antrieb", "sehr motiviert"],
-  inner_tension: ["sehr unruhig", "sehr ruhig"],
-  frustration_tolerance: ["sehr niedrig", "sehr hoch"],
-  focus: ["gar nicht", "sehr gut"],
-  distractibility: ["sehr ablenkbar", "sehr fokussiert"],
-  impulsivity: ["sehr impulsiv", "gut kontrolliert"],
-  thought_racing: ["starkes Rasen", "ruhig/klar"],
-  rebound_intensity: ["sehr stark", "kaum spürbar"],
-  rebound_duration: ["sehr lang", "sehr kurz"],
-  hunger: ["kein Hunger", "normaler Hunger"],
-  meals_today: ["keine", "viele"],
-  stress_level: ["kein Stress", "sehr hoher Stress"],
-  social_interactions: ["sehr schwierig", "sehr gut"],
-  school_performance: ["sehr schlecht", "sehr gut"],
-  school_social: ["sehr schwierig", "sehr gut"],
+const SCALE_LABELS: Record<string, { lo: string; hi: string; positive: boolean }> = {
+  wellbeing:             { lo: "sehr schlecht",    hi: "sehr gut",          positive: true  },
+  sleep_duration:        { lo: "sehr kurz",        hi: "sehr lang",         positive: true  },
+  sleep_quality:         { lo: "sehr schlecht",    hi: "sehr gut",          positive: true  },
+  base_mood:             { lo: "sehr schlecht",    hi: "sehr gut",          positive: true  },
+  irritability:          { lo: "sehr reizbar",     hi: "ausgeglichen",      positive: false },
+  drive:                 { lo: "kein Antrieb",     hi: "sehr motiviert",    positive: true  },
+  inner_tension:         { lo: "sehr ruhig",       hi: "sehr unruhig",      positive: false },
+  frustration_tolerance: { lo: "sehr niedrig",     hi: "sehr hoch",         positive: true  },
+  focus:                 { lo: "gar nicht",        hi: "sehr gut",          positive: true  },
+  distractibility:       { lo: "sehr fokussiert",  hi: "sehr ablenkbar",    positive: false },
+  impulsivity:           { lo: "gut kontrolliert", hi: "sehr impulsiv",     positive: false },
+  thought_racing:        { lo: "ruhig/klar",       hi: "starkes Rasen",     positive: false },
+  rebound_intensity:     { lo: "kaum spürbar",     hi: "sehr stark",        positive: false },
+  rebound_duration:      { lo: "sehr kurz",        hi: "sehr lang",         positive: false },
+  hunger:                { lo: "kein Hunger",      hi: "normaler Hunger",   positive: true  },
+  appetite:              { lo: "kein Appetit",     hi: "guter Appetit",     positive: true  },
+  meal_amount:           { lo: "sehr wenig",       hi: "normal viel",       positive: true  },
+  meals_today:           { lo: "keine",            hi: "viele",             positive: true  },
+  stress_level:          { lo: "kein Stress",      hi: "sehr hoher Stress", positive: false },
+  social_interactions:   { lo: "sehr schwierig",   hi: "sehr gut",          positive: true  },
+  school_performance:    { lo: "sehr schlecht",    hi: "sehr gut",          positive: true  },
+  school_social:         { lo: "sehr schwierig",   hi: "sehr gut",          positive: true  },
+  heart_racing:          { lo: "gar nicht",        hi: "sehr stark",        positive: false },
+  chest_tightness:       { lo: "gar nicht",        hi: "sehr stark",        positive: false },
+  headache:              { lo: "gar nicht",        hi: "sehr stark",        positive: false },
+  stomachache:           { lo: "gar nicht",        hi: "sehr stark",        positive: false },
+  dry_mouth:             { lo: "gar nicht",        hi: "sehr stark",        positive: false },
 };
 
+const SCALE_STEPS = [
+  { val: 1, label: "gar nicht" },
+  { val: 2, label: "etwas" },
+  { val: 3, label: "mittel" },
+  { val: 4, label: "sehr/viel" },
+];
+
+function scaleStyle(val: number, positive: boolean, selected: boolean): React.CSSProperties {
+  const pos = ["#f97316","#facc15","#86efac","#16a34a"];
+  const neg = ["#16a34a","#86efac","#facc15","#f97316"];
+  const posT = ["#7c2d12","#713f12","#14532d","#14532d"];
+  const negT = ["#14532d","#14532d","#713f12","#7c2d12"];
+  const colors = positive ? pos : neg;
+  const texts = positive ? posT : negT;
+  const i = val - 1;
+  return selected
+    ? { backgroundColor: colors[i], color: texts[i], borderColor: colors[i] }
+    : { backgroundColor: colors[i] + "33", color: colors[i], borderColor: colors[i] + "66" };
+}
+
 function ScaleInput({ value, onChange, itemId }: { value?: number; onChange: (value: number) => void; itemId?: string }) {
-  const labels = itemId ? SCALE_LABELS[itemId] : undefined;
+  const meta = itemId ? SCALE_LABELS[itemId] : undefined;
+  const positive = meta?.positive ?? true;
   return (
-    <div>
-      <div className="grid grid-cols-5 gap-2">
-        {[1, 2, 3, 4, 5].map((item) => (
+    <div className="space-y-2">
+      {meta && (
+        <div className="flex justify-between text-[10px] text-muted-foreground px-1">
+          <span>{meta.lo}</span>
+          <span>{meta.hi}</span>
+        </div>
+      )}
+      <div className="grid grid-cols-4 gap-2">
+        {SCALE_STEPS.map((step) => (
           <button
-            key={item}
+            key={step.val}
             type="button"
-            onClick={() => onChange(item)}
-            className={`rounded-2xl py-3 text-sm font-semibold ${
-              value === item ? "bg-primary text-primary-foreground" : "bg-card text-primary"
-            }`}
+            onClick={() => onChange(step.val)}
+            style={scaleStyle(step.val, positive, value === step.val)}
+            className="rounded-2xl border py-4 text-xs font-semibold transition-all"
           >
-            {item}
+            {step.label}
           </button>
         ))}
       </div>
-      {labels && (
-        <div className="mt-2 flex justify-between text-xs text-muted-foreground px-1">
-          <span>1 = {labels[0]}</span>
-          <span>5 = {labels[1]}</span>
-        </div>
-      )}
     </div>
   );
 }
 
-const EMOTION_GROUPS = [
-  { label: "Schwierig", emotions: ["Verzweifelt", "Traurig", "Melancholisch", "Ängstlich", "Wütend", "Stumpf/Taub"] },
-  { label: "Neutral", emotions: ["Neutral", "Ausgeglichen"] },
-  { label: "Positiv", emotions: ["Freudig", "Aufgeregt", "Euphorisch"] },
+const EMOTION_GROUPS: { label: string; positive: boolean | null; emotions: string[] }[] = [
+  { label: "Schwierig", positive: false, emotions: ["Verzweifelt", "Traurig", "Melancholisch", "Ängstlich", "Wütend", "Stumpf/Taub"] },
+  { label: "Neutral",   positive: null,  emotions: ["Neutral", "Ausgeglichen"] },
+  { label: "Positiv",   positive: true,  emotions: ["Freudig", "Aufgeregt", "Euphorisch"] },
 ];
 
 const CATEGORY_ICONS: Record<WellbeingItem["category"], typeof Pill> = {
@@ -659,7 +685,52 @@ function ChildScaleInput({ value, onChange }: { value?: number; onChange: (value
   );
 }
 
+function emotionStyle(val: number, positive: boolean | null, selected: boolean): React.CSSProperties {
+  if (positive === null) {
+    const g = ["#e5e7eb","#d1d5db","#9ca3af","#6b7280"];
+    return selected
+      ? { backgroundColor: g[val-1], color: "#111827", borderColor: g[val-1] }
+      : { backgroundColor: g[val-1] + "55", color: "#6b7280", borderColor: g[val-1] };
+  }
+  return scaleStyle(val, positive, selected);
+}
+
 function EmotionsInput({ value, onChange }: { value?: Record<string, number>; onChange: (value: Record<string, number>) => void }) {
+  const current = value ?? {};
+  return (
+    <div className="space-y-4">
+      {EMOTION_GROUPS.map((group) => (
+        <div key={group.label}>
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
+          <div className="space-y-3">
+            {group.emotions.map((emotion) => (
+              <div key={emotion} className="rounded-xl border border-border bg-card px-3 py-3">
+                <p className="mb-2 text-sm font-medium">{emotion}</p>
+                <div className="grid grid-cols-4 gap-1 mb-1">
+                  {SCALE_STEPS.map((step) => (
+                    <button
+                      key={step.val}
+                      type="button"
+                      onClick={() => onChange({ ...current, [emotion]: step.val })}
+                      style={emotionStyle(step.val, group.positive, current[emotion] === step.val)}
+                      className="rounded-xl border py-2 text-[11px] font-semibold transition-all"
+                    >
+                      {step.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex justify-between text-[9px] text-muted-foreground px-0.5">
+                  <span>{group.positive === false ? "trifft gar nicht zu" : "gar nicht"}</span>
+                  <span>{group.positive === false ? "trifft voll zu" : "sehr stark"}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}: { value?: Record<string, number>; onChange: (value: Record<string, number>) => void }) {
   const current = value ?? {};
   return (
     <div className="space-y-3">
