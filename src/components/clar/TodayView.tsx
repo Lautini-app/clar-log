@@ -619,6 +619,41 @@ const SCALE_STEPS = [
   { val: 4, label: "sehr/viel" },
 ];
 
+const CHILD_LABELS: Record<string, string> = {
+  sleep_recovery:        "Bist du fit und gut erholt?",
+  sleep_latency:         "Wie lange hast du zum Einschlafen gebraucht?",
+  sleep_through:         "Hast du gut durchgeschlafen?",
+  sleep_duration:        "Wie lange hast du geschlafen?",
+  focus:                 "Kannst du dich gut konzentrieren?",
+  distractibility:       "Wirst du schnell abgelenkt?",
+  impulsivity:           "Machst du manchmal Dinge ohne nachzudenken?",
+  inner_tension:         "Bist du innerlich ruhig oder unruhig?",
+  frustration_tolerance: "Wirst du schnell ungeduldig wenn etwas nicht klappt?",
+  emotional_outbursts:   "Hast du heute geweint oder einen Wutausbruch gehabt?",
+  drive:                 "Hast du Lust etwas zu tun?",
+  base_mood:             "Wie geht es dir insgesamt?",
+  hunger:                "Hast du Hunger?",
+  appetite:              "Hast du Lust zu essen?",
+  meal_eaten:            "Hast du gegessen?",
+  meal_amount:           "Wie viel hast du gegessen?",
+  breakfast_eaten:       "Hast du gefrühstückt?",
+  heart_racing:          "Spürst du dein Herz schnell klopfen?",
+  chest_tightness:       "Hast du ein Engegefühl in der Brust?",
+  headache:              "Hast du Kopfschmerzen?",
+  stomachache:           "Hast du Bauchschmerzen?",
+  dry_mouth:             "Ist dein Mund trocken?",
+  tics:                  "Hattest du heute Tics?",
+  rebound_today:         "Wurdest du nach dem Mittag schlechter gelaunt oder unruhiger?",
+  rebound_intensity:     "Wie stark war das Gefühl?",
+  school_work_today:     "Warst du heute in der Schule?",
+  school_performance:    "Wie war die Schule heute?",
+  school_social:         "Wie war es mit deinen Schulkameraden?",
+  stress_level:          "Wie gestresst fühlst du dich?",
+  social_interactions:   "Wie war es heute mit anderen Kindern?",
+  energy_level:          "Wie viel Energie hast du?",
+  emotions:              "Wie fühlst du dich gerade?",
+};
+
 function scaleStyle(val: number, positive: boolean, selected: boolean): React.CSSProperties {
   const pos = ["#f97316","#facc15","#86efac","#16a34a"];
   const neg = ["#16a34a","#86efac","#facc15","#f97316"];
@@ -868,6 +903,7 @@ function WizardInput({
   onAnswer: (answer: WellbeingAnswer) => void;
   childMode?: boolean;
 }) {
+  const childLabel = childMode ? CHILD_LABELS[item.id] : undefined;
   const setValue = (value: WellbeingAnswer["value"], time?: string) =>
     onAnswer({ itemId: item.id, slot: answer?.slot ?? "morning", value, time });
 
@@ -1058,8 +1094,8 @@ function SlotWizard({
                 <div key={item.id} className={`space-y-2 ${idx > 0 ? "pt-4 border-t border-border" : ""}`}>
                   <div className="flex items-center gap-2">
                     <QuestionIcon category={item.category} />
-                    <p className="flex-1 text-sm font-semibold text-muted-foreground">{item.label}</p>
-                    <SpeakButton text={item.label} />
+                    <p className="flex-1 text-sm font-semibold text-muted-foreground">{childLabel ?? item.label}</p>
+                    <SpeakButton text={childLabel ?? item.label} />
                   </div>
                   {item.id === "tics_note" && slotLog.answers["tics"]?.value !== true ? null :
                    ["rebound_time","rebound_type","rebound_intensity","rebound_duration"].includes(item.id) && slotLog.answers["rebound_today"]?.value !== true ? null : (
