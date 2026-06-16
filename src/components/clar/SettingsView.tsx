@@ -482,10 +482,10 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
         ) : (
           <button
             type="button"
-            onClick={() => upsertPeriod(settings, createPeriod(), onChange)}
+            onClick={() => { window.location.href = "/heute"; }}
             className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
           >
-            Periode erstellen
+            Onboarding starten →
           </button>
         )}
       </SectionCard>
