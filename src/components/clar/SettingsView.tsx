@@ -280,13 +280,17 @@ function FamilySettings({ userId }: { userId: string }) {
 
   useEffect(() => { refresh(); }, [userId]);
 
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+
   const handleInvite = async () => {
     if (!email.trim()) return;
     setBusy(true);
     setError(null);
     setSuccess(false);
+    setInviteLink(null);
     try {
-      await inviteFamilyMember({ email: email.trim(), role, name: name.trim() || undefined });
+      const result = await inviteFamilyMember({ email: email.trim(), role, name: name.trim() || undefined });
+      setInviteLink(result.inviteUrl);
       setEmail("");
       setName("");
       setSuccess(true);
@@ -359,7 +363,17 @@ function FamilySettings({ userId }: { userId: string }) {
             ))}
           </div>
           {error && <p className="text-xs text-destructive">{error}</p>}
-          {success && <p className="text-xs text-primary">Einladung gesendet!</p>}
+          {success && inviteLink && (
+            <div className="rounded-xl border border-border bg-card p-3 space-y-2">
+              <p className="text-xs font-semibold text-primary">Einladungslink erstellt</p>
+              <p className="text-xs text-muted-foreground break-all">{inviteLink}</p>
+              <button type="button" onClick={() => { navigator.clipboard.writeText(inviteLink); }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-primary">
+                <Copy className="h-3 w-3" /> Link kopieren
+              </button>
+              <p className="text-[10px] text-muted-foreground">Link per WhatsApp oder E-Mail teilen — 7 Tage gültig</p>
+            </div>
+          )}
           <button type="button" onClick={handleInvite} disabled={busy || !email.trim()}
             className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
             <Plus className="h-4 w-4" /> Einladen
