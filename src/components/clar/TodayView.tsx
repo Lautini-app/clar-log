@@ -308,6 +308,24 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
       body: (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">Zwei Angaben genügen — der Rest wird automatisch eingerichtet.</p>
+          <label className="block rounded-2xl border border-border bg-card p-3">
+            <span className="text-xs font-semibold text-muted-foreground">
+              {draft.profile === "self" ? "Geburtsjahr" : "Geburtsjahr des Kindes"}
+            </span>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={1930}
+              max={2025}
+              placeholder="z.B. 1990"
+              value={draft.birthYear ?? ""}
+              onChange={(event) => {
+                const raw = event.target.value;
+                updateDraft({ birthYear: raw === "" ? undefined : Number(raw) });
+              }}
+              className="mt-1 w-full bg-transparent text-base font-semibold outline-none"
+            />
+          </label>
           <div className="rounded-2xl border border-border bg-card p-3">
             <span className="text-xs font-semibold text-muted-foreground">Geschlecht</span>
             <div className="mt-2 grid grid-cols-3 gap-2">
