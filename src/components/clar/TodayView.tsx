@@ -861,13 +861,16 @@ function SlotWizard({
   onClose: () => void;
   onChange: Props["onChange"];
 }) {
-  const slotLog = log.slots[slot];
+  const [localLog, setLocalLog] = useState<DayLog>(log);
+  const slotLog = localLog.slots[slot];
   const [groupIndex, setGroupIndex] = useState(0);
   const childMode = period.profile === "child_self";
   const speechEnabled = childMode || period.speechOutput === true;
 
   const patchSlot = (patch: Partial<typeof slotLog>) => {
-    onChange({ slots: { ...log.slots, [slot]: { ...slotLog, status: "in_progress", ...patch } } });
+    const next: DayLog = { ...localLog, slots: { ...localLog.slots, [slot]: { ...slotLog, status: "in_progress", ...patch } } };
+    setLocalLog(next);
+    onChange(next);
   };
 
   const activeGroups = QUESTION_GROUPS.filter((group) => {
