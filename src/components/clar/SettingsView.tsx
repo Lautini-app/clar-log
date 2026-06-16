@@ -499,6 +499,7 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
                 if (!confirm("Neue Periode starten? Das Onboarding startet neu. Deine bisherigen Logs bleiben erhalten.")) return;
                 onSettingsChange({
                   ...settings,
+                  activePeriodId: undefined,
                   periods: settings.periods.map(p =>
                     p.id === activePeriod.id
                       ? { ...p, endDate: new Date().toISOString().split("T")[0], active: false }
