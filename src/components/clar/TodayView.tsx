@@ -627,7 +627,8 @@ const CHILD_EXCLUDED_ITEMS = new Set([
   "emotional_outbursts", // Emotionale Ausbrüche → Eltern beurteilen
   "drive",             // Antrieb → zu abstrakt
   "base_mood",         // Grundstimmung → abgedeckt durch Emotionen
-  "racing_thoughts",   // Gedankenrasen → zu abstrakt für Kind unter 12
+  "racing_thoughts",   // (alias, nicht verwendet)
+  "thought_racing",    // Gedankenrasen → zu abstrakt für Kind unter 12
   "tics",              // Tics → Eltern beurteilen, nicht Kind
   "tics_note",         // Tics Notiz → auch raus
 ]);
