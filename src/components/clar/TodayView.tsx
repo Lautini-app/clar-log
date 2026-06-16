@@ -1050,6 +1050,8 @@ export function TodayView({ log, settings, onChange, onSettingsChange }: Props) 
   const [activeSlot, setActiveSlot] = useState<TimeSlot | null>(null);
   const items = useMemo(() => availableWellbeingItems(settings), [settings]);
 
+  console.log("[today] activePeriodId:", settings.activePeriodId, "period:", period?.id, "periods:", settings.periods?.map(p => p.id + ":" + p.active));
+
   if (!period) {
     return <Onboarding settings={settings} onSettingsChange={onSettingsChange} />;
   }
