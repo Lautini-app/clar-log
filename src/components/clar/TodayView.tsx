@@ -576,8 +576,8 @@ function scaleStyle(val: number, positive: boolean, selected: boolean): React.CS
   const texts = positive ? posT : negT;
   const i = val - 1;
   return selected
-    ? { backgroundColor: colors[i], color: texts[i], borderColor: colors[i] }
-    : { backgroundColor: colors[i] + "33", color: colors[i], borderColor: colors[i] + "66" };
+    ? { backgroundColor: colors[i], color: "#fff", borderColor: colors[i] }
+    : { backgroundColor: colors[i] + "25", color: texts[i], borderColor: colors[i] + "60" };
 }
 
 function ScaleInput({ value, onChange, itemId }: { value?: number; onChange: (value: number) => void; itemId?: string }) {
@@ -690,7 +690,7 @@ function emotionStyle(val: number, positive: boolean | null, selected: boolean):
     const g = ["#e5e7eb","#d1d5db","#9ca3af","#6b7280"];
     return selected
       ? { backgroundColor: g[val-1], color: "#111827", borderColor: g[val-1] }
-      : { backgroundColor: g[val-1] + "55", color: "#6b7280", borderColor: g[val-1] };
+      : { backgroundColor: g[val-1] + "25", color: "#444441", borderColor: g[val-1] };
   }
   return scaleStyle(val, positive, selected);
 }
