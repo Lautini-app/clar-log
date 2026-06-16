@@ -438,7 +438,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
   return (
     <div className="space-y-4 pb-32">
       <header className="pt-2">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">clar v2</p>
+        
         <h1 className="mt-1 text-2xl font-semibold">Beobachtungsperiode einrichten</h1>
       </header>
       <SectionCard title={steps[step].title} subtitle={`Schritt ${step + 1} von 6`}>

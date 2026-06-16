@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_authenticated/bericht")({
       { title: "Verlauf — clar.log" },
       {
         name: "description",
-        content: "7/14/30-Tage Verlauf mit Ampel-Karten und clar v2 Charts.",
+        content: "7/14/30-Tage Verlauf mit Ampel-Karten.",
       },
     ],
   }),
