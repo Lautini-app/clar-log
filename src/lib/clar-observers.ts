@@ -94,11 +94,10 @@ export async function getActiveTeacherLink(ownerId: string, periodId: string): P
 
 /** Erstellt einen neuen Lehrperson-Link (7 Tage gültig) und deaktiviert alte Links für die Periode. */
 export async function rotateTeacherLink(ownerId: string, periodId: string): Promise<TeacherLink> {
-  await supabase.from("teacher_links").update({ active: false }).eq("owner_id", ownerId).eq("period_id", periodId);
+  await supabase.schema("clar_log").from("teacher_links").update({ active: false }).eq("owner_id", ownerId).eq("period_id", periodId);
   const token = randomToken();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
-    .schema("clar_log")
     .schema("clar_log")
     .from("teacher_links")
     .insert({ owner_id: ownerId, period_id: periodId, token, active: true, expires_at: expiresAt })
@@ -189,3 +188,4 @@ export async function listObserverObservations(ownerId: string, periodId: string
     createdAt: String(row.created_at),
   }));
 }
+
