@@ -49,12 +49,24 @@ function EinladungRoute() {
     setBusy(true);
     setError(null);
     try {
-      const { data, error: authError } = await supabase.auth.signUp({ email, password });
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: undefined, data: { invite_token: token } }
+      });
       if (authError) throw authError;
+      // Wenn keine Session (E-Mail-Bestätigung aktiv) → direkt einloggen versuchen
       const accessToken = data.session?.access_token;
       if (!accessToken) {
-        setError("Bitte bestätige zuerst deine E-Mail-Adresse, dann öffne den Einladungslink erneut.");
-        setBusy(false);
+        // Direkt einloggen nach signUp (funktioniert wenn E-Mail-Bestätigung deaktiviert)
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+        if (loginError || !loginData.session) {
+          setError("Dein Konto wurde erstellt. Bitte melde dich jetzt mit deinen Zugangsdaten an.");
+          setBusy(false);
+          return;
+        }
+        setStep("accepting");
+        await handleAccept(loginData.session.access_token);
         return;
       }
       setStep("accepting");
@@ -145,3 +157,4 @@ function EinladungRoute() {
     </div>
   );
 }
+
