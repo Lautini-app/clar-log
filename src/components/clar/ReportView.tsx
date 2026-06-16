@@ -30,9 +30,7 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
     }
   };
 
-  useEffect(() => {
-    refresh();
-  }, [period.id]);
+  useEffect(() => { refresh(); }, [period.id]);
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -51,10 +49,7 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
   };
 
   const handleSend = async (reportId: string) => {
-    if (!period.doctorEmail) {
-      setError("Keine Arzt-E-Mail in den Einstellungen hinterlegt.");
-      return;
-    }
+    if (!period.doctorEmail) { setError("Keine Arzt-E-Mail hinterlegt."); return; }
     setSendingId(reportId);
     setError(null);
     try {
@@ -65,16 +60,14 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Versand fehlgeschlagen");
-    } finally {
-      setSendingId(null);
-    }
+    } finally { setSendingId(null); }
   };
 
   const handleExportPdf = async (report: WordReport) => {
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF();
     doc.setFontSize(14);
-    doc.text("clar.log — Wortbericht", 14, 18);
+    doc.text("clar.log \u2014 Wortbericht", 14, 18);
     doc.setFontSize(10);
     doc.text(new Date(report.created_at).toLocaleDateString("de-DE"), 14, 25);
     doc.setFontSize(11);
@@ -90,21 +83,16 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
   }).length;
 
   return (
-    <SectionCard title="Wortbericht" subtitle="Anonymisierte Zusammenfassung, max. 2× pro Monat — jederzeit abrufbar.">
+    <SectionCard title="Wortbericht" subtitle="Anonymisierte Zusammenfassung \u2014 max. 2\u00d7 pro Monat.">
       <div className="space-y-3">
-        <button
-          type="button"
-          onClick={handleGenerate}
+        <button type="button" onClick={handleGenerate}
           disabled={generating || reportsThisMonth >= 2}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-40"
-        >
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-40">
           {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
           {reportsThisMonth >= 2 ? "Limit erreicht (2/Monat)" : "Wortbericht generieren"}
         </button>
         {error && <p className="text-sm text-destructive">{error}</p>}
-        {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-        ) : (
+        {loading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : (
           <div className="space-y-3">
             {reports.length === 0 && <p className="text-sm text-muted-foreground">Noch kein Bericht erstellt.</p>}
             {reports.map((report) => (
@@ -115,19 +103,12 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
                 </div>
                 <p className="text-sm">{report.content}</p>
                 <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleExportPdf(report)}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-primary"
-                  >
+                  <button type="button" onClick={() => handleExportPdf(report)}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-primary">
                     <Download className="h-3.5 w-3.5" /> PDF
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSend(report.id)}
-                    disabled={sendingId === report.id}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-primary disabled:opacity-40"
-                  >
+                  <button type="button" onClick={() => handleSend(report.id)} disabled={sendingId === report.id}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-primary disabled:opacity-40">
                     <Mail className="h-3.5 w-3.5" /> An Arzt senden
                   </button>
                 </div>
@@ -140,187 +121,294 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
   );
 }
 
-type Props = {
-  logs: Record<string, DayLog>;
-  settings: Settings;
-  ownerId?: string | null;
-};
-
+type Props = { logs: Record<string, DayLog>; settings: Settings; ownerId?: string | null };
 const FILTERS = [7, 14, 30] as const;
 
 function asNumber(answer?: WellbeingAnswer) {
   return typeof answer?.value === "number" ? answer.value : undefined;
 }
-
 function asTime(answer?: WellbeingAnswer) {
   const raw = answer?.time ?? (typeof answer?.value === "string" ? answer.value : undefined);
   if (!raw || !raw.includes(":")) return undefined;
   const [h, m] = raw.split(":").map(Number);
   return h + (m || 0) / 60;
 }
-
-function collectAnswer(log: DayLog, itemId: string) {
-  for (const slot of TIME_SLOTS) {
-    const answer = log.slots[slot].answers[itemId];
+function collectAnswer(log: DayLog, itemId: string, slot?: string) {
+  if (slot) return log.slots[slot as keyof typeof log.slots]?.answers[itemId];
+  for (const s of TIME_SLOTS) {
+    const answer = log.slots[s].answers[itemId];
     if (answer) return answer;
   }
   return undefined;
 }
 
-const NEGATIVE_EMOTIONS = new Set(["Verzweifelt", "Traurig", "Melancholisch", "Ängstlich", "Wütend", "Stumpf/Taub"]);
+const NEGATIVE_EMOTIONS = new Set(["Verzweifelt", "Traurig", "Melancholisch", "\u00c4ngstlich", "W\u00fctend", "Stumpf/Taub"]);
 
-/** Aggregiert die Emotionen-Antwort (1=trifft voll zu … 5=trifft gar nicht zu) zu einem
- * einzelnen Stimmungswert (5=gut, 1=schlecht), passend zur Konvention der übrigen Skalen. */
 function moodScore(log: DayLog): number | undefined {
   const values = collectAnswer(log, "emotions")?.value as Record<string, number> | undefined;
   if (!values) return undefined;
   const entries = Object.entries(values);
   if (entries.length === 0) return undefined;
-  const scored = entries.map(([emotion, value]) => (NEGATIVE_EMOTIONS.has(emotion) ? value : 6 - value));
-  return scored.reduce((sum, value) => sum + value, 0) / scored.length;
+  const scored = entries.map(([emotion, value]) => (NEGATIVE_EMOTIONS.has(emotion) ? 5 - value : value));
+  return scored.reduce((sum, v) => sum + v, 0) / scored.length;
 }
 
-function dayTone(value?: number, inverse = false) {
-  if (value == null) return "bg-primary/10 text-primary";
-  const score = inverse ? 6 - value : value;
-  if (score >= 4) return "bg-primary text-primary-foreground";
-  if (score >= 3) return "bg-[#D6A833] text-[#1C2E1C]";
-  return "bg-[#B94A3A] text-[#F5F3EE]";
+function energyScore(log: DayLog): number | undefined {
+  const morning = asNumber(collectAnswer(log, "energy_level", "morning"));
+  const midday = asNumber(collectAnswer(log, "energy_level", "midday"));
+  const evening = asNumber(collectAnswer(log, "energy_level", "evening"));
+  const vals = [morning, midday, evening].filter((v): v is number => v !== undefined);
+  if (vals.length === 0) return undefined;
+  return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+
+function tone(value?: number, inverse = false): { bg: string; text: string } {
+  if (value == null) return { bg: "#f1efe8", text: "#888780" };
+  const score = inverse ? 5 - value : value;
+  if (score >= 3.5) return { bg: "#E1F5EE", text: "#085041" };
+  if (score >= 2.5) return { bg: "#FAEEDA", text: "#633806" };
+  return { bg: "#FCEBEB", text: "#A32D2D" };
 }
 
 function dateLabel(date: string) {
   return new Date(date).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" });
 }
 
-function ChartFrame({ title, children }: { title: string; children: React.ReactNode }) {
+function MiniBar({ value, max = 4, color }: { value?: number; max?: number; color: string }) {
+  const pct = value != null ? Math.round((value / max) * 100) : 0;
   return (
-    <div className="rounded-3xl border border-border bg-card p-4">
-      <h3 className="mb-3 text-sm font-semibold">{title}</h3>
-      {children}
+    <div style={{ height: 6, borderRadius: 3, background: "#e5e7eb", overflow: "hidden" }}>
+      <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 3, transition: "width .3s" }} />
     </div>
   );
 }
 
 export function ReportView({ logs, settings, ownerId }: Props) {
   const [range, setRange] = useState<(typeof FILTERS)[number]>(14);
+  const [expanded, setExpanded] = useState<string | null>(null);
   const [observations, setObservations] = useState<ObserverObservation[]>([]);
   const period = getActivePeriod(settings);
 
   useEffect(() => {
-    if (!ownerId || !period) {
-      setObservations([]);
-      return;
-    }
+    if (!ownerId || !period) { setObservations([]); return; }
     listObserverObservations(ownerId, period.id)
       .then(setObservations)
       .catch((err) => console.warn("[clar] Beobachtungen laden fehlgeschlagen:", err));
   }, [ownerId, period?.id]);
 
   const days = useMemo(
-    () =>
-      Object.values(logs)
-        .filter((log) => !period || !log.periodId || log.periodId === period.id)
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .slice(-range),
+    () => Object.values(logs)
+      .filter((log) => !period || !log.periodId || log.periodId === period.id)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-range),
     [logs, period, range],
   );
 
-  const sleep = days.map((day) => ({
+  // Aggregierte Daten
+  const chartData = days.map((day) => ({
     date: day.date,
-    value: asNumber(collectAnswer(day, "sleep_recovery")) ?? asNumber(collectAnswer(day, "sleep_latency")),
+    label: dateLabel(day.date),
+    mood: moodScore(day),
+    energy: energyScore(day),
+    focus: asNumber(collectAnswer(day, "focus")),
+    sleep: asNumber(collectAnswer(day, "sleep_recovery")),
+    rebound: asNumber(collectAnswer(day, "rebound_intensity")),
+    reboundTime: asTime(collectAnswer(day, "rebound_time")),
+    hasRebound: collectAnswer(day, "rebound_today")?.value === true,
+    slots: TIME_SLOTS.filter((s) => day.slots[s].status === "done").length,
+    day,
   }));
-  const mood = days.map((day) => ({ date: day.date, value: moodScore(day) }));
-  const rebounds = days.map((day) => ({
-    date: day.date,
-    x: asTime(collectAnswer(day, "rebound_time")),
-    y: asNumber(collectAnswer(day, "rebound_intensity")),
-  }));
+
+  const avg = (key: keyof typeof chartData[0]) => {
+    const vals = chartData.map((d) => d[key] as number | undefined).filter((v): v is number => v !== undefined);
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : undefined;
+  };
+
+  const reboundDays = chartData.filter((d) => d.hasRebound).length;
+  const maxWidth = Math.max(1, chartData.length);
 
   return (
     <div className="space-y-4 pb-32">
       <header className="pt-2">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Verlauf</p>
-        <h1 className="mt-1 text-2xl font-semibold text-foreground">Entwicklung sehen</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {period?.name ?? "Keine aktive Periode"} · {days.length} Tage
-        </p>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">Dossier</p>
+        <h1 className="mt-1 text-2xl font-semibold text-foreground">{period?.name ?? "Kein Profil"}</h1>
+        {period && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            {period.medications.map((m) => `${m.name} ${m.mg}mg`).join(" \u00b7 ")}
+            {period.medications.length > 0 ? " \u00b7 " : ""}
+            {days.length} Tage erfasst
+          </p>
+        )}
       </header>
 
+      {/* Zeitraum-Filter */}
       <div className="grid grid-cols-3 gap-2">
-        {FILTERS.map((filter) => (
-          <button
-            key={filter}
-            type="button"
-            onClick={() => setRange(filter)}
-            className={`rounded-full py-2 text-sm font-semibold ${
-              range === filter ? "bg-primary text-primary-foreground" : "bg-card text-primary"
-            }`}
-          >
-            {filter} Tage
+        {FILTERS.map((f) => (
+          <button key={f} type="button" onClick={() => setRange(f)}
+            className={`rounded-full py-2 text-sm font-semibold ${range === f ? "bg-primary text-primary-foreground" : "bg-card text-primary"}`}>
+            {f} Tage
           </button>
         ))}
       </div>
 
-      <SectionCard title="Day-Cards" subtitle="Top-3 Ampel aus Schlaf, Stimmung und Rebound.">
-        <div className="space-y-3">
-          {days.length === 0 && (
-            <p className="text-sm text-muted-foreground">Noch keine Tageslogs in dieser Periode.</p>
-          )}
-          {days.map((day) => {
-            const sleepValue = asNumber(collectAnswer(day, "sleep_recovery"));
-            const moodValue = moodScore(day);
-            const reboundValue = asNumber(collectAnswer(day, "rebound_intensity"));
-            return (
-              <div key={day.date} className="rounded-3xl border border-border bg-background p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="font-semibold">{dateLabel(day.date)}</h2>
-                  <span className="text-xs text-muted-foreground">
-                    {TIME_SLOTS.filter((slot) => day.slots[slot].status === "done").length}/3 fertig
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <span className={`rounded-2xl p-2 text-center text-xs font-semibold ${dayTone(sleepValue)}`}>
-                    Schlaf {sleepValue ?? "–"}
-                  </span>
-                  <span className={`rounded-2xl p-2 text-center text-xs font-semibold ${dayTone(moodValue)}`}>
-                    Stimmung {moodValue != null ? moodValue.toFixed(1) : "–"}
-                  </span>
-                  <span className={`rounded-2xl p-2 text-center text-xs font-semibold ${dayTone(reboundValue, true)}`}>
-                    Rebound {reboundValue ?? "–"}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+      {/* Kennzahlen */}
+      {days.length > 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { label: "Stimmung", value: avg("mood"), color: "#1D9E75" },
+            { label: "Energie", value: avg("energy"), color: "#BA7517" },
+            { label: "Fokus", value: avg("focus"), color: "#534AB7" },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ background: "#f1efe8", borderRadius: 12, padding: "10px 12px" }}>
+              <p style={{ fontSize: 10, color: "#888780", marginBottom: 4 }}>{label}</p>
+              <p style={{ fontSize: 20, fontWeight: 500, color }}>
+                {value != null ? value.toFixed(1) : "\u2013"}
+              </p>
+              <p style={{ fontSize: 10, color: "#888780" }}>von 4</p>
+            </div>
+          ))}
         </div>
-      </SectionCard>
+      )}
+      {reboundDays > 0 && (
+        <div style={{ background: "#FCEBEB", borderRadius: 12, padding: "10px 14px" }}>
+          <p style={{ fontSize: 12, color: "#A32D2D", fontWeight: 500 }}>
+            Rebound: {reboundDays} von {days.length} Tagen ({Math.round((reboundDays / days.length) * 100)}%)
+          </p>
+        </div>
+      )}
 
+      {/* Tagesstreifen-Chart */}
+      {days.length > 0 && (
+        <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 16, padding: 16 }}>
+          <h3 style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>Tagesverlauf</h3>
+          <div style={{ display: "flex", gap: 3, alignItems: "flex-end", height: 80 }}>
+            {chartData.map((d) => {
+              const score = d.mood ?? d.energy ?? d.focus;
+              const { bg, text } = tone(score);
+              const reboundMark = d.hasRebound;
+              return (
+                <div key={d.date} onClick={() => setExpanded(expanded === d.date ? null : d.date)}
+                  style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2, cursor: "pointer" }}>
+                  {reboundMark && <div style={{ width: 4, height: 4, borderRadius: 2, background: "#E24B4A" }} />}
+                  <div style={{
+                    width: "100%", borderRadius: 4,
+                    background: bg, border: expanded === d.date ? "2px solid #085041" : "1px solid transparent",
+                    height: score != null ? `${Math.round((score / 4) * 60) + 20}px` : "20px",
+                    transition: "height .3s",
+                  }} />
+                  <span style={{ fontSize: 8, color: "#888780", textAlign: "center", lineHeight: 1.2 }}>
+                    {d.label.slice(0, 2)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ marginTop: 8, display: "flex", gap: 12, fontSize: 10, color: "#888780" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: "#E1F5EE", border: "1px solid #9FE1CB", display: "inline-block" }} /> gut
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: "#FAEEDA", border: "1px solid #FAC775", display: "inline-block" }} /> mittel
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: "#FCEBEB", border: "1px solid #F7C1C1", display: "inline-block" }} /> schwach
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ width: 4, height: 4, borderRadius: 2, background: "#E24B4A", display: "inline-block" }} /> Rebound
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Verlaufslinien */}
+      {days.length > 1 && (
+        <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 16, padding: 16 }}>
+          <h3 style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>Verlauf</h3>
+          <svg viewBox={`0 0 ${Math.max(300, chartData.length * 20)} 120`} style={{ width: "100%", height: 120 }}>
+            {(["mood", "energy", "focus"] as const).map((key, ki) => {
+              const colors = ["#1D9E75", "#BA7517", "#534AB7"];
+              const points = chartData.map((d, i) => {
+                const v = d[key] as number | undefined;
+                if (v == null) return null;
+                const x = chartData.length <= 1 ? 150 : (i / (chartData.length - 1)) * (Math.max(300, chartData.length * 20) - 20) + 10;
+                const y = 110 - (v / 4) * 90;
+                return `${x},${y}`;
+              }).filter(Boolean);
+              if (points.length < 2) return null;
+              return (
+                <polyline key={key} fill="none" stroke={colors[ki]} strokeWidth="2"
+                  strokeLinecap="round" strokeLinejoin="round" points={points.join(" ")} opacity="0.8" />
+              );
+            })}
+          </svg>
+          <div style={{ display: "flex", gap: 12, fontSize: 10, color: "#888780", marginTop: 4 }}>
+            <span style={{ color: "#1D9E75" }}>\u2014 Stimmung</span>
+            <span style={{ color: "#BA7517" }}>\u2014 Energie</span>
+            <span style={{ color: "#534AB7" }}>\u2014 Fokus</span>
+          </div>
+        </div>
+      )}
+
+      {/* Tages-Detail wenn aufgeklappt */}
+      {expanded && (() => {
+        const d = chartData.find((x) => x.date === expanded);
+        if (!d) return null;
+        return (
+          <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 16, padding: 16 }}>
+            <h3 style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>{d.label} \u2014 Detail</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {[
+                { label: "Stimmung", value: d.mood, color: "#1D9E75" },
+                { label: "Energie", value: d.energy, color: "#BA7517" },
+                { label: "Fokus", value: d.focus, color: "#534AB7" },
+                { label: "Schlaf", value: d.sleep, color: "#378ADD" },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ padding: "8px 10px", background: "#f1efe8", borderRadius: 10 }}>
+                  <p style={{ fontSize: 10, color: "#888780" }}>{label}</p>
+                  <p style={{ fontSize: 18, fontWeight: 500, color }}>{value != null ? value.toFixed(1) : "\u2013"}</p>
+                  <MiniBar value={value} color={color} />
+                </div>
+              ))}
+            </div>
+            {d.hasRebound && (
+              <div style={{ marginTop: 8, padding: "8px 10px", background: "#FCEBEB", borderRadius: 10 }}>
+                <p style={{ fontSize: 11, color: "#A32D2D", fontWeight: 500 }}>
+                  Rebound {d.reboundTime != null ? `um ${Math.floor(d.reboundTime)}:${String(Math.round((d.reboundTime % 1) * 60)).padStart(2, "0")}` : ""}
+                  {d.rebound != null ? ` \u00b7 St\u00e4rke ${d.rebound}/4` : ""}
+                </p>
+              </div>
+            )}
+            <p style={{ fontSize: 11, color: "#888780", marginTop: 8 }}>{d.slots}/3 Slots ausgef\u00fcllt</p>
+          </div>
+        );
+      })()}
+
+      {/* Beobachter-Vergleich */}
       {observations.length > 0 && (
-        <SectionCard title="Perspektivenvergleich" subtitle="Eigene Einträge neben Fremdbeobachtungen (Eltern, Lehrperson).">
+        <SectionCard title="Fremdperspektive" subtitle="Eltern, Lehrperson, andere Beobachter.">
           <div className="space-y-3">
             {observations
-              .filter((entry) => days.some((day) => day.date === entry.date))
+              .filter((o) => days.some((d) => d.date === o.date))
               .sort((a, b) => b.date.localeCompare(a.date))
               .map((entry) => {
-                const day = days.find((d) => d.date === entry.date);
-                const moodValue = day ? moodScore(day) : undefined;
+                const day = chartData.find((d) => d.date === entry.date);
                 return (
-                  <div key={entry.id} className="rounded-3xl border border-border bg-background p-4">
+                  <div key={entry.id} className="rounded-2xl border border-border bg-background p-4">
                     <div className="mb-2 flex items-center justify-between">
                       <h3 className="text-sm font-semibold">{dateLabel(entry.date)}</h3>
                       <span className="text-xs text-muted-foreground">{entry.observerName ?? "Beobachter"}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="rounded-2xl bg-primary/10 p-2 text-center">
+                      <div className="rounded-xl bg-primary/10 p-2 text-center">
                         <p className="text-muted-foreground">Eigene Stimmung</p>
-                        <p className="font-semibold text-primary">{moodValue != null ? moodValue.toFixed(1) : "–"}</p>
+                        <p className="font-semibold text-primary">{day?.mood != null ? day.mood.toFixed(1) : "\u2013"}</p>
                       </div>
-                      <div className="rounded-2xl bg-primary/10 p-2 text-center">
-                        <p className="text-muted-foreground">Fremdeinschätzung</p>
-                        <p className="font-semibold text-primary">{entry.mood ?? "–"}</p>
+                      <div className="rounded-xl bg-primary/10 p-2 text-center">
+                        <p className="text-muted-foreground">Fremdeinsch\u00e4tzung</p>
+                        <p className="font-semibold text-primary">{entry.mood ?? "\u2013"}</p>
                       </div>
                     </div>
-                    {entry.note && <p className="mt-2 text-xs text-muted-foreground">„{entry.note}“</p>}
+                    {entry.note && <p className="mt-2 text-xs text-muted-foreground">\u201e{entry.note}\u201c</p>}
                   </div>
                 );
               })}
@@ -328,80 +416,24 @@ export function ReportView({ logs, settings, ownerId }: Props) {
         </SectionCard>
       )}
 
-      <ChartFrame title="Schlaf-Balken">
-        <div className="flex h-32 items-end gap-2">
-          {sleep.map((entry) => (
-            <div key={entry.date} className="flex flex-1 flex-col items-center gap-2">
-              <div className="flex h-24 w-full items-end rounded-full bg-primary/10">
-                <div
-                  className="w-full rounded-full bg-primary"
-                  style={{ height: `${((entry.value ?? 0) / 5) * 100}%` }}
-                />
+      {/* Schlaf-Detail */}
+      {days.length > 0 && (
+        <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 16, padding: 16 }}>
+          <h3 style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>Schlaf</h3>
+          <div style={{ display: "flex", gap: 3, alignItems: "flex-end", height: 60 }}>
+            {chartData.map((d) => (
+              <div key={d.date} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                <div style={{
+                  width: "100%", borderRadius: 3, background: "#378ADD",
+                  height: d.sleep != null ? `${Math.round((d.sleep / 4) * 50) + 8}px` : "4px",
+                  opacity: d.sleep != null ? 1 : 0.2,
+                }} />
+                <span style={{ fontSize: 8, color: "#888780" }}>{d.label.slice(0, 2)}</span>
               </div>
-              <span className="text-[10px] text-muted-foreground">{dateLabel(entry.date).slice(0, 2)}</span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </ChartFrame>
-
-      <ChartFrame title="Stimmungs-Linie">
-        <svg viewBox="0 0 300 120" className="h-32 w-full">
-          <polyline
-            fill="none"
-            stroke="var(--color-primary)"
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            points={mood
-              .map((entry, index) => {
-                const x = mood.length <= 1 ? 150 : (index / (mood.length - 1)) * 280 + 10;
-                const y = 110 - ((entry.value ?? 0) / 5) * 90;
-                return `${x},${y}`;
-              })
-              .join(" ")}
-          />
-          {mood.map((entry, index) => {
-            const x = mood.length <= 1 ? 150 : (index / (mood.length - 1)) * 280 + 10;
-            const y = 110 - ((entry.value ?? 0) / 5) * 90;
-            return <circle key={entry.date} cx={x} cy={y} r="4" fill="var(--color-primary)" />;
-          })}
-        </svg>
-      </ChartFrame>
-
-      <ChartFrame title="Rebound-Scatter">
-        <div className="relative h-36 rounded-3xl bg-primary/10">
-          {rebounds.map((entry) => {
-            if (entry.x == null || entry.y == null) return null;
-            return (
-              <span
-                key={entry.date}
-                className="absolute h-3 w-3 rounded-full bg-primary"
-                title={entry.date}
-                style={{
-                  left: `${Math.min(95, Math.max(3, ((entry.x - 6) / 18) * 100))}%`,
-                  bottom: `${Math.min(92, Math.max(6, (entry.y / 5) * 100))}%`,
-                }}
-              />
-            );
-          })}
-          <span className="absolute bottom-2 left-3 text-[10px] text-muted-foreground">06:00</span>
-          <span className="absolute bottom-2 right-3 text-[10px] text-muted-foreground">24:00</span>
-        </div>
-      </ChartFrame>
-
-      <SectionCard title="Ausgewählter Katalog">
-        <div className="flex flex-wrap gap-2">
-          {(period?.selectedWellbeingIds ?? []).map((itemId) => {
-            const item = WELLBEING_CATALOG.find((entry) => entry.id === itemId);
-            if (!item) return null;
-            return (
-              <span key={itemId} className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
-                {item.label} · {(period?.wellbeingSlots[itemId] ?? TIME_SLOTS).map((slot) => SLOT_LABELS[slot]).join("/")}
-              </span>
-            );
-          })}
-        </div>
-      </SectionCard>
+      )}
 
       {period && ownerId && <WordReportSection period={period} />}
     </div>
