@@ -153,7 +153,7 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     id: "body",
     title: "Körper & Nebenwirkungen",
     slots: ["morning", "midday", "evening"],
-    items: ["heart_racing", "chest_tightness", "headache", "stomachache", "dry_mouth", "tics"],
+    items: ["heart_racing", "chest_tightness", "headache", "stomachache", "dry_mouth", "tics", "tics_note"],
   },
   {
     id: "mood_evening",
@@ -366,7 +366,8 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "heart_racing", category: "body", label: "Herzrasen", kind: "boolean" },
   { id: "chest_tightness", category: "body", label: "Engegefühl in der Brust", kind: "boolean" },
   { id: "dry_mouth", category: "body", label: "Mundtrockenheit", kind: "boolean" },
-  { id: "tics", category: "body", label: "Tics", kind: "scale" },
+  { id: "tics", category: "body", label: "Tics", kind: "boolean" },
+  { id: "tics_note", category: "body", label: "Tics — welche / wie oft?", kind: "text" },
 
   { id: "stress_level", category: "social", label: "Stresslevel", kind: "scale" },
   { id: "social_interactions", category: "social", label: "Soziale Interaktionen", kind: "scale" },

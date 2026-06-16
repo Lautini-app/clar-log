@@ -922,8 +922,10 @@ function SlotWizard({
                     <p className="flex-1 text-sm font-semibold text-muted-foreground">{item.label}</p>
                     <SpeakButton text={item.label} />
                   </div>
-                  <WizardInput item={item} answer={slotLog.answers[item.id]} childMode={childMode}
-                    onAnswer={(answer) => patchSlot({ answers: { ...slotLog.answers, [item.id]: { ...answer, slot } } })} />
+                  {item.id === "tics_note" && slotLog.answers["tics"]?.value !== true ? null : (
+                    <WizardInput item={item} answer={slotLog.answers[item.id]} childMode={childMode}
+                      onAnswer={(answer) => patchSlot({ answers: { ...slotLog.answers, [item.id]: { ...answer, slot } } })} />
+                  )}
                 </div>
               ))}
             </div>
