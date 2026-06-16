@@ -913,9 +913,11 @@ function SlotWizard({
                   const takenDose = (slotLog.medsDose ?? {})[med.id] ?? med.mg;
                   return (
                     <div key={med.id}
-                      onClick={() => patchSlot({ medsTaken: { ...(slotLog.medsTaken ?? {}), [med.id]: !taken } })}
-                      className={`rounded-2xl border p-4 space-y-2 cursor-pointer ${taken ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
-                      <div className="flex items-center gap-3">
+                      className={`rounded-2xl border p-4 space-y-2 ${taken ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
+                      <button
+                        type="button"
+                        onClick={() => patchSlot({ medsTaken: { ...(slotLog.medsTaken ?? {}), [med.id]: !taken } })}
+                        className="w-full flex items-center gap-3 text-left">
                         <div className={`h-8 w-8 rounded-full border-2 flex items-center justify-center text-sm font-bold flex-shrink-0 ${taken ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>
                           {taken ? "✓" : ""}
                         </div>
@@ -923,11 +925,12 @@ function SlotWizard({
                         <span className="text-xs text-muted-foreground">
                           {med.duration === "long" ? "Retard" : "Kurz"}
                         </span>
-                      </div>
+                      </button>
                       <div className="flex items-center gap-2 pl-11">
                         <input
                           type="number"
                           value={takenDose}
+                          onClick={(e) => e.stopPropagation()}
                           onChange={(e) => patchSlot({
                             medsDose: { ...(slotLog.medsDose ?? {}), [med.id]: Number(e.target.value) }
                           })}
@@ -1077,3 +1080,4 @@ export function TodayView({ log, settings, onChange, onSettingsChange }: Props) 
     </div>
   );
 }
+
