@@ -697,13 +697,9 @@ function WizardInput({
   return <ScaleInput value={answer?.value as number | undefined} onChange={setValue} itemId={item.id} />;
 }
 
+
 function SlotWizard({
-  slot,
-  log,
-  period,
-  items,
-  onClose,
-  onChange,
+  slot, log, period, items, onClose, onChange,
 }: {
   slot: TimeSlot;
   log: DayLog;
@@ -713,123 +709,98 @@ function SlotWizard({
   onChange: Props["onChange"];
 }) {
   const slotLog = log.slots[slot];
-  const questions = items.filter(
-    (item) =>
-      period.selectedWellbeingIds.includes(item.id) &&
-      (item.slots ?? period.wellbeingSlots[item.id] ?? TIME_SLOTS).includes(slot),
-  );
-  const [index, setIndex] = useState(0);
-  const total = questions.length + 2;
+  const [groupIndex, setGroupIndex] = useState(0);
 
   const patchSlot = (patch: Partial<typeof slotLog>) => {
-    onChange({
-      slots: {
-        ...log.slots,
-        [slot]: { ...slotLog, status: "in_progress", ...patch },
-      },
-    });
+    onChange({ slots: { ...log.slots, [slot]: { ...slotLog, status: "in_progress", ...patch } } });
   };
 
-  const medQuestion = index === 0;
-  const noteQuestion = index === total - 1;
-  const item = questions[index - 1];
+  const activeGroups = QUESTION_GROUPS.filter((group) => {
+    if (!group.slots.includes(slot)) return false;
+    if (group.items.length === 0) return false;
+    if (group.id === "cycle" && period.cycleTracking !== true) return false;
+    if (group.condition) {
+      const a = slotLog.answers[group.condition.itemId];
+      if (!a || a.value !== group.condition.value) return false;
+    }
+    return group.items.some((id) => items.find((i) => i.id === id));
+  });
+
+  const steps = ["medication", ...activeGroups.map((g) => g.id), "note"];
+  const total = steps.length;
+  const currentStep = steps[groupIndex];
+  const currentGroup = activeGroups.find((g) => g.id === currentStep);
+  const currentItems = currentGroup
+    ? (currentGroup.items.map((id) => items.find((i) => i.id === id)).filter(Boolean) as WellbeingItem[])
+    : [];
 
   return (
     <div className="fixed inset-0 z-30 overflow-y-auto bg-background/95 px-4 py-6 backdrop-blur">
-      <div className="mx-auto flex min-h-full max-w-md flex-col">
+      <div className="mx-auto max-w-md">
         <div className="mb-4 flex items-center justify-between">
-          <button type="button" onClick={onClose} className="text-sm font-semibold text-primary">
-            Schließen
-          </button>
-          <span className="text-xs font-semibold text-muted-foreground">
-            {index + 1}/{total}
-          </span>
+          <button type="button" onClick={onClose} className="text-sm font-semibold text-primary">Schließen</button>
+          <span className="text-xs text-muted-foreground">{groupIndex + 1} / {total}</span>
         </div>
         <div className="rounded-3xl border border-border bg-card p-5">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">
-            {SLOT_LABELS[slot]}
-          </p>
-          {medQuestion && (
-            <div className="mt-4 space-y-4">
-              <h2 className="text-2xl font-semibold">Medikament genommen?</h2>
-              <BooleanInput
-                value={slotLog.medicationTaken}
-                onChange={(value) => patchSlot({ medicationTaken: value })}
-              />
-              <label className="block rounded-2xl border border-border bg-background p-4">
-                <span className="text-xs font-semibold text-muted-foreground">Uhrzeit</span>
-                <input
-                  type="time"
-                  value={slotLog.medicationTime ?? period.timeSlots[slot]}
-                  onChange={(event) => patchSlot({ medicationTime: event.target.value })}
-                  className="mt-2 w-full bg-transparent text-lg font-semibold text-primary outline-none"
-                />
-              </label>
+          {currentStep === "medication" && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold">Medikament</h2>
+              <div className="flex gap-3">
+                {([true, false] as const).map((bool) => (
+                  <button key={String(bool)} type="button" onClick={() => patchSlot({ medicationTaken: bool })}
+                    className={"flex-1 rounded-2xl border p-4 text-sm font-semibold " + (slotLog.medicationTaken === bool ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground")}>
+                    {bool ? "Ja" : "Nein"}
+                  </button>
+                ))}
+              </div>
+              {slotLog.medicationTaken && (
+                <label className="block rounded-2xl border border-border bg-background p-3">
+                  <span className="text-xs font-semibold text-muted-foreground">Uhrzeit</span>
+                  <input type="time" value={slotLog.medicationTime ?? period.timeSlots[slot]}
+                    onChange={(e) => patchSlot({ medicationTime: e.target.value })}
+                    className="mt-2 w-full bg-transparent text-lg font-semibold text-primary outline-none" />
+                </label>
+              )}
             </div>
           )}
-          {item && (
-            <div className="mt-4 space-y-5">
-              <h2 className="text-2xl font-semibold">{item.label}</h2>
-              <WizardInput
-                item={item}
-                answer={slotLog.answers[item.id]}
-                onAnswer={(answer) =>
-                  patchSlot({
-                    answers: {
-                      ...slotLog.answers,
-                      [item.id]: { ...answer, slot },
-                    },
-                  })
-                }
-              />
+          {currentGroup && currentItems.length > 0 && (
+            <div className="space-y-5">
+              <h2 className="text-2xl font-semibold">{currentGroup.title}</h2>
+              {currentItems.map((item) => (
+                <div key={item.id} className="space-y-2">
+                  <p className="text-sm font-semibold text-muted-foreground">{item.label}</p>
+                  <WizardInput item={item} answer={slotLog.answers[item.id]}
+                    onAnswer={(answer) => patchSlot({ answers: { ...slotLog.answers, [item.id]: { ...answer, slot } } })} />
+                </div>
+              ))}
             </div>
           )}
-          {noteQuestion && (
-            <div className="mt-4 space-y-4">
+          {currentStep === "note" && (
+            <div className="space-y-4">
               <h2 className="text-2xl font-semibold">Optionale Notiz</h2>
-              <textarea
-                value={slotLog.note ?? ""}
-                onChange={(event) => patchSlot({ note: event.target.value })}
+              <textarea value={slotLog.note ?? ""} onChange={(e) => patchSlot({ note: e.target.value })}
                 placeholder="Was ist für diesen Zeitpunkt wichtig?"
-                className="min-h-40 w-full resize-none rounded-2xl border border-border bg-background p-4 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
-              />
+                className="min-h-32 w-full resize-none rounded-2xl border border-border bg-background p-4 text-sm outline-none placeholder:text-muted-foreground focus:border-primary" />
             </div>
           )}
         </div>
         <div className="mt-4 flex justify-between">
-          <button
-            type="button"
-            disabled={index === 0}
-            onClick={() => setIndex((value) => Math.max(0, value - 1))}
-            className="rounded-full px-4 py-2 text-sm font-semibold text-primary disabled:opacity-40"
-          >
-            Zurück
-          </button>
-          {index === total - 1 ? (
-            <button
-              type="button"
-              onClick={() => {
-                patchSlot({ status: "done" });
-                onClose();
-              }}
-              className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
-            >
-              Fertig
-            </button>
+          <button type="button" disabled={groupIndex === 0}
+            onClick={() => setGroupIndex((v) => Math.max(0, v - 1))}
+            className="rounded-full px-4 py-2 text-sm font-semibold text-primary disabled:opacity-40">Zurück</button>
+          {groupIndex === total - 1 ? (
+            <button type="button" onClick={() => { patchSlot({ status: "done" }); onClose(); }}
+              className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">Fertig</button>
           ) : (
-            <button
-              type="button"
-              onClick={() => setIndex((value) => Math.min(total - 1, value + 1))}
-              className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground"
-            >
-              Weiter
-            </button>
+            <button type="button" onClick={() => setGroupIndex((v) => Math.min(total - 1, v + 1))}
+              className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">Weiter</button>
           )}
         </div>
       </div>
     </div>
   );
 }
+
 
 export function TodayView({ log, settings, onChange, onSettingsChange }: Props) {
   const period = getActivePeriod(settings);
