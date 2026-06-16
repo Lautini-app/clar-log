@@ -21,7 +21,7 @@ function fromRow(row: Record<string, unknown>): Observer {
 }
 
 export async function listObservers(ownerId: string): Promise<Observer[]> {
-  const { data, error } = await supabase.from("observers").select("*").eq("owner_id", ownerId);
+  const { data, error } = await supabase.schema("clar_log").from("observers").select("*").eq("owner_id", ownerId);
   if (error) throw error;
   return (data ?? []).map(fromRow);
 }
@@ -33,12 +33,30 @@ export async function inviteObserver(
   name?: string,
 ): Promise<Observer> {
   const { data, error } = await supabase
+    .schema("clar_log")
     .from("observers")
     .insert({ owner_id: ownerId, email, role, name })
     .select("*")
     .single();
   if (error) throw error;
-  return fromRow(data);
+  const observer = fromRow(data);
+  // Einladungsmail via Edge Function
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-family-invite`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ email, name, role, ownerId }),
+      });
+    }
+  } catch (e) {
+    console.warn("[clar] Einladungsmail fehlgeschlagen:", e);
+  }
+  return observer;
 }
 
 export async function removeObserver(observerId: string): Promise<void> {
@@ -54,6 +72,7 @@ export async function acceptObserverInvite(email: string): Promise<void> {
 
 export async function getActiveTeacherLink(ownerId: string, periodId: string): Promise<TeacherLink | null> {
   const { data, error } = await supabase
+    .schema("clar_log")
     .from("teacher_links")
     .select("*")
     .eq("owner_id", ownerId)
@@ -79,6 +98,8 @@ export async function rotateTeacherLink(ownerId: string, periodId: string): Prom
   const token = randomToken();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
+    .schema("clar_log")
+    .schema("clar_log")
     .from("teacher_links")
     .insert({ owner_id: ownerId, period_id: periodId, token, active: true, expires_at: expiresAt })
     .select("*")
