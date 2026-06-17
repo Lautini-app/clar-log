@@ -1,4 +1,5 @@
 import { MedicationEditor } from "@/components/clar/TodayView";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Copy, Download, Loader2, Plus, Trash2 } from "lucide-react";
 
@@ -194,7 +195,7 @@ function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId:
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Lehrperson oder Therapeut·in erhält einen Link → kein Login, kein Name im Link. Formular einmal täglich oder wöchentlich ausfüllbar.
+        Lehr- oder Fachperson erhält einen Link → kein Login, kein Name im Link. Der Fragebogen kann 1× wöchentlich während der Beobachtungsperiode online ausgefüllt werden.
       </p>
       {teacherLink ? (
         <div className="space-y-2">
@@ -675,6 +676,12 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
               <ObserverSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
+          {/* Lehr-/Fachpersonen-Link: woechentlicher Fragebogen, nur fuer Erwachsene (self) */}
+          {userId && activePeriod.profile === "self" && (
+            <SectionCard title="Lehr- & Fachpersonen" subtitle="Link fuer woechentlichen Fragebogen (kein Login noetig)">
+              <TeacherLinkSettings ownerId={userId} periodId={activePeriod.id} />
+            </SectionCard>
+          )}
           {/* Kind/Jugendliche/r einladen: nur für Elternteile */}
           {userId && (activePeriod.profile === "child_parent" || activePeriod.profile === "child_both") && (
             <SectionCard title="Kind einladen" subtitle="Kind oder Jugendliche/r erhält Zugang auf eigenem Gerät.">
@@ -694,7 +701,16 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
 
 
 
-      <SectionCard title="Datensicherung & Reset">
+      <SectionCard title="Bericht" subtitle="Verlauf ansehen und an Arzt/Ärztin senden">
+        <Link
+          to="/bericht"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
+        >
+          Bericht ansehen & versenden
+        </Link>
+      </SectionCard>
+
+            <SectionCard title="Datensicherung & Reset">
         <div className="space-y-2">
           <button
             type="button"
