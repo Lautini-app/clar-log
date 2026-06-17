@@ -35,7 +35,7 @@ export async function inviteObserver(
   const { data, error } = await supabase
     .schema("clar_log")
     .from("observers")
-    .insert({ owner_id: ownerId, email, role, name })
+    .upsert({ owner_id: ownerId, email, role, name }, { onConflict: "owner_id,email" })
     .select("*")
     .single();
   if (error) throw error;
