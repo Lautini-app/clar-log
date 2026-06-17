@@ -143,20 +143,7 @@ function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: st
             placeholder="email@beispiel.de"
             className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
           />
-          <div className="grid grid-cols-3 gap-2">
-            {(Object.keys(OBSERVER_ROLE_LABELS) as ObserverRole[]).map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setRole(key)}
-                className={`rounded-xl border py-2 text-xs font-semibold ${
-                  role === key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"
-                }`}
-              >
-                {OBSERVER_ROLE_LABELS[key]}
-              </button>
-            ))}
-          </div>
+
           {error && <p className="text-xs text-destructive">{error}</p>}
           <button
             type="button"
