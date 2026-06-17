@@ -25,7 +25,7 @@ function offsetDate(base: string, delta: number): string {
 }
 
 function HeuteRoute() {
-  const { store, upsertLog, updateSettings } = useStore();
+  const { store, upsertLog, updateSettings, userId } = useStore();
   const today = todayKey();
   const activePeriod = getActivePeriod(store.settings);
   const [selectedDate, setSelectedDate] = useState(today);
@@ -96,6 +96,7 @@ function HeuteRoute() {
         settings={store.settings}
         onChange={(patch) => upsertLog(selectedDate, patch)}
         onSettingsChange={updateSettings}
+        userId={userId ?? undefined}
       />
     </div>
   );
