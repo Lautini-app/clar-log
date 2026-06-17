@@ -179,7 +179,7 @@ type Props = {
 };
 
 function TeacherSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
-  const [teacher setTeacher] = useState<{ token: string; url: string; expiresAt: string } | null>(null);
+  const [teacherLinkData, setTeacherLinkData] = useState<{ token: string; url: string; expiresAt: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const handleCreate = async () => {
@@ -250,7 +250,7 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
 
   useEffect(() => { refresh(); }, [userId]);
 
-  const [invite setInvite] = useState<string | null>(null);
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
 
   const handleInvite = async () => {
     if (!email.trim()) return;
