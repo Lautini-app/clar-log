@@ -8,8 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { deleteAccount } from "@/lib/account.functions";
 import { inviteFamilyMember, listFamilyMembers } from "@/lib/family.functions";
 import { deleteAllUserData } from "@/lib/clar-sync";
-import { getActiveTeacher inviteObserver, listObservers, removeObserver, rotateTeacher} from "@/lib/clar-observers";
-import { generateDoctor getActiveDoctor} from "@/lib/doctor-links";
+import { getActiveTeacherLink, inviteObserver, listObservers, removeObserver, rotateTeacherLink } from "@/lib/clar-observers";
+import { generateDoctorLink, getActiveDoctorLink } from "@/lib/doctor-links";
 import type {
   Medication,
   MedicationType,
