@@ -189,7 +189,17 @@ export function ReportView({ logs, settings, ownerId }: Props) {
 
   const days = useMemo(
     () => Object.values(logs)
-      .filter((log) => !period || !log.periodId || log.periodId === period.id)
+      .filter((log) => {
+        if (!period) return true;
+        if (!log.periodId || log.periodId === period.id) return true;
+        // Auch Tage zaehlen, die datumsmaessig in die aktive Periode fallen
+        // (z.B. wenn eine neue Periode gestartet wurde, der Tag aber noch eine alte periodId traegt)
+        const start = period.startDate;
+        const end = period.endDate;
+        if (start && log.date < start) return false;
+        if (end && log.date > end) return false;
+        return true;
+      })
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(-range),
     [logs, period, range],
