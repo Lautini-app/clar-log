@@ -605,7 +605,7 @@ function mapLegacyMedication(med: LegacyMedication, index: number): Medication {
   });
 }
 
-function normalizeSettings(incoming?: LegacySettings): Settings {
+export function normalizeSettings(incoming?: LegacySettings): Settings {
   if (incoming?.periods && incoming.periods.length > 0) {
     const periods = incoming.periods.map((period) => createPeriod(period));
     return {
