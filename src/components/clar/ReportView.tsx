@@ -171,24 +171,6 @@ function bodyScore(log: DayLog): number | undefined {
   return Math.max(1, 4 - (boolCount / boolItems.length) * 3);
 }
 
-function appetiteScore(log: DayLog): number | undefined {
-  const slots = ["morning", "midday", "evening"] as const;
-  const vals: number[] = [];
-  for (const s of slots) {
-    const v = asNumber(collectAnswer(log, "appetite", s)) ?? asNumber(collectAnswer(log, "meal_appetite", s));
-    if (v !== undefined) vals.push(v);
-  }
-  if (vals.length === 0) return undefined;
-  return vals.reduce((a, b) => a + b, 0) / vals.length;
-}
-
-function bodyScore(log: DayLog): number | undefined {
-  const boolItems = ["headache", "stomachache", "chest_tightness", "heart_racing", "dry_mouth", "tics"];
-  const boolCount = boolItems.filter(id => collectAnswer(log, id)?.value === true).length;
-  if (boolCount === 0) return 4;
-  return Math.max(1, 4 - (boolCount / boolItems.length) * 3);
-}
-
 function tone(value?: number, inverse = false): { bg: string; text: string } {
   if (value == null) return { bg: "#f1efe8", text: "#888780" };
   const score = inverse ? 5 - value : value;
@@ -252,8 +234,6 @@ export function ReportView({ logs, settings, ownerId }: Props) {
     rebound: asNumber(collectAnswer(day, "rebound_intensity")),
     reboundTime: asTime(collectAnswer(day, "rebound_time")),
     hasRebound: collectAnswer(day, "rebound_today")?.value === true,
-    appetite: appetiteScore(day),
-    body: bodyScore(day),
     appetite: appetiteScore(day),
     body: bodyScore(day),
     slots: TIME_SLOTS.filter((s) => day.slots[s].status === "done").length,
@@ -383,11 +363,9 @@ export function ReportView({ logs, settings, ownerId }: Props) {
             })}
           </svg>
           <div style={{ display: "flex", gap: 12, fontSize: 10, color: "#888780", marginTop: 4 }}>
-            <span style={{ color: "#1D9E75" }}>— Stimmung</span>
-            <span style={{ color: "#BA7517" }}>— Energie</span>
-            <span style={{ color: "#534AB7" }}>— Fokus</span>
-            <span style={{ color: "#E8850A" }}>— Appetit</span>
-            <span style={{ color: "#7A6C5D" }}>— Körper</span>
+            <span style={{ color: "#1D9E75" }}>â Stimmung</span>
+            <span style={{ color: "#BA7517" }}>â Energie</span>
+            <span style={{ color: "#534AB7" }}>â Fokus</span>
             <span style={{ color: "#E8850A" }}>â Appetit</span>
             <span style={{ color: "#7A6C5D" }}>â KÃ¶rper</span>
           </div>
@@ -476,51 +454,6 @@ export function ReportView({ logs, settings, ownerId }: Props) {
                 <span style={{ fontSize: 8, color: "#888780" }}>{d.label.slice(0, 2)}</span>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Detailkurven je Item — Arzt-PDF */}
-      {days.length > 1 && (
-        <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 16, padding: 16 }}>
-          <h3 style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>Detailkurven</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {([
-              { key: "mood" as const, label: "Stimmung", color: "#1D9E75" },
-              { key: "energy" as const, label: "Energie", color: "#BA7517" },
-              { key: "focus" as const, label: "Fokus", color: "#534AB7" },
-              { key: "appetite" as const, label: "Appetit", color: "#E8850A" },
-              { key: "body" as const, label: "Körper", color: "#7A6C5D" },
-              { key: "sleep" as const, label: "Schlaf", color: "#378ADD" },
-            ]).map(({ key, label, color }) => {
-              const W = Math.max(chartData.length, 2);
-              const pts = chartData.map((d, i) => {
-                const v = d[key] as number | undefined;
-                if (v == null) return null;
-                const x = (i / (W - 1)) * 100;
-                const y = 30 - ((v - 1) / 3) * 28;
-                return `${x.toFixed(1)},${y.toFixed(1)}`;
-              }).filter((p): p is string => p !== null);
-              const nums = chartData.map(d => d[key] as number | undefined).filter((v): v is number => v != null);
-              const avgVal = nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : undefined;
-              return (
-                <div key={key} style={{ background: "#f9f8f4", borderRadius: 10, padding: "8px 10px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
-                    <p style={{ fontSize: 10, color: "#888780" }}>{label}</p>
-                    <p style={{ fontSize: 14, fontWeight: 500, color }}>{avgVal != null ? avgVal.toFixed(1) : "–"}</p>
-                  </div>
-                  <svg viewBox="0 0 100 32" style={{ width: "100%", height: 32, overflow: "visible" }}>
-                    {pts.length >= 2 && (
-                      <polyline fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                        points={pts.join(" ")} opacity="0.85" />
-                    )}
-                    {pts.map((p, pi) => (
-                      <circle key={pi} cx={Number(p.split(",")[0])} cy={Number(p.split(",")[1])} r="2.5" fill={color} opacity="0.7" />
-                    ))}
-                  </svg>
-                </div>
-              );
-            })}
           </div>
         </div>
       )}
