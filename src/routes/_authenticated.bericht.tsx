@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DossierView } from "@/components/clar/DossierView";
 import { useStore } from "@/lib/clar-storage";
-import { useClarAuth } from "@/lib/clar-auth";
 
 export const Route = createFileRoute("/_authenticated/bericht")({
   head: () => ({ meta: [{ title: "Verlauf — clar.log" }] }),
@@ -10,7 +9,7 @@ export const Route = createFileRoute("/_authenticated/bericht")({
 
 function BerichtRoute() {
   const { store } = useStore();
-  const { userId } = useClarAuth();
+  const userId = store.settings?.userId ?? null;
 
   if (!userId) return null;
 
