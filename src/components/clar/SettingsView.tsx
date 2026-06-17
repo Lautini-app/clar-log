@@ -38,7 +38,7 @@ const OBSERVER_ROLE_LABELS: Record<string, string> = {
 
 function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
   const [observers, setObservers] = useState<Observer[]>([]);
-  const [teacher setTeacher] = useState<Teacher| null>(null);
+  const [teacherLink, setTeacherLink] = useState<TeacherLink | null>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
