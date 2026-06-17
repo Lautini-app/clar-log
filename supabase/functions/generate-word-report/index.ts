@@ -27,7 +27,7 @@ serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
 
-    // Monatslimit prÃ¼fen
+    // Monatslimit prüfen
     const monthStart = new Date();
     monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
     const { count } = await admin.schema("clar_log").from("word_reports")
@@ -72,7 +72,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "claude-opus-4-6",
         max_tokens: 1024,
-        system: "Du fasst anonymisierte ADHS-Symptom-Tracking-Daten in einem kurzen, sachlichen deutschen Wortbericht zusammen (max. 200 WÃ¶rter), der einem Arzt vorgelegt werden kann. Keine Namen, kein Geburtsdatum. Beschreibe Tendenzen neutral, ohne Diagnose zu stellen.",
+        system: "Du fasst anonymisierte ADHS-Symptom-Tracking-Daten in einem kurzen, sachlichen deutschen Wortbericht zusammen (max. 200 Wörter), der einem Arzt vorgelegt werden kann. Keine Namen, kein Geburtsdatum. Beschreibe Tendenzen neutral, ohne Diagnose zu stellen.",
         messages: [{
           role: "user",
           content: `Anonymisierte Zusammenfassung (${recent.length} erfasste Tage, letzte ${rangeDays} Tage):\n${JSON.stringify(averages, null, 2)}`,
