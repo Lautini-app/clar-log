@@ -1,6 +1,11 @@
 import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
 import type { Observer, ObserverObservation, ObserverRole, TeacherLink } from "./clar-storage";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isUuid(v: string | null | undefined): boolean {
+  return !!v && UUID_RE.test(v);
+}
+
 function randomToken() {
   return Array.from(crypto.getRandomValues(new Uint8Array(18)))
     .map((b) => b.toString(36).padStart(2, "0"))
@@ -94,6 +99,7 @@ export async function acceptObserverInvite(email: string): Promise<void> {
 }
 
 export async function getActiveTeacherLink(ownerId: string, periodId: string): Promise<TeacherLink | null> {
+  if (!isUuid(periodId)) return null;
   const { data, error } = await supabase
     .schema("clar_log")
     .from("teacher_links")
@@ -191,6 +197,7 @@ export async function submitObserverObservation(
 }
 
 export async function listObserverObservations(ownerId: string, periodId: string): Promise<ObserverObservation[]> {
+  if (!isUuid(periodId)) return [];
   const { data, error } = await supabase
     .from("observer_observations")
     .select("*")
