@@ -107,18 +107,6 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     items: ["sleep_latency", "sleep_through", "sleep_recovery", "sleep_duration"],
   },
   {
-    id: "emotions",
-    title: "Emotionen",
-    slots: ["morning", "midday", "evening"],
-    items: ["emotions"],
-  },
-  {
-    id: "energy",
-    title: "Energie",
-    slots: ["morning", "midday", "evening"],
-    items: ["energy_level"],
-  },
-  {
     id: "cognition_morning",
     title: "Konzentration & Kognition",
     slots: ["morning"],
@@ -138,16 +126,28 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     items: ["meal_eaten", "meal_hunger", "meal_appetite", "meal_amount", "meal_note"],
   },
   {
-    id: "meal_evening",
-    title: "Abendessen",
-    slots: ["evening"],
-    items: ["meal_eaten", "meal_hunger", "meal_appetite", "meal_amount", "meal_note"],
-  },
-  {
     id: "school_check",
     title: "Schule / Arbeit heute?",
     slots: ["midday"],
     items: ["school_work_today"],
+  },
+  {
+    id: "energy",
+    title: "Energie",
+    slots: ["morning", "midday", "evening"],
+    items: ["energy_level"],
+  },
+  {
+    id: "emotions",
+    title: "Emotionen",
+    slots: ["morning", "midday", "evening"],
+    items: ["emotions"],
+  },
+  {
+    id: "mood_evening",
+    title: "Stimmung & Befinden",
+    slots: ["evening"],
+    items: ["drive", "inner_tension", "frustration_tolerance", "emotional_outbursts", "crying_outbursts"],
   },
   {
     id: "school_evening",
@@ -172,29 +172,28 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     variant: "general",
   },
   {
-    id: "body",
-    title: "Körper & Nebenwirkungen",
-    slots: ["morning", "midday", "evening"],
-    items: ["heart_racing", "chest_tightness", "headache", "stomachache", "dry_mouth", "tics", "tics_note", "tension"],
-  },
-  {
-    id: "mood_evening",
-    title: "Stimmung & Befinden",
-    slots: ["evening"],
-    items: ["drive", "inner_tension", "frustration_tolerance", "emotional_outbursts", "crying_outbursts"],
-  },
-  {
     id: "social",
     title: "Soziales & Stress",
     slots: ["evening"],
     items: ["stress_level", "social_interactions", "conflicts", "special_events"],
   },
-
   {
     id: "rebound_check",
     title: "Rebound",
     slots: ["evening"],
     items: ["rebound_today", "rebound_time", "rebound_type", "rebound_intensity"],
+  },
+  {
+    id: "meal_evening",
+    title: "Abendessen",
+    slots: ["evening"],
+    items: ["meal_eaten", "meal_hunger", "meal_appetite", "meal_amount", "meal_note"],
+  },
+  {
+    id: "cycle",
+    title: "Zyklus",
+    slots: ["evening"],
+    items: ["cycle_phase", "cycle_mood", "pms_symptoms"],
   },
   {
     id: "reflection",
@@ -203,10 +202,10 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     items: ["reflection_what_worked", "reflection_strategies"],
   },
   {
-    id: "cycle",
-    title: "Zyklus",
-    slots: ["evening"],
-    items: ["cycle_phase", "cycle_mood", "pms_symptoms"],
+    id: "body",
+    title: "Körper & Nebenwirkungen",
+    slots: ["morning", "midday", "evening"],
+    items: ["heart_racing", "chest_tightness", "headache", "stomachache", "dry_mouth", "tics", "tics_note", "tension"],
   },
 ];
 
