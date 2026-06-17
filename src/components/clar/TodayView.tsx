@@ -114,7 +114,7 @@ async function savePeriodWithInvite(
     : [...settings.periods, period];
   onSettingsChange({ periods, activePeriodId: period.id });
   const childEmail = (period as any).childEmail;
-  if (childEmail && userId && (period.profile === "child_both" || period.profile === "child_self")) {
+  if (childEmail && userId && (period.profile === "child_both" || period.profile === "child_self" || period.profile === "teen_self")) {
     try {
       const { inviteObserver } = await import("@/lib/clar-observers");
       await inviteObserver(userId, childEmail, "child", period.name);
