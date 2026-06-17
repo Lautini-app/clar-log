@@ -46,6 +46,7 @@ function PartnerBeobachtung() {
   const [behavior, setBehavior] = useState<number>();
   const [concentration, setConcentration] = useState<number>();
   const [note, setNote] = useState("");
+  const [relation, setRelation] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +70,10 @@ function PartnerBeobachtung() {
 
   const handleSubmit = async () => {
     if (!observerEntry || !userId) return;
+    if (!relation) {
+      setError("Bitte wähle aus, wer du bist.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -78,7 +83,12 @@ function PartnerBeobachtung() {
         userId,
         observerEntry.name,
         todayKey(),
-        { mood, behavior, concentration, note: note.trim() || undefined }
+        {
+          mood,
+          behavior,
+          concentration,
+          note: relation ? `[Ich bin: ${relation}] ${note.trim()}`.trim() : (note.trim() || undefined),
+        }
       );
       setDone(true);
     } catch (err) {
@@ -116,7 +126,27 @@ function PartnerBeobachtung() {
         <p className="mt-1 text-sm text-muted-foreground">Deine tägliche Einschätzung — 1 Minute</p>
       </header>
 
-      <ScaleInput label="Stimmung heute" value={mood} onChange={setMood} />
+      <div className="space-y-2">
+        <p className="text-sm font-semibold text-muted-foreground">Ich bin</p>
+        <div className="grid grid-cols-2 gap-2">
+          {["Partner", "Elternteil", "Geschwister", "Sonstige"].map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setRelation(opt)}
+              className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition ${
+                relation === opt
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-card text-foreground"
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+
+            <ScaleInput label="Stimmung heute" value={mood} onChange={setMood} />
       <ScaleInput label="Verhalten heute" value={behavior} onChange={setBehavior} />
       <ScaleInput label="Konzentration heute" value={concentration} onChange={setConcentration} />
 
