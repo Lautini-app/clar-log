@@ -1,5 +1,4 @@
 import { MedicationEditor } from "@/components/clar/TodayView";
-import {} from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Copy, Download, Loader2, Plus, Trash2 } from "lucide-react";
 
@@ -51,10 +50,10 @@ function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: st
     try {
       const [obs, link] = await Promise.all([
         listObservers(ownerId),
-        getActiveTeacher(ownerId, periodId),
+        getActiveTeacherLink(ownerId, periodId),
       ]);
       setObservers(obs);
-      setTeacher(link);
+      setTeacherLink(link);
     } catch (err) {
       console.warn("[clar] Beobachter laden fehlgeschlagen:", err);
     } finally {
@@ -97,17 +96,17 @@ function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: st
     }
   };
 
-  const handleRotate= async () => {
+  const handleRotateLink = async () => {
     setBusy(true);
     try {
-      const link = await rotateTeacher(ownerId, periodId);
-      setTeacher(link);
+      const link = await rotateTeacherLink(ownerId, periodId);
+      setTeacherLink(link);
     } finally {
       setBusy(false);
     }
   };
 
-  const linkUrl = teacher&& typeof window !== "undefined" ? `${window.location.origin}/beobachtung/${teacher.token}` : null;
+  const linkUrl = teacherLink && typeof window !== "undefined" ? `${window.location.origin}/beobachtung/${teacherLink.token}` : null;
 
   if (loading) {
     return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
@@ -178,17 +177,17 @@ type Props = {
   userId: string | null;
 };
 
-function TeacherSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
-  const [teacherLinkData, setTeacherLinkData] = useState<{ token: string; url: string; expiresAt: string } | null>(null);
+function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
+  const [teacherLink, setTeacherLink] = useState<{ token: string; url: string; expiresAt: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const handleCreate = async () => {
     setBusy(true);
     try {
-      const { getActiveTeacher rotateTeacher} = await import("@/lib/clar-observers");
-      const link = await rotateTeacher(ownerId, periodId);
+      const { getActiveTeacherLink, rotateTeacherLink } = await import("@/lib/clar-observers");
+      const link = await rotateTeacherLink(ownerId, periodId);
       const url = typeof window !== "undefined" ? `${window.location.origin}/beobachtung/${link.token}` : "";
-      setTeacher({ token: link.token, url, expiresAt: link.expiresAt });
+      setTeacherLink({ token: link.token, url, expiresAt: link.expiresAt });
     } finally {
       setBusy(false);
     }
@@ -197,28 +196,28 @@ function TeacherSettings({ ownerId, periodId }: { ownerId: string; periodId: str
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Lehr- oder Fachperson erhält einen→ kein Login, kein Name im. Der Fragebogen kann 1× wöchentlich während der Beobachtungsperiode online ausgefüllt werden.
+        Lehr- oder Fachperson erhält einen Link → kein Login, kein Name im Link. Der Fragebogen kann 1× wöchentlich während der Beobachtungsperiode online ausgefüllt werden.
       </p>
-      {teacher? (
+      {teacherLink ? (
         <div className="space-y-2">
           <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
-            <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{teacher.url}</span>
-            <button type="button" onClick={() => navigator.clipboard.writeText(teacher.url)}
+            <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{teacherLink.url}</span>
+            <button type="button" onClick={() => navigator.clipboard.writeText(teacherLink.url)}
               className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-primary hover:bg-primary/10"
-              aria-label="kopieren">
+              aria-label="Link kopieren">
               <Copy className="h-4 w-4" />
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Gültig bis {new Date(teacher.expiresAt).toLocaleDateString("de-DE")}
+            Gültig bis {new Date(teacherLink.expiresAt).toLocaleDateString("de-DE")}
           </p>
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground">Noch keinerstellt.</p>
+        <p className="text-xs text-muted-foreground">Noch kein Link erstellt.</p>
       )}
       <button type="button" onClick={handleCreate} disabled={busy}
         className="w-full rounded-2xl border border-border bg-card p-2.5 text-sm font-semibold text-primary disabled:opacity-40">
-        {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : teacher? "Neuenerstellen" : "erstellen"}
+        {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : teacherLink ? "Neuen Link erstellen" : "Link erstellen"}
       </button>
     </div>
   );
@@ -250,17 +249,17 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
 
   useEffect(() => { refresh(); }, [userId]);
 
-  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
 
   const handleInvite = async () => {
     if (!email.trim()) return;
     setBusy(true);
     setError(null);
     setSuccess(false);
-    setInvite(null);
+    setInviteLink(null);
     try {
       const result = await inviteFamilyMember({ email: email.trim(), role, name: name.trim() || undefined });
-      setInvite(result.inviteUrl);
+      setInviteLink(result.inviteUrl);
       setEmail("");
       setName("");
       setSuccess(true);
@@ -515,22 +514,22 @@ function MedicationRows({
   );
 }
 
-function DoctorSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
-  const [link, set] = useState<string | null>(null);
+function DoctorLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
+  const [link, setLink] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    getActiveDoctor(ownerId, periodId).then(set).catch(() => {});
+    getActiveDoctorLink(ownerId, periodId).then(setLink).catch(() => {});
   }, [ownerId, periodId]);
 
   const handleGenerate = async () => {
     setBusy(true);
     try {
-      const url = await generateDoctor(ownerId, periodId);
-      set(url);
+      const url = await generateDoctorLink(ownerId, periodId);
+      setLink(url);
     } catch (e) {
-      console.warn("Arzt-Fehler:", e);
+      console.warn("Arzt-Link Fehler:", e);
     } finally {
       setBusy(false);
     }
@@ -546,7 +545,7 @@ function DoctorSettings({ ownerId, periodId }: { ownerId: string; periodId: stri
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
-        Arzt oder Therapeut·in öffnet denim Browser — sieht alle Wochen, kann navigieren und einzoomen. Kein Login nötig.
+        Arzt oder Therapeut·in öffnet den Link im Browser — sieht alle Wochen, kann navigieren. Kein Login nötig.
       </p>
       {link ? (
         <div className="space-y-2">
@@ -556,18 +555,18 @@ function DoctorSettings({ ownerId, periodId }: { ownerId: string; periodId: stri
           <div className="flex gap-2">
             <button type="button" onClick={handleCopy}
               className="flex-1 rounded-2xl border border-border bg-card py-2 text-sm font-semibold text-primary">
-              {copied ? "✓ Kopiert" : "kopieren"}
+              {copied ? "✓ Kopiert" : "Link kopieren"}
             </button>
             <button type="button" onClick={handleGenerate} disabled={busy}
               className="rounded-2xl border border-border bg-card px-3 py-2 text-sm font-semibold text-primary disabled:opacity-40">
-              Neu erstellen
+              Neu
             </button>
           </div>
         </div>
       ) : (
         <button type="button" onClick={handleGenerate} disabled={busy}
           className="w-full rounded-2xl border border-border bg-card py-2.5 text-sm font-semibold text-primary disabled:opacity-40">
-          {busy ? "Erstelle…" : "Arzt-erstellen"}
+          {busy ? "Erstelle Link…" : "Arzt-Link erstellen"}
         </button>
       )}
     </div>
@@ -737,10 +736,10 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
               <ObserverSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
-          {/* Lehr-/Fachpersonen-: woechentlicher Fragebogen, nur fuer Erwachsene (self) */}
+          {/* Lehr-/Fachpersonen-Link: woechentlicher Fragebogen, nur fuer Erwachsene (self) */}
           {userId && activePeriod.profile === "self" && (
-            <SectionCard title="Lehr- & Fachpersonen" subtitle="für wöchentlichen Fragebogen (kein Login nötig)">
-              <TeacherSettings ownerId={userId} periodId={activePeriod.id} />
+            <SectionCard title="Lehr- & Fachpersonen" subtitle="Link für wöchentlichen Fragebogen (kein Login nötig)">
+              <TeacherLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
           {/* Kind/Jugendliche/r einladen: nur für Elternteile */}
@@ -759,14 +758,9 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
         </>
       )}
 
-
-
-
-
-
             {userId && activePeriod && (
-            <SectionCard title="Arzt-Freigabe" subtitle="Schreibgeschützter— kein Login, kein Name im 90 Tage gültig.">
-              <DoctorSettings ownerId={userId} periodId={activePeriod.id} />
+            <SectionCard title="Arzt-Freigabe" subtitle="Schreibgeschützter Link — kein Login, kein Name im Link, 90 Tage gültig.">
+              <DoctorLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
           <SectionCard title="Datensicherung & Reset">
@@ -792,7 +786,6 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
                       if (!data.settings && (payload.periods || payload.customWellbeingItems || payload.activePeriodId)) {
                         data.settings = payload;
                       }
-                      // Beobachter und Fachpersonen-Daten importieren
                       if (payload.observer_observations && Array.isArray(payload.observer_observations)) {
                         (data as any).observer_observations = payload.observer_observations;
                       }
