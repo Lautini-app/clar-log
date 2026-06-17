@@ -28,6 +28,13 @@ function EinstellungenRoute() {
           localStorage.removeItem("clar.log.v1");
         } catch {}
       }}
+      onImport={(data: { logs?: Record<string, unknown>; settings?: unknown }) => {
+        const next = {
+          logs: (data.logs ?? store.logs) as typeof store.logs,
+          settings: (data.settings ?? store.settings) as typeof store.settings,
+        };
+        setStore(next);
+      }}
     />
   );
 }
