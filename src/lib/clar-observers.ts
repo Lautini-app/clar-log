@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
 import type { Observer, ObserverObservation, ObserverRole, TeacherLink } from "./clar-storage";
 
 function randomToken() {
@@ -35,30 +35,53 @@ export async function inviteObserver(
   const { data, error } = await supabase
     .schema("clar_log")
     .from("observers")
-    .upsert({ owner_id: ownerId, email, role, name }, { onConflict: "owner_id,email" })
-    .select("*")
+    .upsert(
+      { owner_id: ownerId, email, role, name },
+      { onConflict: "owner_id,email" },
+    )
+    .select()
     .single();
   if (error) throw error;
   const observer = fromRow(data);
-  // Einladungsmail via Edge Function
+
+  // Einladungsmail mit gueltigem Token via send-family-invite Edge Function.
+  // Token wird in family_invites gespeichert, damit /einladung/{token} funktioniert.
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-family-invite`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ email, name, role, ownerId }),
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(24)))
+      .map((b) => b.toString(36).padStart(2, "0"))
+      .join("")
+      .slice(0, 24);
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    await supabase
+      .schema("clar_log")
+      .from("family_invites")
+      .insert({
+        admin_user_id: ownerId,
+        email,
+        name: name ?? null,
+        role: "member",
+        token,
+        expires_at: expiresAt,
+        status: "pending",
       });
-    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const bearer = sessionData.session?.access_token ?? SUPABASE_PUBLISHABLE_KEY;
+    await fetch(`${SUPABASE_URL}/functions/v1/send-family-invite`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${bearer}`,
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify({ toEmail: email, toName: name ?? null, role, token }),
+    });
   } catch (e) {
     console.warn("[clar] Einladungsmail fehlgeschlagen:", e);
   }
   return observer;
 }
-
 export async function removeObserver(observerId: string): Promise<void> {
   const { error } = await supabase.from("observers").delete().eq("id", observerId);
   if (error) throw error;
