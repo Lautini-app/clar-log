@@ -30,6 +30,8 @@ function AuthenticatedLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [tokenChecked, setTokenChecked] = useState(false);
   const [tokenConsumed, setTokenConsumed] = useState(false);
+  const [observerChecked, setObserverChecked] = useState(false);
+  const [isObserver, setIsObserver] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -86,10 +88,12 @@ function AuthenticatedLayout() {
           .eq("observer_user_id", userId)
           .maybeSingle()
           .then(({ data }) => {
-            if (data) {
+            setObserverChecked(true);
+              setIsObserver(!!data);
+              if (data) {
               navigate({ to: "/beobachten", replace: true });
             }
-          });
+          }, () => setObserverChecked(true));
       });
     }
   }, [hydrated, tokenChecked, userId, navigate]);
@@ -104,6 +108,11 @@ function AuthenticatedLayout() {
   if (!hydrated || !tokenChecked) return <div className="min-h-screen bg-background" />;
 
   if (!userId) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  // Beobachter: kein Onboarding/keine Patienten-Seiten anzeigen, solange Status geprueft wird oder Observer erkannt
+  if (pathname !== "/beobachten" && (!observerChecked || isObserver)) {
     return <div className="min-h-screen bg-background" />;
   }
 
