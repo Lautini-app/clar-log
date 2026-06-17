@@ -762,14 +762,7 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
 
 
 
-      <SectionCard title="Bericht" subtitle="Verlauf ansehen und an Arzt/Ärztin senden">
-        <Link
-          to="/bericht"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
-        >
-          Bericht ansehen & versenden
-        </Link>
-      </SectionCard>
+
 
             {userId && activePeriod && (
             <SectionCard title="Arzt-Freigabe" subtitle="Schreibgeschützter Link — kein Login, kein Name im Link, 90 Tage gültig.">
