@@ -678,7 +678,7 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
           )}
           {/* Lehr-/Fachpersonen-Link: woechentlicher Fragebogen, nur fuer Erwachsene (self) */}
           {userId && activePeriod.profile === "self" && (
-            <SectionCard title="Lehr- & Fachpersonen" subtitle="Link fuer woechentlichen Fragebogen (kein Login noetig)">
+            <SectionCard title="Lehr- & Fachpersonen" subtitle="Link für wöchentlichen Fragebogen (kein Login nötig)">
               <TeacherLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
