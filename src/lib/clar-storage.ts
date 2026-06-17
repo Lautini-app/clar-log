@@ -11,7 +11,7 @@ import {
 export type ProfileType = "self" | "teen_self" | "child_self" | "child_parent" | "child_both";
 // self = Erwachsen ab 18, Fachbegriffe
 // teen_self = Jugendliche 12-17, vereinfachte Sprache (CHILD_LABELS), volles Katalog
-// child_parent = Kind unter 12, Eltern fÃ¼hren, reduzierter Katalog
+// child_parent = Kind unter 12, Eltern führen, reduzierter Katalog
 export type GenderType = "male" | "female" | "diverse";
 export type AgeGroup = "child" | "youth" | "adult";
 export type LifeContext = "pupil" | "apprentice" | "student" | "employed" | "training" | "unemployed" | "unable_to_work" | "retired";
@@ -116,7 +116,7 @@ const QUESTION_GROUPS: QuestionGroup[] = [
   },
   {
     id: "breakfast",
-    title: "FrÃ¼hstÃ¼ck",
+    title: "Frühstück",
     slots: ["morning"],
     items: ["breakfast_eaten", "meal_hunger", "meal_appetite", "meal_amount", "meal_note"],
   },
@@ -204,7 +204,7 @@ const QUESTION_GROUPS: QuestionGroup[] = [
   },
   {
     id: "body",
-    title: "KÃ¶rper & Nebenwirkungen",
+    title: "Körper & Nebenwirkungen",
     slots: ["morning", "midday", "evening"],
     items: ["heart_racing", "chest_tightness", "headache", "stomachache", "dry_mouth", "tics", "tics_note", "tension"],
   },
@@ -347,7 +347,7 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
     label: "Emotionen im Moment",
     kind: "emotions",
     options: [
-      "Verzweifelt", "Traurig", "Melancholisch", "Ãngstlich", "WÃ¼tend", "Stumpf/Taub",
+      "Verzweifelt", "Traurig", "Melancholisch", "Ängstlich", "Wütend", "Stumpf/Taub",
       "Neutral", "Ausgeglichen",
       "Freudig", "Aufgeregt", "Euphorisch"
     ],
@@ -356,12 +356,12 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "drive", category: "mood", label: "Antrieb / Motivation", kind: "scale" },
   { id: "inner_tension", category: "mood", label: "Innere Unruhe / Anspannung", kind: "scale" },
   { id: "frustration_tolerance", category: "mood", label: "Frustrationstoleranz", kind: "scale" },
-  { id: "emotional_outbursts", category: "mood", label: "Emotionale Ãberreaktionen (RSD)", kind: "boolean" },
-  { id: "crying_outbursts", category: "mood", label: "Weinen / GefÃ¼hlsausbrÃ¼che", kind: "boolean", slots: ["evening"] },
+  { id: "emotional_outbursts", category: "mood", label: "Emotionale Überreaktionen (RSD)", kind: "boolean" },
+  { id: "crying_outbursts", category: "mood", label: "Weinen / Gefühlsausbrüche", kind: "boolean", slots: ["evening"] },
 
   { id: "focus", category: "concentration", label: "Konzentration / Fokus", kind: "scale" },
   { id: "distractibility", category: "concentration", label: "Ablenkbarkeit", kind: "scale" },
-  { id: "impulsivity", category: "concentration", label: "ImpulsivitÃ¤t", kind: "scale" },
+  { id: "impulsivity", category: "concentration", label: "Impulsivität", kind: "scale" },
   { id: "thought_racing", category: "concentration", label: "Gedankenrasen", kind: "scale" },
   { id: "hyperfocus", category: "concentration", label: "Hyperfokus heute", kind: "boolean", slots: ["evening"] },
   { id: "tasks_done", category: "concentration", label: "Aufgaben fertiggestellt", kind: "scale", slots: ["evening"] },
@@ -373,15 +373,15 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
     category: "rebound",
     label: "Rebound-Art",
     kind: "multiselect",
-    options: ["Stimmungseinbruch", "Reizbarkeit", "ErschÃ¶pfung", "Hunger", "Kopfschmerzen", "Weinen"],
+    options: ["Stimmungseinbruch", "Reizbarkeit", "Erschöpfung", "Hunger", "Kopfschmerzen", "Weinen"],
   },
-  { id: "rebound_intensity", category: "rebound", label: "Rebound-IntensitÃ¤t", kind: "scale", slots: ["evening"] },
+  { id: "rebound_intensity", category: "rebound", label: "Rebound-Intensität", kind: "scale", slots: ["evening"] },
   { id: "rebound_duration", category: "rebound", label: "Rebound-Dauer", kind: "scale", slots: ["evening"] },
 
-  { id: "breakfast", category: "appetite", label: "GefrÃ¼hstÃ¼ckt?", kind: "boolean", slots: ["morning"] },
-  { id: "hunger", category: "appetite", label: "HungergefÃ¼hl", kind: "scale" },
+  { id: "breakfast", category: "appetite", label: "Gefrühstückt?", kind: "boolean", slots: ["morning"] },
+  { id: "hunger", category: "appetite", label: "Hungergefühl", kind: "scale" },
   { id: "appetite", category: "appetite", label: "Appetit (Lust auf Essen)", kind: "scale" },
-  { id: "breakfast_eaten", category: "appetite", label: "GefrÃ¼hstÃ¼ckt?", kind: "boolean" },
+  { id: "breakfast_eaten", category: "appetite", label: "Gefrühstückt?", kind: "boolean" },
   { id: "meal_eaten", category: "appetite", label: "Gegessen?", kind: "boolean" },
   { id: "meal_hunger", category: "appetite", label: "Hunger", kind: "scale" },
   { id: "meal_appetite", category: "appetite", label: "Appetit", kind: "scale" },
@@ -397,11 +397,11 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "headache", category: "body", label: "Kopfschmerzen", kind: "boolean" },
   { id: "stomachache", category: "body", label: "Bauchschmerzen", kind: "boolean" },
   { id: "heart_racing", category: "body", label: "Herzrasen", kind: "boolean" },
-  { id: "chest_tightness", category: "body", label: "EngegefÃ¼hl in der Brust", kind: "boolean" },
+  { id: "chest_tightness", category: "body", label: "Engegefühl in der Brust", kind: "boolean" },
   { id: "dry_mouth", category: "body", label: "Mundtrockenheit", kind: "boolean" },
   { id: "tics", category: "body", label: "Tics", kind: "boolean" },
   { id: "tension", category: "body", label: "Verspannungen", kind: "boolean" },
-  { id: "tics_note", category: "body", label: "Tics â welche / wie oft?", kind: "text" },
+  { id: "tics_note", category: "body", label: "Tics → welche / wie oft?", kind: "text" },
 
   { id: "stress_level", category: "social", label: "Stresslevel", kind: "scale" },
   { id: "social_interactions", category: "social", label: "Soziale Interaktionen", kind: "scale" },
