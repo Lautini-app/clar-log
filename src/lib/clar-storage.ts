@@ -93,7 +93,8 @@ export type QuestionGroup = {
   variant?: "school" | "general";
 };
 
-export const QUESTION_GROUPS: QuestionGroup[] = [
+export // QUESTION_GROUPS defines the wizard flow (updated order)
+const QUESTION_GROUPS: QuestionGroup[] = [
   {
     id: "medication_morning",
     title: "Medikament",
