@@ -697,24 +697,6 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
 
 
 
-      <SectionCard title="Sprache">
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            ["de", "Deutsch"],
-          ].map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => onChange({ language: key as Settings["language"] })}
-              className={`rounded-2xl py-3 text-sm font-semibold ${
-                settings.language === key ? "bg-primary text-primary-foreground" : "bg-card text-primary"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </SectionCard>
 
       <SectionCard title="Datensicherung & Reset">
         <div className="space-y-2">
