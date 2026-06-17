@@ -9,6 +9,7 @@ import { deleteAccount } from "@/lib/account.functions";
 import { inviteFamilyMember, listFamilyMembers } from "@/lib/family.functions";
 import { deleteAllUserData } from "@/lib/clar-sync";
 import { getActiveTeacherLink, inviteObserver, listObservers, removeObserver, rotateTeacherLink } from "@/lib/clar-observers";
+import { generateDoctorLink, getActiveDoctorLink } from "@/lib/doctor-links";
 import type {
   Medication,
   MedicationType,
@@ -514,6 +515,65 @@ function MedicationRows({
   );
 }
 
+function DoctorLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
+  const [link, setLink] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    getActiveDoctorLink(ownerId, periodId).then(setLink).catch(() => {});
+  }, [ownerId, periodId]);
+
+  const handleGenerate = async () => {
+    setBusy(true);
+    try {
+      const url = await generateDoctorLink(ownerId, periodId);
+      setLink(url);
+    } catch (e) {
+      console.warn("Arzt-Link Fehler:", e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (!link) return;
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        Arzt oder Therapeut·in öffnet den Link im Browser — sieht alle Wochen, kann navigieren und einzoomen. Kein Login nötig.
+      </p>
+      {link ? (
+        <div className="space-y-2">
+          <div className="rounded-xl border border-border bg-background p-3">
+            <p className="text-xs break-all text-muted-foreground">{link}</p>
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={handleCopy}
+              className="flex-1 rounded-2xl border border-border bg-card py-2 text-sm font-semibold text-primary">
+              {copied ? "✓ Kopiert" : "Link kopieren"}
+            </button>
+            <button type="button" onClick={handleGenerate} disabled={busy}
+              className="rounded-2xl border border-border bg-card px-3 py-2 text-sm font-semibold text-primary disabled:opacity-40">
+              Neu erstellen
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button type="button" onClick={handleGenerate} disabled={busy}
+          className="w-full rounded-2xl border border-border bg-card py-2.5 text-sm font-semibold text-primary disabled:opacity-40">
+          {busy ? "Erstelle Link…" : "Arzt-Link erstellen"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function SettingsView({ settings, onChange, onReset, onImport, userId }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [customLabel, setCustomLabel] = useState("");
@@ -711,7 +771,12 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
         </Link>
       </SectionCard>
 
-            <SectionCard title="Datensicherung & Reset">
+            {userId && activePeriod && (
+            <SectionCard title="Arzt-Freigabe" subtitle="Schreibgeschützter Link — kein Login, kein Name im Link, 90 Tage gültig.">
+              <DoctorLinkSettings ownerId={userId} periodId={activePeriod.id} />
+            </SectionCard>
+          )}
+          <SectionCard title="Datensicherung & Reset">
         <div className="space-y-2">
           <label className="block w-full cursor-pointer rounded-xl border border-border bg-card py-3 text-sm font-semibold text-primary text-left px-4">
             Daten importieren (JSON)
