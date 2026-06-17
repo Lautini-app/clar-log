@@ -792,6 +792,13 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
                       if (!data.settings && (payload.periods || payload.customWellbeingItems || payload.activePeriodId)) {
                         data.settings = payload;
                       }
+                      // Beobachter und Fachpersonen-Daten importieren
+                      if (payload.observer_observations && Array.isArray(payload.observer_observations)) {
+                        (data as any).observer_observations = payload.observer_observations;
+                      }
+                      if (payload.teacher_reports && Array.isArray(payload.teacher_reports)) {
+                        (data as any).teacher_reports = payload.teacher_reports;
+                      }
                     }
                     if (!data.logs && !data.settings) {
                       window.alert("Keine gueltigen clar.log-Daten in der Datei gefunden.");
@@ -812,7 +819,7 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
           <button
             type="button"
             onClick={() => {
-              const data = JSON.stringify({ settings, exportedAt: new Date().toISOString() }, null, 2);
+              const data = JSON.stringify({ settings, logs: store?.logs ?? {}, exportedAt: new Date().toISOString() }, null, 2);
               const blob = new Blob([data], { type: "application/json" });
               const url = URL.createObjectURL(blob);
               const a = document.createElement("a");
