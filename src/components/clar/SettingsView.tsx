@@ -39,6 +39,7 @@ function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: st
   const [teacherLink, setTeacherLink] = useState<TeacherLink | null>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
   const [role, setRole] = useState<ObserverRole>("parent");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,8 +74,9 @@ function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: st
     setBusy(true);
     setError(null);
     try {
-      await inviteObserver(ownerId, trimmed, role);
+      await inviteObserver(ownerId, trimmed, role, inviteName.trim() || undefined);
       setEmail("");
+      setInviteName("");
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : typeof err === "object" ? JSON.stringify(err) : "Einladung fehlgeschlagen.");
@@ -136,6 +138,13 @@ function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: st
 
       {observers.length < MAX_OBSERVERS && (
         <div className="space-y-2 rounded-2xl border border-border bg-background p-3">
+          <input
+            type="text"
+            value={inviteName}
+            onChange={(event) => setInviteName(event.target.value)}
+            placeholder="Name (optional)"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
+          />
           <input
             type="email"
             value={email}
