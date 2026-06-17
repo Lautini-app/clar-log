@@ -54,6 +54,7 @@ type Props = {
   settings: Settings;
   onChange: (patch: Partial<DayLog>) => void;
   onSettingsChange: (patch: Partial<Settings>) => void;
+  userId?: string;
 };
 
 const CATEGORY_LABEL: Record<WellbeingItem["category"], string> = {
@@ -549,7 +550,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
           {step === steps.length - 1 ? (
             <button
               type="button"
-              onClick={() => void savePeriodWithInvite(settings, draft, onSettingsChange, undefined)}
+              onClick={() => void savePeriodWithInvite(settings, draft, onSettingsChange, userId)}
               className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
             >
               <Check className="h-4 w-4" /> Periode starten
