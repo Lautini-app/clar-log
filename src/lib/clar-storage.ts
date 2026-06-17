@@ -172,12 +172,6 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     variant: "general",
   },
   {
-    id: "rebound_check",
-    title: "Rebound",
-    slots: ["evening"],
-    items: ["rebound_today", "rebound_time", "rebound_type", "rebound_intensity"],
-  },
-  {
     id: "body",
     title: "Körper & Nebenwirkungen",
     slots: ["morning", "midday", "evening"],
@@ -196,6 +190,12 @@ export const QUESTION_GROUPS: QuestionGroup[] = [
     items: ["stress_level", "social_interactions", "conflicts", "special_events"],
   },
 
+  {
+    id: "rebound_check",
+    title: "Rebound",
+    slots: ["evening"],
+    items: ["rebound_today", "rebound_time", "rebound_type", "rebound_intensity"],
+  },
   {
     id: "reflection",
     title: "Reflexion",
