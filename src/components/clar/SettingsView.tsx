@@ -118,7 +118,7 @@ function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: st
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{observer.email}</p>
               <p className="text-xs text-muted-foreground">
-                {OBSERVER_ROLE_LABELS[observer.role]} Â· {observer.status === "active" ? "Aktiv" : "Einladung ausstehend"}
+                {OBSERVER_ROLE_LABELS[observer.role]} ÃÂ· {observer.status === "active" ? "Aktiv" : "Einladung ausstehend"}
               </p>
             </div>
             <button
@@ -168,6 +168,7 @@ function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: st
           </button>
         </div>
       )}
+    </div>
   );
 }
 
@@ -197,7 +198,7 @@ function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId:
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Lehrperson oder TherapeutÂ·in erhÃ¤lt einen Link â kein Login, kein Name im Link. Formular einmal tÃ¤glich oder wÃ¶chentlich ausfÃ¼llbar.
+        Lehrperson oder TherapeutÃÂ·in erhÃÂ¤lt einen Link Ã¢ÂÂ kein Login, kein Name im Link. Formular einmal tÃÂ¤glich oder wÃÂ¶chentlich ausfÃÂ¼llbar.
       </p>
       {teacherLink ? (
         <div className="space-y-2">
@@ -210,7 +211,7 @@ function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId:
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            GÃ¼ltig bis {new Date(teacherLink.expiresAt).toLocaleDateString("de-DE")}
+            GÃÂ¼ltig bis {new Date(teacherLink.expiresAt).toLocaleDateString("de-DE")}
           </p>
         </div>
       ) : (
@@ -242,7 +243,7 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
       setMembers(result.members);
       setPending(result.pendingInvites);
     } catch {
-      // Tabellen noch nicht angelegt â kein Fehler zeigen
+      // Tabellen noch nicht angelegt Ã¢ÂÂ kein Fehler zeigen
     } finally {
       setLoading(false);
     }
@@ -277,13 +278,13 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
       await supabase.schema("clar_log").from("family_invites").delete().eq("email", email).eq("admin_user_id", userId);
       await refresh();
     } catch (err) {
-      console.warn("Einladung lÃ¶schen fehlgeschlagen:", err);
+      console.warn("Einladung lÃÂ¶schen fehlgeschlagen:", err);
     }
   };
 
   const ROLE_LABELS: Record<string, string> = {
     member: "Familienmitglied / Partner",
-    teen: "Jugendliche/r (12â17)",
+    teen: "Jugendliche/r (12Ã¢ÂÂ17)",
     child: "Kind unter 12",
   };
 
@@ -300,7 +301,7 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
             <div key={m.member_user_id} className="flex items-center justify-between rounded-2xl border border-border bg-background p-3">
               <div>
                 <p className="text-sm font-semibold">{(m as any).name || ROLE_LABELS[m.role] || m.role}</p>
-                <p className="text-xs text-muted-foreground">{ROLE_LABELS[m.role]} Â· Aktiv</p>
+                <p className="text-xs text-muted-foreground">{ROLE_LABELS[m.role]} ÃÂ· Aktiv</p>
               </div>
             </div>
           ))}
@@ -308,7 +309,7 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
             <div key={p.email} className="flex items-center justify-between rounded-2xl border border-border bg-background p-3">
               <div>
                 <p className="text-sm font-semibold">{(p as any).name || p.email}</p>
-                <p className="text-xs text-muted-foreground">{ROLE_LABELS[p.role] ?? p.role} Â· Einladung ausstehend</p>
+                <p className="text-xs text-muted-foreground">{ROLE_LABELS[p.role] ?? p.role} ÃÂ· Einladung ausstehend</p>
               </div>
               <button type="button" onClick={() => handleRemovePending(p.email)}
                 className="text-xs text-destructive font-semibold shrink-0 ml-2">Entfernen</button>
@@ -345,7 +346,7 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
           </div>
           {error && <p className="text-xs text-destructive">{error}</p>}
           {success && (
-            <p className="text-xs font-semibold text-primary">â Einladung verschickt.</p>
+            <p className="text-xs font-semibold text-primary">Ã¢ÂÂ Einladung verschickt.</p>
           )}
           <button type="button" onClick={handleInvite} disabled={busy || !email.trim()}
             className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
@@ -509,7 +510,7 @@ function MedicationRows({
         onClick={() => onChange([...medications, createMedication()])}
         className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
       >
-        <Plus className="h-4 w-4" /> Medikament hinzufÃ¼gen
+        <Plus className="h-4 w-4" /> Medikament hinzufÃÂ¼gen
       </button>
     </div>
   );
@@ -522,11 +523,11 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
 
   async function handleHardDelete() {
     const ok = confirm(
-      "Alle deine Daten dauerhaft lÃ¶schen?\n\nDas entfernt alle Logs und Einstellungen aus der Cloud und auf diesem GerÃ¤t. Nicht widerrufbar.",
+      "Alle deine Daten dauerhaft lÃÂ¶schen?\n\nDas entfernt alle Logs und Einstellungen aus der Cloud und auf diesem GerÃÂ¤t. Nicht widerrufbar.",
     );
     if (!ok) return;
-    const confirm2 = prompt('Zur BestÃ¤tigung bitte "LÃSCHEN" eingeben:');
-    if (confirm2 !== "LÃSCHEN") return;
+    const confirm2 = prompt('Zur BestÃÂ¤tigung bitte "LÃÂSCHEN" eingeben:');
+    if (confirm2 !== "LÃÂSCHEN") return;
     setDeleting(true);
     try {
       if (userId) {
@@ -538,7 +539,7 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
             await deleteAccount({ data: { accessToken } });
           } catch (err) {
             console.warn("[clar] account delete failed:", err);
-            alert("Daten gelÃ¶scht, Account-LÃ¶schung konnte nicht abgeschlossen werden.");
+            alert("Daten gelÃÂ¶scht, Account-LÃÂ¶schung konnte nicht abgeschlossen werden.");
           }
         }
       } else {
@@ -635,7 +636,7 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
             onClick={() => { window.location.href = "/heute"; }}
             className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
           >
-            Onboarding starten â
+            Onboarding starten Ã¢ÂÂ
           </button>
         )}
       </SectionCard>
@@ -661,7 +662,7 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
               }}
               className="w-full rounded-2xl border border-border bg-card p-3 text-sm font-semibold text-primary text-left"
             >
-              Neue Periode starten â Onboarding
+              Neue Periode starten Ã¢ÂÂ Onboarding
             </button>
           </SectionCard>
 
@@ -672,21 +673,21 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
             />
           </SectionCard>
 
-          {/* Beobachter einladen: nur fÃ¼r Erwachsene (self) */}
+          {/* Beobachter einladen: nur fÃÂ¼r Erwachsene (self) */}
           {userId && (activePeriod.profile === "self" || !activePeriod.profile) && (
-            <SectionCard title="Beobachter" subtitle="Partner oder Familienmitglied â fÃ¼llt tÃ¤glich ein Kurzformular aus.">
+            <SectionCard title="Beobachter" subtitle="Partner oder Familienmitglied Ã¢ÂÂ fÃÂ¼llt tÃÂ¤glich ein Kurzformular aus.">
               <ObserverSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
-          {/* Kind/Jugendliche/r einladen: nur fÃ¼r Elternteile */}
+          {/* Kind/Jugendliche/r einladen: nur fÃÂ¼r Elternteile */}
           {userId && (activePeriod.profile === "child_parent" || activePeriod.profile === "child_both") && (
-            <SectionCard title="Kind einladen" subtitle="Kind oder Jugendliche/r erhÃ¤lt Zugang auf eigenem GerÃ¤t.">
+            <SectionCard title="Kind einladen" subtitle="Kind oder Jugendliche/r erhÃÂ¤lt Zugang auf eigenem GerÃÂ¤t.">
               <FamilySettings userId={userId} childOnly />
             </SectionCard>
           )}
-          {/* Jugendliche/r einladen: fÃ¼r teen_self Elternteil */}
+          {/* Jugendliche/r einladen: fÃÂ¼r teen_self Elternteil */}
           {userId && activePeriod.profile === "teen_self" && (
-            <SectionCard title="Jugendliche/r einladen" subtitle="Jugendliche/r erhÃ¤lt Zugang auf eigenem GerÃ¤t.">
+            <SectionCard title="Jugendliche/r einladen" subtitle="Jugendliche/r erhÃÂ¤lt Zugang auf eigenem GerÃÂ¤t.">
               <FamilySettings userId={userId} childOnly />
             </SectionCard>
           )}
@@ -731,24 +732,24 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
             }}
             className="w-full rounded-xl border border-border bg-card py-3 text-sm font-semibold text-primary text-left px-4"
           >
-            Daten exportieren (JSON) â
+            Daten exportieren (JSON) Ã¢ÂÂ
           </button>
           <button
             type="button"
             onClick={() => {
-              if (!confirm("Alle lokalen Logs und Einstellungen lÃ¶schen?\n\nEmpfehlung: Vorher exportieren.")) return;
+              if (!confirm("Alle lokalen Logs und Einstellungen lÃÂ¶schen?\n\nEmpfehlung: Vorher exportieren.")) return;
               onReset();
             }}
             className="w-full rounded-xl border border-primary/40 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
           >
-            Daten auf diesem GerÃ¤t zurÃ¼cksetzen
+            Daten auf diesem GerÃÂ¤t zurÃÂ¼cksetzen
           </button>
         </div>
       </SectionCard>
 
       <SectionCard
-        title="Konto lÃ¶schen (DSGVO)"
-        subtitle={userId ? "Eingeloggt und synchronisiert." : "Nicht eingeloggt â nur lokale Daten."}
+        title="Konto lÃÂ¶schen (DSGVO)"
+        subtitle={userId ? "Eingeloggt und synchronisiert." : "Nicht eingeloggt Ã¢ÂÂ nur lokale Daten."}
       >
         <button
           type="button"
@@ -757,7 +758,7 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/40 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 disabled:opacity-60"
         >
           {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-          Konto und Daten lÃ¶schen
+          Konto und Daten lÃÂ¶schen
         </button>
       </SectionCard>
     </div>
