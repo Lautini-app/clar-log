@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { DayLog, ObservationPeriod, Settings, WellbeingAnswer } from "@/lib/clar-storage";
-import { WELLBEING_CATALOG } from "@/lib/clar-storage";
+import type { DayLog, Settings, WellbeingAnswer } from "@/lib/clar-storage";
 import { listObserverObservations } from "@/lib/clar-observers";
 
 type Props = {
