@@ -17,7 +17,7 @@ import type {
   ObserverRole,
   ObservationPeriod,
   Settings,
-  Teacher
+  TeacherLink,
   TimeSlot,
   WellbeingItem,
 } from "@/lib/clar-storage";
