@@ -705,7 +705,7 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
           </SectionCard>
 
           {/* Beobachter einladen: nur für Erwachsene (self) */}
-          {userId && activePeriod.profile === "self" && (
+          {userId && (activePeriod.profile === "self" || !activePeriod.profile) && (
             <SectionCard title="Beobachter" subtitle="Partner oder Familienmitglied — füllt täglich ein Kurzformular aus.">
               <ObserverSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
@@ -723,7 +723,7 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
             </SectionCard>
           )}
           {/* Lehrperson: für alle Profile mit Schulbezug */}
-          {userId && activePeriod.profile !== "self" && (
+          {userId && (activePeriod.profile && activePeriod.profile !== "self") && (
             <SectionCard title="Schule / Lehrperson" subtitle="Link ohne Login — 7 Tage gültig, keine personenbezogenen Daten.">
               <TeacherLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
