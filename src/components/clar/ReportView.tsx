@@ -58,7 +58,7 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF();
     doc.setFontSize(14);
-    doc.text("clar.log Ã¢ÂÂ Wortbericht", 14, 18);
+    doc.text("clar.log ÃÂ¢ÃÂÃÂ Wortbericht", 14, 18);
     doc.setFontSize(10);
     doc.text(new Date(report.created_at).toLocaleDateString("de-DE"), 14, 25);
     doc.setFontSize(11);
@@ -74,7 +74,7 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
   }).length;
 
   return (
-    <SectionCard title="Wortbericht" subtitle="Anonymisierte Zusammenfassung Ã¢ÂÂ max. 2ÃÂ pro Monat.">
+    <SectionCard title="Wortbericht" subtitle="Anonymisierte Zusammenfassung ÃÂ¢ÃÂÃÂ max. 2ÃÂÃÂ pro Monat.">
       <div className="space-y-3">
         <button type="button" onClick={handleGenerate}
           disabled={generating || reportsThisMonth >= 2}
@@ -133,7 +133,7 @@ function collectAnswer(log: DayLog, itemId: string, slot?: string) {
   return undefined;
 }
 
-const NEGATIVE_EMOTIONS = new Set(["Verzweifelt", "Traurig", "Melancholisch", "ÃÂngstlich", "WÃÂ¼tend", "Stumpf/Taub"]);
+const NEGATIVE_EMOTIONS = new Set(["Verzweifelt", "Traurig", "Melancholisch", "ÃÂÃÂngstlich", "WÃÂÃÂ¼tend", "Stumpf/Taub"]);
 
 function moodScore(log: DayLog): number | undefined {
   // Fallback: base_mood (alter Key) oder emotions (neuer Key)
@@ -146,6 +146,7 @@ function moodScore(log: DayLog): number | undefined {
   if (entries.length === 0) return undefined;
   const scored = entries.map(([emotion, rawVal]) => { const v = Number(rawVal); return NEGATIVE_EMOTIONS.has(emotion) ? 5 - v : v; }).filter((v): v is number => !isNaN(v) && isFinite(v));
   if (scored.length === 0) return undefined;
+  return scored.reduce((sum, v) => sum + v, 0) / scored.length;
   return scored.reduce((sum, v) => sum + v, 0) / scored.length;
 }
 
@@ -260,8 +261,8 @@ export function ReportView({ logs, settings, ownerId }: Props) {
         <h1 className="mt-1 text-2xl font-semibold text-foreground">{period?.name ?? "Kein Profil"}</h1>
         {period && (
           <p className="mt-1 text-sm text-muted-foreground">
-            {period.medications.map((m) => `${m.name} ${m.mg}mg`).join(" ÃÂ· ")}
-            {period.medications.length > 0 ? " ÃÂ· " : ""}
+            {period.medications.map((m) => `${m.name} ${m.mg}mg`).join(" ÃÂÃÂ· ")}
+            {period.medications.length > 0 ? " ÃÂÃÂ· " : ""}
             {days.length} {days.length === 1 ? "Tag" : "Tage"} erfasst
           </p>
         )}
@@ -288,7 +289,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
             <div key={label} style={{ background: "#f1efe8", borderRadius: 12, padding: "10px 12px" }}>
               <p style={{ fontSize: 10, color: "#888780", marginBottom: 4 }}>{label}</p>
               <p style={{ fontSize: 20, fontWeight: 500, color }}>
-                {value != null ? value.toFixed(1) : "Ã¢ÂÂ"}
+                {value != null ? value.toFixed(1) : "ÃÂ¢ÃÂÃÂ"}
               </p>
               <p style={{ fontSize: 10, color: "#888780" }}>von 4</p>
             </div>
@@ -368,11 +369,11 @@ export function ReportView({ logs, settings, ownerId }: Props) {
             })}
           </svg>
           <div style={{ display: "flex", gap: 12, fontSize: 10, color: "#888780", marginTop: 4 }}>
-            <span style={{ color: "#1D9E75" }}>â Stimmung</span>
-            <span style={{ color: "#BA7517" }}>â Energie</span>
-            <span style={{ color: "#534AB7" }}>â Fokus</span>
-            <span style={{ color: "#E8850A" }}>â Appetit</span>
-            <span style={{ color: "#7A6C5D" }}>â KÃ¶rper</span>
+            <span style={{ color: "#1D9E75" }}>Ã¢ÂÂ Stimmung</span>
+            <span style={{ color: "#BA7517" }}>Ã¢ÂÂ Energie</span>
+            <span style={{ color: "#534AB7" }}>Ã¢ÂÂ Fokus</span>
+            <span style={{ color: "#E8850A" }}>Ã¢ÂÂ Appetit</span>
+            <span style={{ color: "#7A6C5D" }}>Ã¢ÂÂ KÃÂ¶rper</span>
           </div>
         </div>
       )}
@@ -383,7 +384,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
         if (!d) return null;
         return (
           <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 16, padding: 16 }}>
-            <h3 style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>{d.label} Ã¢ÂÂ Detail</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>{d.label} ÃÂ¢ÃÂÃÂ Detail</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {[
                 { label: "Stimmung", value: d.mood, color: "#1D9E75" },
@@ -393,7 +394,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
               ].map(({ label, value, color }) => (
                 <div key={label} style={{ padding: "8px 10px", background: "#f1efe8", borderRadius: 10 }}>
                   <p style={{ fontSize: 10, color: "#888780" }}>{label}</p>
-                  <p style={{ fontSize: 18, fontWeight: 500, color }}>{value != null ? value.toFixed(1) : "Ã¢ÂÂ"}</p>
+                  <p style={{ fontSize: 18, fontWeight: 500, color }}>{value != null ? value.toFixed(1) : "ÃÂ¢ÃÂÃÂ"}</p>
                   <MiniBar value={value} color={color} />
                 </div>
               ))}
@@ -402,11 +403,11 @@ export function ReportView({ logs, settings, ownerId }: Props) {
               <div style={{ marginTop: 8, padding: "8px 10px", background: "#FCEBEB", borderRadius: 10 }}>
                 <p style={{ fontSize: 11, color: "#A32D2D", fontWeight: 500 }}>
                   Rebound {d.reboundTime != null ? `um ${Math.floor(d.reboundTime)}:${String(Math.round((d.reboundTime % 1) * 60)).padStart(2, "0")}` : ""}
-                  {d.rebound != null ? ` ÃÂ· StÃÂ¤rke ${d.rebound}/4` : ""}
+                  {d.rebound != null ? ` ÃÂÃÂ· StÃÂÃÂ¤rke ${d.rebound}/4` : ""}
                 </p>
               </div>
             )}
-            <p style={{ fontSize: 11, color: "#888780", marginTop: 8 }}>{d.slots}/3 Slots ausgefÃÂ¼llt</p>
+            <p style={{ fontSize: 11, color: "#888780", marginTop: 8 }}>{d.slots}/3 Slots ausgefÃÂÃÂ¼llt</p>
           </div>
         );
       })()}
@@ -429,14 +430,14 @@ export function ReportView({ logs, settings, ownerId }: Props) {
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="rounded-xl bg-primary/10 p-2 text-center">
                         <p className="text-muted-foreground">Eigene Stimmung</p>
-                        <p className="font-semibold text-primary">{day?.mood != null ? day.mood.toFixed(1) : "Ã¢ÂÂ"}</p>
+                        <p className="font-semibold text-primary">{day?.mood != null ? day.mood.toFixed(1) : "ÃÂ¢ÃÂÃÂ"}</p>
                       </div>
                       <div className="rounded-xl bg-primary/10 p-2 text-center">
-                        <p className="text-muted-foreground">FremdeinschÃÂ¤tzung</p>
-                        <p className="font-semibold text-primary">{entry.mood ?? "Ã¢ÂÂ"}</p>
+                        <p className="text-muted-foreground">FremdeinschÃÂÃÂ¤tzung</p>
+                        <p className="font-semibold text-primary">{entry.mood ?? "ÃÂ¢ÃÂÃÂ"}</p>
                       </div>
                     </div>
-                    {entry.note && <p className="mt-2 text-xs text-muted-foreground">Ã¢ÂÂ{entry.note}Ã¢ÂÂ</p>}
+                    {entry.note && <p className="mt-2 text-xs text-muted-foreground">ÃÂ¢ÃÂÃÂ{entry.note}ÃÂ¢ÃÂÃÂ</p>}
                   </div>
                 );
               })}
@@ -463,7 +464,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
         </div>
       )}
 
-      {/* Detailkurven je Item â Arzt-PDF */}
+      {/* Detailkurven je Item Ã¢ÂÂ Arzt-PDF */}
       {days.length > 1 && (
         <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 16, padding: 16 }}>
           <h3 style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>Detailkurven</h3>
@@ -473,7 +474,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
               { key: "energy" as const, label: "Energie", color: "#BA7517" },
               { key: "focus" as const, label: "Fokus", color: "#534AB7" },
               { key: "appetite" as const, label: "Appetit", color: "#E8850A" },
-              { key: "body" as const, label: "KÃ¶rper", color: "#7A6C5D" },
+              { key: "body" as const, label: "KÃÂ¶rper", color: "#7A6C5D" },
               { key: "sleep" as const, label: "Schlaf", color: "#378ADD" },
             ]).map(({ key, label, color }) => {
               const W = Math.max(chartData.length, 2);
@@ -490,7 +491,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
                 <div key={key} style={{ background: "#f9f8f4", borderRadius: 10, padding: "8px 10px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
                     <p style={{ fontSize: 10, color: "#888780" }}>{label}</p>
-                    <p style={{ fontSize: 14, fontWeight: 500, color }}>{avgVal != null ? avgVal.toFixed(1) : "â"}</p>
+                    <p style={{ fontSize: 14, fontWeight: 500, color }}>{avgVal != null ? avgVal.toFixed(1) : "Ã¢ÂÂ"}</p>
                   </div>
                   <svg viewBox="0 0 100 32" style={{ width: "100%", height: 32, overflow: "visible" }}>
                     {pts.length >= 2 && (
