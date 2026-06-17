@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { acceptFamilyInvite } from "@/lib/family.functions";
+import { acceptObserverInvite } from "@/lib/clar-observers";
 
 export const Route = createFileRoute("/einladung/$token")({
   ssr: false,
@@ -34,9 +35,30 @@ function EinladungRoute() {
     setBusy(true);
     setError(null);
     try {
-      await acceptFamilyInvite(token);
+await acceptFamilyInvite(token);
+      // Falls die Person als Beobachter:in eingeladen wurde, als Observer verknuepfen
+      let isObserver = false;
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const userId = sessionData.session?.user?.id;
+        const userEmail = sessionData.session?.user?.email;
+        if (userEmail) {
+          await acceptObserverInvite(userEmail);
+        }
+        if (userId) {
+          const { data: asObserver } = await supabase
+            .schema("clar_log")
+            .from("observers")
+            .select("id")
+            .eq("observer_user_id", userId)
+            .maybeSingle();
+          isObserver = !!asObserver;
+        }
+      } catch (_e) {
+        // Beobachter-Verknuepfung optional
+      }
       setStep("done");
-      setTimeout(() => navigate({ to: "/heute" }), 2000);
+      setTimeout(() => navigate({ to: isObserver ? "/beobachten" : "/heute" }), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Fehler beim Annehmen der Einladung.");
       setStep("error");
