@@ -8,13 +8,9 @@ export const Route = createFileRoute("/_authenticated/bericht")({
 });
 
 function BerichtRoute() {
-  const { store } = useStore();
-  const userId = store.settings?.userId ?? null;
-
+  const { store, userId } = useStore();
   if (!userId) return null;
-
   const logs = Object.values(store.logs ?? {});
-
   return (
     <div style={{ maxWidth: 680, margin: "0 auto", padding: "0 1rem 4rem" }}>
       <DossierView settings={store.settings} logs={logs} ownerId={userId} />
