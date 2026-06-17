@@ -1,5 +1,5 @@
 import { MedicationEditor } from "@/components/clar/TodayView";
-import { Link } from "@tanstack/react-router";
+import {} from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Copy, Download, Loader2, Plus, Trash2 } from "lucide-react";
 
@@ -8,8 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { deleteAccount } from "@/lib/account.functions";
 import { inviteFamilyMember, listFamilyMembers } from "@/lib/family.functions";
 import { deleteAllUserData } from "@/lib/clar-sync";
-import { getActiveTeacherLink, inviteObserver, listObservers, removeObserver, rotateTeacherLink } from "@/lib/clar-observers";
-import { generateDoctorLink, getActiveDoctorLink } from "@/lib/doctor-links";
+import { getActiveTeacher inviteObserver, listObservers, removeObserver, rotateTeacher} from "@/lib/clar-observers";
+import { generateDoctor getActiveDoctor} from "@/lib/doctor-links";
 import type {
   Medication,
   MedicationType,
@@ -17,7 +17,7 @@ import type {
   ObserverRole,
   ObservationPeriod,
   Settings,
-  TeacherLink,
+  Teacher
   TimeSlot,
   WellbeingItem,
 } from "@/lib/clar-storage";
@@ -38,7 +38,7 @@ const OBSERVER_ROLE_LABELS: Record<string, string> = {
 
 function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
   const [observers, setObservers] = useState<Observer[]>([]);
-  const [teacherLink, setTeacherLink] = useState<TeacherLink | null>(null);
+  const [teacher setTeacher] = useState<Teacher| null>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
@@ -51,10 +51,10 @@ function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: st
     try {
       const [obs, link] = await Promise.all([
         listObservers(ownerId),
-        getActiveTeacherLink(ownerId, periodId),
+        getActiveTeacher(ownerId, periodId),
       ]);
       setObservers(obs);
-      setTeacherLink(link);
+      setTeacher(link);
     } catch (err) {
       console.warn("[clar] Beobachter laden fehlgeschlagen:", err);
     } finally {
@@ -97,17 +97,17 @@ function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: st
     }
   };
 
-  const handleRotateLink = async () => {
+  const handleRotate= async () => {
     setBusy(true);
     try {
-      const link = await rotateTeacherLink(ownerId, periodId);
-      setTeacherLink(link);
+      const link = await rotateTeacher(ownerId, periodId);
+      setTeacher(link);
     } finally {
       setBusy(false);
     }
   };
 
-  const linkUrl = teacherLink && typeof window !== "undefined" ? `${window.location.origin}/beobachtung/${teacherLink.token}` : null;
+  const linkUrl = teacher&& typeof window !== "undefined" ? `${window.location.origin}/beobachtung/${teacher.token}` : null;
 
   if (loading) {
     return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
@@ -178,17 +178,17 @@ type Props = {
   userId: string | null;
 };
 
-function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
-  const [teacherLink, setTeacherLink] = useState<{ token: string; url: string; expiresAt: string } | null>(null);
+function TeacherSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
+  const [teacher setTeacher] = useState<{ token: string; url: string; expiresAt: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const handleCreate = async () => {
     setBusy(true);
     try {
-      const { getActiveTeacherLink, rotateTeacherLink } = await import("@/lib/clar-observers");
-      const link = await rotateTeacherLink(ownerId, periodId);
+      const { getActiveTeacher rotateTeacher} = await import("@/lib/clar-observers");
+      const link = await rotateTeacher(ownerId, periodId);
       const url = typeof window !== "undefined" ? `${window.location.origin}/beobachtung/${link.token}` : "";
-      setTeacherLink({ token: link.token, url, expiresAt: link.expiresAt });
+      setTeacher({ token: link.token, url, expiresAt: link.expiresAt });
     } finally {
       setBusy(false);
     }
@@ -197,28 +197,28 @@ function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId:
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Lehr- oder Fachperson erhält einen Link → kein Login, kein Name im Link. Der Fragebogen kann 1× wöchentlich während der Beobachtungsperiode online ausgefüllt werden.
+        Lehr- oder Fachperson erhält einen→ kein Login, kein Name im. Der Fragebogen kann 1× wöchentlich während der Beobachtungsperiode online ausgefüllt werden.
       </p>
-      {teacherLink ? (
+      {teacher? (
         <div className="space-y-2">
           <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
-            <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{teacherLink.url}</span>
-            <button type="button" onClick={() => navigator.clipboard.writeText(teacherLink.url)}
+            <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{teacher.url}</span>
+            <button type="button" onClick={() => navigator.clipboard.writeText(teacher.url)}
               className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-primary hover:bg-primary/10"
-              aria-label="Link kopieren">
+              aria-label="kopieren">
               <Copy className="h-4 w-4" />
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Gültig bis {new Date(teacherLink.expiresAt).toLocaleDateString("de-DE")}
+            Gültig bis {new Date(teacher.expiresAt).toLocaleDateString("de-DE")}
           </p>
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground">Noch kein Link erstellt.</p>
+        <p className="text-xs text-muted-foreground">Noch keinerstellt.</p>
       )}
       <button type="button" onClick={handleCreate} disabled={busy}
         className="w-full rounded-2xl border border-border bg-card p-2.5 text-sm font-semibold text-primary disabled:opacity-40">
-        {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : teacherLink ? "Neuen Link erstellen" : "Link erstellen"}
+        {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : teacher? "Neuenerstellen" : "erstellen"}
       </button>
     </div>
   );
@@ -250,17 +250,17 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
 
   useEffect(() => { refresh(); }, [userId]);
 
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [invite setInvite] = useState<string | null>(null);
 
   const handleInvite = async () => {
     if (!email.trim()) return;
     setBusy(true);
     setError(null);
     setSuccess(false);
-    setInviteLink(null);
+    setInvite(null);
     try {
       const result = await inviteFamilyMember({ email: email.trim(), role, name: name.trim() || undefined });
-      setInviteLink(result.inviteUrl);
+      setInvite(result.inviteUrl);
       setEmail("");
       setName("");
       setSuccess(true);
@@ -515,22 +515,22 @@ function MedicationRows({
   );
 }
 
-function DoctorLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
-  const [link, setLink] = useState<string | null>(null);
+function DoctorSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
+  const [link, set] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    getActiveDoctorLink(ownerId, periodId).then(setLink).catch(() => {});
+    getActiveDoctor(ownerId, periodId).then(set).catch(() => {});
   }, [ownerId, periodId]);
 
   const handleGenerate = async () => {
     setBusy(true);
     try {
-      const url = await generateDoctorLink(ownerId, periodId);
-      setLink(url);
+      const url = await generateDoctor(ownerId, periodId);
+      set(url);
     } catch (e) {
-      console.warn("Arzt-Link Fehler:", e);
+      console.warn("Arzt-Fehler:", e);
     } finally {
       setBusy(false);
     }
@@ -546,7 +546,7 @@ function DoctorLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: 
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
-        Arzt oder Therapeut·in öffnet den Link im Browser — sieht alle Wochen, kann navigieren und einzoomen. Kein Login nötig.
+        Arzt oder Therapeut·in öffnet denim Browser — sieht alle Wochen, kann navigieren und einzoomen. Kein Login nötig.
       </p>
       {link ? (
         <div className="space-y-2">
@@ -556,7 +556,7 @@ function DoctorLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: 
           <div className="flex gap-2">
             <button type="button" onClick={handleCopy}
               className="flex-1 rounded-2xl border border-border bg-card py-2 text-sm font-semibold text-primary">
-              {copied ? "✓ Kopiert" : "Link kopieren"}
+              {copied ? "✓ Kopiert" : "kopieren"}
             </button>
             <button type="button" onClick={handleGenerate} disabled={busy}
               className="rounded-2xl border border-border bg-card px-3 py-2 text-sm font-semibold text-primary disabled:opacity-40">
@@ -567,7 +567,7 @@ function DoctorLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: 
       ) : (
         <button type="button" onClick={handleGenerate} disabled={busy}
           className="w-full rounded-2xl border border-border bg-card py-2.5 text-sm font-semibold text-primary disabled:opacity-40">
-          {busy ? "Erstelle Link…" : "Arzt-Link erstellen"}
+          {busy ? "Erstelle…" : "Arzt-erstellen"}
         </button>
       )}
     </div>
@@ -737,10 +737,10 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
               <ObserverSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
-          {/* Lehr-/Fachpersonen-Link: woechentlicher Fragebogen, nur fuer Erwachsene (self) */}
+          {/* Lehr-/Fachpersonen-: woechentlicher Fragebogen, nur fuer Erwachsene (self) */}
           {userId && activePeriod.profile === "self" && (
-            <SectionCard title="Lehr- & Fachpersonen" subtitle="Link für wöchentlichen Fragebogen (kein Login nötig)">
-              <TeacherLinkSettings ownerId={userId} periodId={activePeriod.id} />
+            <SectionCard title="Lehr- & Fachpersonen" subtitle="für wöchentlichen Fragebogen (kein Login nötig)">
+              <TeacherSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
           {/* Kind/Jugendliche/r einladen: nur für Elternteile */}
@@ -765,8 +765,8 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
 
 
             {userId && activePeriod && (
-            <SectionCard title="Arzt-Freigabe" subtitle="Schreibgeschützter Link — kein Login, kein Name im Link, 90 Tage gültig.">
-              <DoctorLinkSettings ownerId={userId} periodId={activePeriod.id} />
+            <SectionCard title="Arzt-Freigabe" subtitle="Schreibgeschützter— kein Login, kein Name im 90 Tage gültig.">
+              <DoctorSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
           <SectionCard title="Datensicherung & Reset">
