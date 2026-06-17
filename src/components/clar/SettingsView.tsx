@@ -30,9 +30,8 @@ import {
   getActivePeriod,
 } from "@/lib/clar-storage";
 
-const OBSERVER_ROLE_LABELS: Record<ObserverRole, string> = {
-  parent: "Elternteil",
-  teacher: "Lehrperson",
+const OBSERVER_ROLE_LABELS: Record<string, string> = {
+  parent: "Familienmitglied / Partner",
   other: "Andere",
 };
 
