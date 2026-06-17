@@ -136,8 +136,12 @@ function collectAnswer(log: DayLog, itemId: string, slot?: string) {
 const NEGATIVE_EMOTIONS = new Set(["Verzweifelt", "Traurig", "Melancholisch", "ÃÂngstlich", "WÃÂ¼tend", "Stumpf/Taub"]);
 
 function moodScore(log: DayLog): number | undefined {
-  const values = collectAnswer(log, "emotions")?.value as Record<string, number> | undefined;
-  if (!values) return undefined;
+  // Fallback: base_mood (alter Key) oder emotions (neuer Key)
+  const emotionAnswer = collectAnswer(log, "emotions") ?? collectAnswer(log, "base_mood");
+  const values = emotionAnswer?.value as Record<string, number> | undefined;
+  // Wenn base_mood: einzelner Zahlenwert
+  if (typeof values === "number") return values as unknown as number;
+  if (!values || typeof values !== "object") return undefined;
   const entries = Object.entries(values);
   if (entries.length === 0) return undefined;
   const scored = entries.map(([emotion, value]) => (NEGATIVE_EMOTIONS.has(emotion) ? 5 - value : value));
