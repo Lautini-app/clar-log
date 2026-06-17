@@ -720,12 +720,7 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
               <FamilySettings userId={userId} childOnly />
             </SectionCard>
           )}
-          {/* Lehrperson: für alle Profile mit Schulbezug */}
-          {userId && (activePeriod.profile && activePeriod.profile !== "self") && (
-            <SectionCard title="Schule / Lehrperson" subtitle="Link ohne Login — 7 Tage gültig, keine personenbezogenen Daten.">
-              <TeacherLinkSettings ownerId={userId} periodId={activePeriod.id} />
-            </SectionCard>
-          )}
+
         </>
       )}
 
