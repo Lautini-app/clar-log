@@ -1191,7 +1191,7 @@ function SlotWizard({
 }
 
 
-export function TodayView({ log, settings, onChange, onSettingsChange }: Props) {
+export function TodayView({ log, settings, onChange, onSettingsChange, userId }: Props) {
   const period = getActivePeriod(settings);
   const [activeSlot, setActiveSlot] = useState<TimeSlot | null>(null);
   const [childPhase, setChildPhase] = useState(false);
