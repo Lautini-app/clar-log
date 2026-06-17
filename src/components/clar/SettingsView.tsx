@@ -304,8 +304,6 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
 
   const handleRemovePending = async (email: string) => {
     try {
-      await import("@/lib/clar-observers").then(m => {});
-      const { supabase } = await import("@/lib/supabase");
       await supabase.schema("clar_log").from("family_invites").delete().eq("email", email).eq("admin_user_id", userId);
       await refresh();
     } catch (err) {
