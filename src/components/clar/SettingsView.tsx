@@ -173,6 +173,7 @@ type Props = {
   settings: Settings;
   onChange: (patch: Partial<Settings>) => void;
   onReset: () => void;
+  onImport: (data: { logs?: Record<string, unknown>; settings?: Partial<Settings> }) => void;
   userId: string | null;
 };
 
@@ -513,7 +514,7 @@ function MedicationRows({
   );
 }
 
-export function SettingsView({ settings, onChange, onReset, userId }: Props) {
+export function SettingsView({ settings, onChange, onReset, onImport, userId }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [customLabel, setCustomLabel] = useState("");
   const activePeriod = getActivePeriod(settings);
@@ -712,6 +713,44 @@ export function SettingsView({ settings, onChange, onReset, userId }: Props) {
 
             <SectionCard title="Datensicherung & Reset">
         <div className="space-y-2">
+          <label className="block w-full cursor-pointer rounded-xl border border-border bg-card py-3 text-sm font-semibold text-primary text-left px-4">
+            Daten importieren (JSON)
+            <input
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  try {
+                    const parsed = JSON.parse(String(reader.result));
+                    const payload = parsed && parsed.store ? parsed.store : parsed;
+                    const data: { logs?: Record<string, unknown>; settings?: Partial<Settings> } = {};
+                    if (payload && typeof payload === "object") {
+                      if (payload.logs && typeof payload.logs === "object") data.logs = payload.logs;
+                      if (payload.settings && typeof payload.settings === "object") data.settings = payload.settings;
+                      if (!data.settings && (payload.periods || payload.customWellbeingItems || payload.activePeriodId)) {
+                        data.settings = payload;
+                      }
+                    }
+                    if (!data.logs && !data.settings) {
+                      window.alert("Keine gueltigen clar.log-Daten in der Datei gefunden.");
+                      return;
+                    }
+                    onImport(data);
+                    window.alert("Daten erfolgreich importiert.");
+                  } catch {
+                    window.alert("Datei konnte nicht gelesen werden (kein gueltiges JSON).");
+                  } finally {
+                    e.target.value = "";
+                  }
+                };
+                reader.readAsText(file);
+              }}
+            />
+          </label>
           <button
             type="button"
             onClick={() => {
