@@ -388,6 +388,7 @@ export const WELLBEING_CATALOG: WellbeingItem[] = [
   { id: "meal_amount", category: "appetite", label: "Menge gegessen", kind: "scale" },
   { id: "meal_note", category: "appetite", label: "Kommentar zur Mahlzeit", kind: "text" },
   { id: "energy_level", category: "mood", label: "Energie", kind: "energy" },
+  { id: "emotions", category: "mood", label: "Emotionen im Moment", kind: "emotions" },
   { id: "reflection_what_worked", category: "reflection", label: "Was hat heute geklappt?", kind: "text" },
   { id: "reflection_strategies", category: "reflection", label: "Welche Strategien haben geholfen?", kind: "text" },
   { id: "ate", category: "appetite", label: "Gegessen", kind: "boolean" },
