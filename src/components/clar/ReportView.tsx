@@ -58,7 +58,7 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF();
     doc.setFontSize(14);
-    doc.text("clar.log \u2014 Wortbericht", 14, 18);
+    doc.text("clar.log — Wortbericht", 14, 18);
     doc.setFontSize(10);
     doc.text(new Date(report.created_at).toLocaleDateString("de-DE"), 14, 25);
     doc.setFontSize(11);
@@ -74,7 +74,7 @@ function WordReportSection({ period }: { period: ObservationPeriod }) {
   }).length;
 
   return (
-    <SectionCard title="Wortbericht" subtitle="Anonymisierte Zusammenfassung \u2014 max. 2\u00d7 pro Monat.">
+    <SectionCard title="Wortbericht" subtitle="Anonymisierte Zusammenfassung — max. 2× pro Monat.">
       <div className="space-y-3">
         <button type="button" onClick={handleGenerate}
           disabled={generating || reportsThisMonth >= 2}
@@ -133,7 +133,7 @@ function collectAnswer(log: DayLog, itemId: string, slot?: string) {
   return undefined;
 }
 
-const NEGATIVE_EMOTIONS = new Set(["Verzweifelt", "Traurig", "Melancholisch", "\u00c4ngstlich", "W\u00fctend", "Stumpf/Taub"]);
+const NEGATIVE_EMOTIONS = new Set(["Verzweifelt", "Traurig", "Melancholisch", "Ängstlich", "Wütend", "Stumpf/Taub"]);
 
 function moodScore(log: DayLog): number | undefined {
   const values = collectAnswer(log, "emotions")?.value as Record<string, number> | undefined;
@@ -225,8 +225,8 @@ export function ReportView({ logs, settings, ownerId }: Props) {
         <h1 className="mt-1 text-2xl font-semibold text-foreground">{period?.name ?? "Kein Profil"}</h1>
         {period && (
           <p className="mt-1 text-sm text-muted-foreground">
-            {period.medications.map((m) => `${m.name} ${m.mg}mg`).join(" \u00b7 ")}
-            {period.medications.length > 0 ? " \u00b7 " : ""}
+            {period.medications.map((m) => `${m.name} ${m.mg}mg`).join(" · ")}
+            {period.medications.length > 0 ? " · " : ""}
             {days.length} Tage erfasst
           </p>
         )}
@@ -253,7 +253,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
             <div key={label} style={{ background: "#f1efe8", borderRadius: 12, padding: "10px 12px" }}>
               <p style={{ fontSize: 10, color: "#888780", marginBottom: 4 }}>{label}</p>
               <p style={{ fontSize: 20, fontWeight: 500, color }}>
-                {value != null ? value.toFixed(1) : "\u2013"}
+                {value != null ? value.toFixed(1) : "–"}
               </p>
               <p style={{ fontSize: 10, color: "#888780" }}>von 4</p>
             </div>
@@ -333,9 +333,9 @@ export function ReportView({ logs, settings, ownerId }: Props) {
             })}
           </svg>
           <div style={{ display: "flex", gap: 12, fontSize: 10, color: "#888780", marginTop: 4 }}>
-            <span style={{ color: "#1D9E75" }}>\u2014 Stimmung</span>
-            <span style={{ color: "#BA7517" }}>\u2014 Energie</span>
-            <span style={{ color: "#534AB7" }}>\u2014 Fokus</span>
+            <span style={{ color: "#1D9E75" }}>— Stimmung</span>
+            <span style={{ color: "#BA7517" }}>— Energie</span>
+            <span style={{ color: "#534AB7" }}>— Fokus</span>
           </div>
         </div>
       )}
@@ -346,7 +346,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
         if (!d) return null;
         return (
           <div style={{ background: "var(--color-background-primary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 16, padding: 16 }}>
-            <h3 style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>{d.label} \u2014 Detail</h3>
+            <h3 style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>{d.label} — Detail</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {[
                 { label: "Stimmung", value: d.mood, color: "#1D9E75" },
@@ -356,7 +356,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
               ].map(({ label, value, color }) => (
                 <div key={label} style={{ padding: "8px 10px", background: "#f1efe8", borderRadius: 10 }}>
                   <p style={{ fontSize: 10, color: "#888780" }}>{label}</p>
-                  <p style={{ fontSize: 18, fontWeight: 500, color }}>{value != null ? value.toFixed(1) : "\u2013"}</p>
+                  <p style={{ fontSize: 18, fontWeight: 500, color }}>{value != null ? value.toFixed(1) : "–"}</p>
                   <MiniBar value={value} color={color} />
                 </div>
               ))}
@@ -365,11 +365,11 @@ export function ReportView({ logs, settings, ownerId }: Props) {
               <div style={{ marginTop: 8, padding: "8px 10px", background: "#FCEBEB", borderRadius: 10 }}>
                 <p style={{ fontSize: 11, color: "#A32D2D", fontWeight: 500 }}>
                   Rebound {d.reboundTime != null ? `um ${Math.floor(d.reboundTime)}:${String(Math.round((d.reboundTime % 1) * 60)).padStart(2, "0")}` : ""}
-                  {d.rebound != null ? ` \u00b7 St\u00e4rke ${d.rebound}/4` : ""}
+                  {d.rebound != null ? ` · Stärke ${d.rebound}/4` : ""}
                 </p>
               </div>
             )}
-            <p style={{ fontSize: 11, color: "#888780", marginTop: 8 }}>{d.slots}/3 Slots ausgef\u00fcllt</p>
+            <p style={{ fontSize: 11, color: "#888780", marginTop: 8 }}>{d.slots}/3 Slots ausgefüllt</p>
           </div>
         );
       })()}
@@ -392,14 +392,14 @@ export function ReportView({ logs, settings, ownerId }: Props) {
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="rounded-xl bg-primary/10 p-2 text-center">
                         <p className="text-muted-foreground">Eigene Stimmung</p>
-                        <p className="font-semibold text-primary">{day?.mood != null ? day.mood.toFixed(1) : "\u2013"}</p>
+                        <p className="font-semibold text-primary">{day?.mood != null ? day.mood.toFixed(1) : "–"}</p>
                       </div>
                       <div className="rounded-xl bg-primary/10 p-2 text-center">
-                        <p className="text-muted-foreground">Fremdeinsch\u00e4tzung</p>
-                        <p className="font-semibold text-primary">{entry.mood ?? "\u2013"}</p>
+                        <p className="text-muted-foreground">Fremdeinschätzung</p>
+                        <p className="font-semibold text-primary">{entry.mood ?? "–"}</p>
                       </div>
                     </div>
-                    {entry.note && <p className="mt-2 text-xs text-muted-foreground">\u201e{entry.note}\u201c</p>}
+                    {entry.note && <p className="mt-2 text-xs text-muted-foreground">„{entry.note}“</p>}
                   </div>
                 );
               })}
