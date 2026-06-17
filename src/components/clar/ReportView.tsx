@@ -237,7 +237,7 @@ export function ReportView({ logs, settings, ownerId }: Props) {
           <p className="mt-1 text-sm text-muted-foreground">
             {period.medications.map((m) => `${m.name} ${m.mg}mg`).join(" · ")}
             {period.medications.length > 0 ? " · " : ""}
-            {days.length} Tage erfasst
+            {days.length} {days.length === 1 ? "Tag" : "Tage"} erfasst
           </p>
         )}
       </header>
