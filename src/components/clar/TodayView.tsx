@@ -1061,6 +1061,7 @@ function SlotWizard({
     onChange(next);
   };
 
+  console.log("[dbg] slot:", slot, "QUESTION_GROUPS count:", QUESTION_GROUPS.length);
   const activeGroups = QUESTION_GROUPS.filter((group) => {
     if (!group.slots.includes(slot)) return false;
     if (group.items.length === 0) return false;
@@ -1073,6 +1074,7 @@ function SlotWizard({
     return group.items.some((id) => items.find((i) => i.id === id));
   });
 
+  console.log("[dbg] activeGroups:", activeGroups.map(g=>g.id));
   const steps = ["medication", ...activeGroups.map((g) => g.id), "note"];
   const total = steps.length;
   const currentStep = steps[groupIndex];
