@@ -231,6 +231,7 @@ export type TeacherLink = {
   ownerId: string;
   periodId: string;
   token: string;
+  name?: string;
   active: boolean;
   createdAt: string;
   expiresAt: string;

@@ -74,6 +74,7 @@ function BeobachtungRoute() {
   const { token } = Route.useParams();
   const [status, setStatus] = useState<"checking" | "valid" | "invalid" | "done">("checking");
   const [tokenType, setTokenType] = useState<"teacher" | "observer" | null>(null);
+  const [personName, setPersonName] = useState<string | undefined>();
 
   // Teacher fields
   const [mood, setMood] = useState<number>();
@@ -98,11 +99,13 @@ function BeobachtungRoute() {
       .then((result) => {
         if (result) {
           setTokenType("teacher");
+          setPersonName(result.name);
           setStatus("valid");
         } else {
           return resolveObserverToken(token).then((obsResult) => {
             if (obsResult) {
               setTokenType("observer");
+              setPersonName(obsResult.name);
               setStatus("valid");
             } else {
               setStatus("invalid");
@@ -175,8 +178,12 @@ function BeobachtungRoute() {
     return (
       <div className="mx-auto max-w-md space-y-5 px-4 py-8">
         <header>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">Elternteil-Beobachtung</p>
-          <h1 className="mt-1 text-2xl font-semibold">Wie war es heute?</h1>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+            {new Date().toLocaleDateString("de-DE", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+          </p>
+          <h1 className="mt-1 text-2xl font-semibold">
+            {personName ? `Hallo ${personName}` : "Wie war es heute?"}
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">Kein Login nötig — Angaben gehen direkt an die Familie.</p>
         </header>
 
@@ -210,8 +217,12 @@ function BeobachtungRoute() {
   return (
     <div className="mx-auto max-w-md space-y-5 px-4 py-8">
       <header>
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">Fremdbeobachtung</p>
-        <h1 className="mt-1 text-2xl font-semibold">Feedback</h1>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">
+          {new Date().toLocaleDateString("de-DE", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+        </p>
+        <h1 className="mt-1 text-2xl font-semibold">
+          {personName ? `Hallo ${personName}` : "Feedback"}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">Kein Login nötig — Angaben gehen direkt an die Familie.</p>
       </header>
 

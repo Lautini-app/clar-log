@@ -678,8 +678,9 @@ export function DossierView({ settings, logs, ownerId }: Props) {
 
   const weekObs      = observations.filter(o => days.includes(o.date));
   const weekTeacher  = teacherReports.filter(() => days.some(d => d >= days[0] && d <= days[6]));
-  const teacherWeekObs = weekObs.filter(o => o.observerName === "Lehrperson");
-  const partnerWeekObs = weekObs.filter(o => o.observerName !== "Lehrperson");
+  const isHomeObs = (o: any) => !!o.answers && Object.keys(o.answers as Record<string, unknown>).some((k: string) => k.startsWith("home_"));
+  const partnerWeekObs = weekObs.filter(isHomeObs);
+  const teacherWeekObs = weekObs.filter((o: any) => !isHomeObs(o));
   const partnerGroups  = new Map<string, any[]>();
   partnerWeekObs.forEach(o => {
     const k = String(o.observerName ?? o.observerUserId ?? "Beobachter");

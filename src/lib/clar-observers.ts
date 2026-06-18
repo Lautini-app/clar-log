@@ -115,21 +115,53 @@ export async function getActiveTeacherLink(ownerId: string, periodId: string): P
     ownerId: String(data.owner_id),
     periodId: String(data.period_id),
     token: String(data.token),
+    name: data.name ? String(data.name) : undefined,
     active: Boolean(data.active),
     createdAt: String(data.created_at),
     expiresAt: String(data.expires_at),
   };
 }
 
-/** Erstellt einen neuen Lehrperson-Link (7 Tage gültig) und deaktiviert alte Links für die Periode. */
-export async function rotateTeacherLink(ownerId: string, periodId: string): Promise<TeacherLink> {
-  await supabase.schema("clar_log").from("teacher_links").update({ active: false }).eq("owner_id", ownerId).eq("period_id", periodId);
+export async function listTeacherLinks(ownerId: string, periodId: string): Promise<TeacherLink[]> {
+  if (!isUuid(periodId)) return [];
+  const { data, error } = await supabase
+    .schema("clar_log")
+    .from("teacher_links")
+    .select("*")
+    .eq("owner_id", ownerId)
+    .eq("period_id", periodId)
+    .eq("active", true)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    ownerId: String(row.owner_id),
+    periodId: String(row.period_id),
+    token: String(row.token),
+    name: row.name ? String(row.name) : undefined,
+    active: Boolean(row.active),
+    createdAt: String(row.created_at),
+    expiresAt: String(row.expires_at),
+  }));
+}
+
+export async function deleteTeacherLink(linkId: string): Promise<void> {
+  const { error } = await supabase
+    .schema("clar_log")
+    .from("teacher_links")
+    .update({ active: false })
+    .eq("id", linkId);
+  if (error) throw error;
+}
+
+/** Erstellt einen neuen Lehrperson-Link (7 Tage gültig). */
+export async function createTeacherLink(ownerId: string, periodId: string, name?: string): Promise<TeacherLink> {
   const token = randomToken();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .schema("clar_log")
     .from("teacher_links")
-    .insert({ owner_id: ownerId, period_id: periodId, token, active: true, expires_at: expiresAt })
+    .insert({ owner_id: ownerId, period_id: periodId, token, name: name ?? null, active: true, expires_at: expiresAt })
     .select("*")
     .single();
   if (error) throw error;
@@ -138,19 +170,25 @@ export async function rotateTeacherLink(ownerId: string, periodId: string): Prom
     ownerId: String(data.owner_id),
     periodId: String(data.period_id),
     token: String(data.token),
+    name: data.name ? String(data.name) : undefined,
     active: Boolean(data.active),
     createdAt: String(data.created_at),
     expiresAt: String(data.expires_at),
   };
 }
 
+/** @deprecated Verwende createTeacherLink */
+export async function rotateTeacherLink(ownerId: string, periodId: string): Promise<TeacherLink> {
+  return createTeacherLink(ownerId, periodId);
+}
+
 /** Öffentlicher Zugriff (kein Login): prüft den Token via RPC und liefert Owner-Kontext. */
-export async function resolveTeacherToken(token: string): Promise<{ ownerId: string; periodId: string } | null> {
+export async function resolveTeacherToken(token: string): Promise<{ ownerId: string; periodId: string; name?: string } | null> {
   const { data, error } = await supabase.rpc("resolve_teacher_token", { input_token: token });
   if (error || !data) return null;
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) return null;
-  return { ownerId: String(row.owner_id), periodId: String(row.period_id) };
+  return { ownerId: String(row.owner_id), periodId: String(row.period_id), name: row.name ? String(row.name) : undefined };
 }
 
 /** Öffentlicher Zugriff (kein Login): Lehrperson reicht das abendliche Kurzformular ein. */
@@ -221,8 +259,40 @@ export async function getActiveObserverLink(ownerId: string, periodId: string): 
   };
 }
 
+export async function listObserverLinks(ownerId: string, periodId: string): Promise<ObserverLink[]> {
+  if (!isUuid(periodId)) return [];
+  const { data, error } = await supabase
+    .schema("clar_log")
+    .from("observer_links")
+    .select("*")
+    .eq("owner_id", ownerId)
+    .eq("period_id", periodId)
+    .eq("active", true)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    ownerId: String(row.owner_id),
+    periodId: String(row.period_id),
+    token: String(row.token),
+    name: row.name ? String(row.name) : undefined,
+    active: Boolean(row.active),
+    createdAt: String(row.created_at),
+    expiresAt: String(row.expires_at),
+    lastUsedAt: row.last_used_at ? String(row.last_used_at) : undefined,
+  }));
+}
+
+export async function deleteObserverLink(linkId: string): Promise<void> {
+  const { error } = await supabase
+    .schema("clar_log")
+    .from("observer_links")
+    .update({ active: false })
+    .eq("id", linkId);
+  if (error) throw error;
+}
+
 export async function createObserverLink(ownerId: string, periodId: string, name?: string): Promise<ObserverLink> {
-  await supabase.schema("clar_log").from("observer_links").update({ active: false }).eq("owner_id", ownerId).eq("period_id", periodId);
   const token = randomToken();
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
@@ -245,12 +315,12 @@ export async function createObserverLink(ownerId: string, periodId: string, name
   };
 }
 
-export async function resolveObserverToken(token: string): Promise<{ ownerId: string; periodId: string } | null> {
+export async function resolveObserverToken(token: string): Promise<{ ownerId: string; periodId: string; name?: string } | null> {
   const { data, error } = await supabase.rpc("resolve_observer_token", { input_token: token });
   if (error || !data) return null;
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) return null;
-  return { ownerId: String(row.owner_id), periodId: String(row.period_id) };
+  return { ownerId: String(row.owner_id), periodId: String(row.period_id), name: row.name ? String(row.name) : undefined };
 }
 
 export async function submitObservationByObserverToken(

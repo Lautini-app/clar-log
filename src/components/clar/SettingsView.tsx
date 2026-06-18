@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { deleteAccount } from "@/lib/account.functions";
 import { inviteFamilyMember, listFamilyMembers } from "@/lib/family.functions";
 import { deleteAllUserData } from "@/lib/clar-sync";
-import { createObserverLink, getActiveObserverLink, rotateTeacherLink } from "@/lib/clar-observers";
+import { createObserverLink, listObserverLinks, deleteObserverLink, listTeacherLinks, deleteTeacherLink, createTeacherLink } from "@/lib/clar-observers";
 import { generateDoctorLink, getActiveDoctorLink } from "@/lib/doctor-links";
 import type {
   Medication,
@@ -29,48 +29,91 @@ import {
   getActivePeriod,
 } from "@/lib/clar-storage";
 
-function ObserverLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
-  const [link, setLink] = useState<ObserverLink | null>(null);
-  const [name, setName] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
+function LinkRow({
+  link, urlBase, onDelete,
+}: {
+  link: ObserverLink;
+  urlBase: string;
+  onDelete: () => void;
+}) {
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    getActiveObserverLink(ownerId, periodId)
-      .then((l) => setLink(l))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [ownerId, periodId]);
-
-  const linkUrl = link && typeof window !== "undefined" ? `${window.location.origin}/beobachtung/${link.token}` : null;
-
-  const handleCreate = async () => {
-    setBusy(true);
-    try {
-      const newLink = await createObserverLink(ownerId, periodId, name.trim() || undefined);
-      setLink(newLink);
-    } finally {
-      setBusy(false);
-    }
-  };
+  const url = `${urlBase}/beobachtung/${link.token}`;
 
   const handleCopy = () => {
-    if (!linkUrl) return;
-    void navigator.clipboard.writeText(linkUrl);
+    void navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleShare = () => {
-    if (!linkUrl) return;
-    const mailto = `mailto:?subject=${encodeURIComponent("clar·log Beobachtungslink")}&body=${encodeURIComponent(linkUrl)}`;
+    const mailto = `mailto:?subject=${encodeURIComponent("clar·log Beobachtungslink")}&body=${encodeURIComponent(url)}`;
     if (typeof navigator.share === "function") {
-      navigator.share({ title: "clar·log Beobachtungslink", url: linkUrl })
-        .catch(() => window.open(mailto, "_blank"));
+      navigator.share({ title: "clar·log Beobachtungslink", url }).catch(() => window.open(mailto, "_blank"));
     } else {
       window.open(mailto, "_blank");
     }
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-background p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold">{link.name || "Beobachter"}</p>
+        <button type="button" onClick={onDelete}
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive">
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      <p className="truncate text-xs text-muted-foreground">{url}</p>
+      <p className="text-xs text-muted-foreground">
+        Gültig bis {new Date(link.expiresAt).toLocaleDateString("de-DE")}
+        {link.lastUsedAt && <span> · Zuletzt {new Date(link.lastUsedAt).toLocaleDateString("de-DE")}</span>}
+      </p>
+      <div className="flex gap-2">
+        <button type="button" onClick={handleCopy}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
+          <Copy className="h-3.5 w-3.5" /> {copied ? "Kopiert!" : "Kopieren"}
+        </button>
+        <button type="button" onClick={handleShare}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
+          <Share2 className="h-3.5 w-3.5" /> Teilen
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ObserverLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
+  const [links, setLinks] = useState<ObserverLink[]>([]);
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const urlBase = typeof window !== "undefined" ? window.location.origin : "";
+
+  const reload = () =>
+    listObserverLinks(ownerId, periodId)
+      .then(setLinks)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+
+  useEffect(() => { reload(); }, [ownerId, periodId]);
+
+  const handleCreate = async () => {
+    if (!name.trim()) return;
+    setBusy(true);
+    try {
+      await createObserverLink(ownerId, periodId, name.trim());
+      setName("");
+      setAdding(false);
+      await reload();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteObserverLink(id).catch(() => {});
+    await reload();
   };
 
   if (loading) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
@@ -78,46 +121,41 @@ function ObserverLinkSettings({ ownerId, periodId }: { ownerId: string; periodId
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Zweites Elternteil oder Partner erhält einen Link → kein Login, kein Account nötig. Der Link ist 30 Tage gültig.
+        Jede Person erhält einen eigenen Link — kein Login nötig. Der Link ist 30 Tage gültig.
       </p>
-      {linkUrl ? (
-        <div className="space-y-2">
-          <div className="rounded-xl border border-border bg-card px-3 py-2">
-            <span className="block truncate text-xs text-muted-foreground">{linkUrl}</span>
-          </div>
-          {copied && <p className="text-xs text-green-600">Link kopiert!</p>}
-          <div className="flex gap-2">
-            <button type="button" onClick={handleCopy}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-card py-2 text-sm font-semibold text-primary">
-              <Copy className="h-4 w-4" /> Kopieren
-            </button>
-            <button type="button" onClick={handleShare}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-card py-2 text-sm font-semibold text-primary">
-              <Share2 className="h-4 w-4" /> Teilen
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {link?.name && <span className="font-medium">{link.name} · </span>}
-            Gültig bis {new Date(link!.expiresAt).toLocaleDateString("de-DE")}
-            {link?.lastUsedAt && <span> · Zuletzt verwendet {new Date(link.lastUsedAt).toLocaleDateString("de-DE")}</span>}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <label className="block text-sm font-semibold text-muted-foreground">Name des Beobachters</label>
+
+      {links.map((l) => (
+        <LinkRow key={l.id} link={l} urlBase={urlBase} onDelete={() => handleDelete(l.id)} />
+      ))}
+
+      {adding ? (
+        <div className="space-y-2 rounded-2xl border border-border bg-background p-3">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="z.B. Mama, Papa, Oma"
+            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+            placeholder="Name, z.B. Mama, Papa, Oma"
+            autoFocus
             className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
           />
+          <div className="flex gap-2">
+            <button type="button" onClick={handleCreate} disabled={busy || !name.trim()}
+              className="flex-1 rounded-xl bg-primary py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Link erstellen"}
+            </button>
+            <button type="button" onClick={() => { setAdding(false); setName(""); }}
+              className="rounded-xl border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
+              Abbrechen
+            </button>
+          </div>
         </div>
+      ) : (
+        <button type="button" onClick={() => setAdding(true)}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card p-2.5 text-sm font-semibold text-primary">
+          <Plus className="h-4 w-4" /> Neuen Beobachter hinzufügen
+        </button>
       )}
-      <button type="button" onClick={handleCreate} disabled={busy}
-        className="w-full rounded-2xl border border-border bg-card p-2.5 text-sm font-semibold text-primary disabled:opacity-40">
-        {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : linkUrl ? "Neuen Link erstellen" : "Link erstellen"}
-      </button>
     </div>
   );
 }
@@ -130,48 +168,130 @@ type Props = {
   userId: string | null;
 };
 
+function TeacherLinkRow({
+  link, urlBase, onDelete,
+}: {
+  link: { id: string; token: string; name?: string; expiresAt: string };
+  urlBase: string;
+  onDelete: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const url = `${urlBase}/beobachtung/${link.token}`;
+
+  const handleCopy = () => {
+    void navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleShare = () => {
+    const mailto = `mailto:?subject=${encodeURIComponent("clar·log Lehrpersonen-Link")}&body=${encodeURIComponent(url)}`;
+    if (typeof navigator.share === "function") {
+      navigator.share({ title: "clar·log Lehrpersonen-Link", url }).catch(() => window.open(mailto, "_blank"));
+    } else {
+      window.open(mailto, "_blank");
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-border bg-background p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold">{link.name || "Lehrperson"}</p>
+        <button type="button" onClick={onDelete}
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive">
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      <p className="truncate text-xs text-muted-foreground">{url}</p>
+      <p className="text-xs text-muted-foreground">Gültig bis {new Date(link.expiresAt).toLocaleDateString("de-DE")}</p>
+      <div className="flex gap-2">
+        <button type="button" onClick={handleCopy}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
+          <Copy className="h-3.5 w-3.5" /> {copied ? "Kopiert!" : "Kopieren"}
+        </button>
+        <button type="button" onClick={handleShare}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
+          <Share2 className="h-3.5 w-3.5" /> Teilen
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
-  const [teacherLink, setTeacherLink] = useState<{ token: string; url: string; expiresAt: string } | null>(null);
+  const [links, setLinks] = useState<{ id: string; token: string; name?: string; expiresAt: string }[]>([]);
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const urlBase = typeof window !== "undefined" ? window.location.origin : "";
+
+  const reload = () =>
+    listTeacherLinks(ownerId, periodId)
+      .then(setLinks)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+
+  useEffect(() => { reload(); }, [ownerId, periodId]);
 
   const handleCreate = async () => {
+    if (!name.trim()) return;
     setBusy(true);
     try {
-      const { getActiveTeacherLink, rotateTeacherLink } = await import("@/lib/clar-observers");
-      const link = await rotateTeacherLink(ownerId, periodId);
-      const url = typeof window !== "undefined" ? `${window.location.origin}/beobachtung/${link.token}` : "";
-      setTeacherLink({ token: link.token, url, expiresAt: link.expiresAt });
+      await createTeacherLink(ownerId, periodId, name.trim());
+      setName("");
+      setAdding(false);
+      await reload();
     } finally {
       setBusy(false);
     }
   };
 
+  const handleDelete = async (id: string) => {
+    await deleteTeacherLink(id).catch(() => {});
+    await reload();
+  };
+
+  if (loading) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
+
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Lehr- oder Fachperson erhält einen Link → kein Login, kein Name im Link. Der Fragebogen kann 1× wöchentlich während der Beobachtungsperiode online ausgefüllt werden.
+        Jede Lehr- oder Fachperson erhält einen eigenen Link — kein Login nötig, 7 Tage gültig.
       </p>
-      {teacherLink ? (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
-            <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{teacherLink.url}</span>
-            <button type="button" onClick={() => navigator.clipboard.writeText(teacherLink.url)}
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-primary hover:bg-primary/10"
-              aria-label="Link kopieren">
-              <Copy className="h-4 w-4" />
+
+      {links.map((l) => (
+        <TeacherLinkRow key={l.id} link={l} urlBase={urlBase} onDelete={() => handleDelete(l.id)} />
+      ))}
+
+      {adding ? (
+        <div className="space-y-2 rounded-2xl border border-border bg-background p-3">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+            placeholder='z.B. "Fr. Müller Klass." oder "Hr. Weber IF"'
+            autoFocus
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
+          />
+          <div className="flex gap-2">
+            <button type="button" onClick={handleCreate} disabled={busy || !name.trim()}
+              className="flex-1 rounded-xl bg-primary py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Link erstellen"}
+            </button>
+            <button type="button" onClick={() => { setAdding(false); setName(""); }}
+              className="rounded-xl border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
+              Abbrechen
             </button>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Gültig bis {new Date(teacherLink.expiresAt).toLocaleDateString("de-DE")}
-          </p>
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground">Noch kein Link erstellt.</p>
+        <button type="button" onClick={() => setAdding(true)}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card p-2.5 text-sm font-semibold text-primary">
+          <Plus className="h-4 w-4" /> Neue Lehrperson hinzufügen
+        </button>
       )}
-      <button type="button" onClick={handleCreate} disabled={busy}
-        className="w-full rounded-2xl border border-border bg-card p-2.5 text-sm font-semibold text-primary disabled:opacity-40">
-        {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : teacherLink ? "Neuen Link erstellen" : "Link erstellen"}
-      </button>
     </div>
   );
 }
