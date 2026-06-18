@@ -230,7 +230,7 @@ export function MedicationEditor({
                           type="time"
                           value={entry?.time ?? ""}
                           onChange={(e) => {
-                            const current = med.intakeTimes ?? [];
+                            const current = med.intakeTimes ?? [{ slot: med.intakeSlot }];
                             const next = current.map((t) => t.slot === slot ? { ...t, time: e.target.value } : t);
                             update(med.id, { intakeTimes: next });
                           }}
