@@ -405,32 +405,53 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
             <span className="text-xs font-semibold text-muted-foreground">
               {isParentFlow ? "Lebenssituation des Kindes" : "Deine Lebenssituation"}
             </span>
+            <p className="mt-1 text-xs text-muted-foreground">Mehrfachauswahl möglich</p>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {(isParentFlow ? [
-                ["kindergarten", "Kindergarten / Kita"],
-                ["primary", "Primarschule (1.–6. Kl.)"],
-                ["secondary", "Sekundarschule (7.–9. Kl.)"],
-                ["home", "Zu Hause (nicht in Schule)"],
-                ["apprentice", "In Ausbildung / Lehre"],
-              ] : [
-                ["pupil", "Schüler/in"],
-                ["apprentice", "Lehrling / Ausbildung"],
-                ["student", "Studierend"],
-                ["employed", "Berufstätig"],
-                ["training", "In Weiterbildung"],
-                ["unemployed", "Nicht berufstätig"],
-                ["unable_to_work", "Arbeitsunfähig"],
-                ["retired", "Pensioniert"],
-              ] as [string, string][]).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => updateDraft({ lifeContext: key as any })}
-                  className={`rounded-xl border px-2 py-2 text-xs font-semibold text-left ${
-                    draft.lifeContext === key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground"
-                  }`}
-                >{label}</button>
-              ))}
+              {(() => {
+                const ageGroup: "child" | "teen" | "adult" =
+                  !isParentFlow ? "adult"
+                  : (isTeenFlow || (age !== null && age >= 12)) ? "teen"
+                  : "child";
+                const opts: [string, string][] =
+                  ageGroup === "child" ? [
+                    ["kindergarten",  "Kindergarten / Kita"],
+                    ["primary",       "Primarschule (1.–6. Kl.)"],
+                    ["special_ed",    "Sonderpäd. Bildungsangebot"],
+                    ["home",          "Zu Hause (nicht in Schule)"],
+                  ] : ageGroup === "teen" ? [
+                    ["primary",       "Primarschule (1.–6. Kl.)"],
+                    ["secondary",     "Sekundarschule (7.–9. Kl.)"],
+                    ["gymnasium",     "Gymnasium"],
+                    ["special_ed",    "Sonderpäd. Bildungsangebot"],
+                    ["apprentice",    "Ausbildung / Lehre"],
+                  ] : [
+                    ["secondary",     "Sekundarschule"],
+                    ["gymnasium",     "Gymnasium"],
+                    ["apprentice",    "Ausbildung / Lehre"],
+                    ["student",       "Studium"],
+                    ["employed",      "Berufstätig"],
+                    ["special_ed",    "Sonderpäd. Bildungsangebot"],
+                  ];
+                const selected = draft.lifeContexts ?? [];
+                const toggle = (key: string) => {
+                  const next = selected.includes(key as any)
+                    ? selected.filter(k => k !== key)
+                    : [...selected, key as any];
+                  updateDraft({ lifeContexts: next });
+                };
+                return opts.map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => toggle(key)}
+                    className={`rounded-xl border px-2 py-2 text-xs font-semibold text-left ${
+                      selected.includes(key as any)
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-background text-foreground"
+                    }`}
+                  >{label}</button>
+                ));
+              })()}
             </div>
           </div>
         </div>
