@@ -47,5 +47,5 @@ function AuthRoute() {
 
   if (!hydrated || !tokenChecked) return <div className="min-h-screen bg-background" />;
 
-  return <AuthScreen />;
+  return <AuthScreen onLogin={() => navigate({ to: "/heute", replace: true })} />;
 }
