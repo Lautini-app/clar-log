@@ -296,7 +296,7 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
           {members.length === 0 && pending.length === 0 && (
             <p className="text-sm text-muted-foreground">Noch keine Mitglieder eingeladen.</p>
           )}
-          {members.map((m) => (
+          {members.filter((m) => !childOnly || m.role === "child" || m.role === "teen").map((m) => (
             <div key={m.member_user_id} className="flex items-center justify-between rounded-2xl border border-border bg-background p-3">
               <div>
                 <p className="text-sm font-semibold">{(m as any).name || ROLE_LABELS[m.role] || m.role}</p>
@@ -304,7 +304,7 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
               </div>
             </div>
           ))}
-          {pending.map((p) => (
+          {pending.filter((p) => !childOnly || p.role === "child" || p.role === "teen").map((p) => (
             <div key={p.email} className="flex items-center justify-between rounded-2xl border border-border bg-background p-3">
               <div>
                 <p className="text-sm font-semibold">{(p as any).name || p.email}</p>
@@ -317,7 +317,7 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
         </>
       )}
 
-      {members.length + pending.length < 4 && (
+      {(childOnly ? members.filter((m) => m.role === "child" || m.role === "teen").length + pending.filter((p) => p.role === "child" || p.role === "teen").length : members.length + pending.length) < 4 && (
         <div className="space-y-3 rounded-2xl border border-border bg-background p-3">
           <input
             type="text"
