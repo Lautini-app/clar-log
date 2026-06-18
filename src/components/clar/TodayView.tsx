@@ -25,6 +25,7 @@ import {
 
 import { Chip } from "./Chip";
 import { SectionCard } from "./SectionCard";
+import { submitObserverObservation } from "@/lib/clar-observers";
 import type {
   DayLog,
   Medication,
@@ -1212,6 +1213,187 @@ function SlotWizard({
 }
 
 
+// ─── Parent-Admin-Beobachtungsformular ───────────────────────────────────────
+
+const OBS_SCALE = [
+  { value: 1, label: "sehr schlecht", color: "#E24B4A" },
+  { value: 2, label: "schlecht",      color: "#EF9F27" },
+  { value: 3, label: "mittel",        color: "#EAB308" },
+  { value: 4, label: "gut",           color: "#97C459" },
+  { value: 5, label: "sehr gut",      color: "#1D9E75" },
+];
+
+function ObsScale({ label, hint, value, onChange }: { label: string; hint?: string; value?: number; onChange: (v: number) => void }) {
+  return (
+    <div className="space-y-2">
+      <div>
+        <p className="text-sm font-semibold">{label}</p>
+        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      </div>
+      <div className="grid grid-cols-5 gap-1.5">
+        {OBS_SCALE.map((s) => (
+          <button key={s.value} type="button" onClick={() => onChange(s.value)}
+            style={value === s.value ? { borderColor: s.color, background: s.color + "22", color: s.color } : {}}
+            className={`rounded-xl border-2 py-2 text-[10px] font-semibold text-center transition-all ${
+              value === s.value ? "" : "border-border bg-card text-muted-foreground"
+            }`}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ObsYesNo({ label, hint, value, onChange }: { label: string; hint?: string; value?: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="space-y-2">
+      <div>
+        <p className="text-sm font-semibold">{label}</p>
+        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {([true, false] as const).map((v) => (
+          <button key={String(v)} type="button" onClick={() => onChange(v)}
+            className={`rounded-xl border-2 py-2.5 text-sm font-semibold transition-all ${
+              value === v
+                ? v ? "border-green-500 bg-green-50 text-green-700" : "border-red-400 bg-red-50 text-red-700"
+                : "border-border bg-card text-muted-foreground"
+            }`}>
+            {v ? "Ja" : "Nein"}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ParentAdminObserverPanel({
+  ownerId,
+  periodId,
+  date,
+}: {
+  ownerId: string;
+  periodId: string;
+  date: string;
+}) {
+  const [open, setOpen]               = useState(false);
+  const [mood, setMood]               = useState<number>();
+  const [cooperation, setCooperation] = useState<number>();
+  const [emotionReg, setEmotionReg]   = useState<number>();
+  const [focus, setFocus]             = useState<number>();
+  const [bedtime, setBedtime]         = useState<number>();
+  const [rebound, setRebound]         = useState<boolean>();
+  const [note, setNote]               = useState("");
+  const [status, setStatus]           = useState<"idle" | "saving" | "done">("idle");
+  const [error, setError]             = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    setStatus("saving");
+    setError(null);
+    try {
+      const extras = [
+        emotionReg !== undefined ? `Emotionsreg.: ${emotionReg}/5` : "",
+        bedtime    !== undefined ? `Schlafroutine: ${bedtime}/5`    : "",
+        rebound    !== undefined ? `Rebound: ${rebound ? "Ja" : "Nein"}` : "",
+        note.trim(),
+      ].filter(Boolean).join(" · ");
+
+      await submitObserverObservation(
+        ownerId,
+        periodId,
+        ownerId,
+        "Elternteil (Admin)",
+        date,
+        {
+          mood,
+          behavior:      cooperation,
+          concentration: focus,
+          note:          extras || undefined,
+        },
+      );
+      setStatus("done");
+    } catch {
+      setError("Speichern fehlgeschlagen. Bitte erneut versuchen.");
+      setStatus("idle");
+    }
+  };
+
+  if (!open) {
+    return (
+      <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-semibold text-foreground">Deine Beobachtung als Elternteil</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">Tägliche Einschätzung · 2 Min.</p>
+          </div>
+          <button type="button" onClick={() => setOpen(true)}
+            className="shrink-0 rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+            Ausfüllen
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "done") {
+    return (
+      <div className="rounded-3xl border border-border bg-card p-5 shadow-sm text-center space-y-2">
+        <p className="text-base font-semibold">Gespeichert ✓</p>
+        <p className="text-sm text-muted-foreground">Deine Elternteil-Beobachtung für heute wurde gespeichert.</p>
+        <button type="button" onClick={() => { setStatus("idle"); setOpen(false); }}
+          className="text-xs font-medium text-primary">Schliessen</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-3xl border border-border bg-card shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-border">
+        <div>
+          <p className="font-semibold text-foreground">Beobachtung als Elternteil</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Wie war es heute zu Hause?</p>
+        </div>
+        <button type="button" onClick={() => setOpen(false)}
+          className="text-sm font-medium text-muted-foreground">Schliessen</button>
+      </div>
+
+      <div className="space-y-5 px-5 py-5">
+        <ObsScale label="Stimmung zu Hause" value={mood} onChange={setMood} />
+        <ObsScale label="Mitarbeit / Kooperation" hint="Anweisungen folgen, Hausaufgaben" value={cooperation} onChange={setCooperation} />
+        <ObsScale label="Emotionsregulation" hint="Frustration, Wutausbrüche, Flexibilität" value={emotionReg} onChange={setEmotionReg} />
+        <ObsScale label="Fokus / Hausaufgaben" hint="Konzentration bei Aufgaben zu Hause" value={focus} onChange={setFocus} />
+        <ObsScale label="Zubettgeh-Routine" hint="Einschlafen, Beruhigung am Abend" value={bedtime} onChange={setBedtime} />
+        <ObsYesNo label="Rebound beobachtet?" hint="Stimmungsabfall oder Reizbarkeit am Abend" value={rebound} onChange={setRebound} />
+
+        <div className="space-y-2">
+          <p className="text-sm font-semibold">Notiz (optional)</p>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Auffälligkeiten, Besonderheiten heute…"
+            rows={3}
+            className="w-full resize-none rounded-2xl border border-border bg-background p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
+          />
+        </div>
+
+        {error && <p className="text-sm text-destructive">{error}</p>}
+
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={status === "saving" || (!mood && !cooperation && !emotionReg && !focus && !bedtime && rebound === undefined)}
+          className="w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+        >
+          {status === "saving" ? "Wird gespeichert…" : "Beobachtung speichern"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function TodayView({ log, settings, onChange, onSettingsChange, userId }: Props) {
   const period = getActivePeriod(settings);
   const [activeSlot, setActiveSlot] = useState<TimeSlot | null>(null);
@@ -1320,6 +1502,14 @@ export function TodayView({ log, settings, onChange, onSettingsChange, userId }:
           items={items}
           onClose={() => setActiveSlot(null)}
           onChange={onChange}
+        />
+      )}
+
+      {period.profile === "child_parent" && userId && (
+        <ParentAdminObserverPanel
+          ownerId={userId}
+          periodId={period.id}
+          date={log.date}
         />
       )}
     </div>
