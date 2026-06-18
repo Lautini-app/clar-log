@@ -9,6 +9,10 @@ const SLOT_LABELS: Record<string, string> = { morning: "Morgen", midday: "Mittag
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
+function localDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function getWeekDays(offset: number): string[] {
   const now = new Date();
   const day = now.getDay() || 7;
@@ -16,7 +20,7 @@ function getWeekDays(offset: number): string[] {
   mon.setDate(now.getDate() - day + 1 + offset * 7);
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(mon); d.setDate(mon.getDate() + i);
-    return d.toISOString().slice(0, 10);
+    return localDateStr(d);
   });
 }
 
@@ -653,7 +657,7 @@ export function DossierView({ settings, logs, ownerId }: Props) {
   const [observations, setObservations] = useState<any[]>([]);
   const [teacherReports, setTeacherReports] = useState<any[]>([]);
   const [detail, setDetail]             = useState<DetailPanel | null>(null);
-  const period = settings?.periods?.[0];
+  const period = settings?.periods?.find(p => p.id === settings?.activePeriodId) ?? settings?.periods?.[0];
 
   const days     = useMemo(() => getWeekDays(weekOffset), [weekOffset]);
   const weekLabel = `${new Date(days[0]).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })} – ${new Date(days[6]).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })}`;

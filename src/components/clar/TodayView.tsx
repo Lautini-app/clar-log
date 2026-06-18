@@ -56,6 +56,7 @@ type Props = {
   onChange: (patch: Partial<DayLog>) => void;
   onSettingsChange: (patch: Partial<Settings>) => void;
   userId?: string;
+  hasExistingLogs?: boolean;
 };
 
 const CATEGORY_LABEL: Record<WellbeingItem["category"], string> = {
@@ -1409,15 +1410,24 @@ function ParentAdminObserverPanel({
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function TodayView({ log, settings, onChange, onSettingsChange, userId }: Props) {
+export function TodayView({ log, settings, onChange, onSettingsChange, userId, hasExistingLogs }: Props) {
   const period = getActivePeriod(settings);
   const [activeSlot, setActiveSlot] = useState<TimeSlot | null>(null);
   const [childPhase, setChildPhase] = useState(false);
   const items = useMemo(() => availableWellbeingItems(settings), [settings]);
   const isChildParent = period?.profile === "child_parent" || period?.profile === "child_both";
 
-  if (!period) {
+  if (!period && !hasExistingLogs) {
     return <Onboarding settings={settings} onSettingsChange={onSettingsChange} userId={userId} />;
+  }
+  if (!period) {
+    return (
+      <div className="space-y-4 pt-6 pb-32 px-1">
+        <p className="text-sm text-muted-foreground">
+          Keine aktive Beobachtungsperiode. Gehe zu <strong>Konto</strong> um eine neue Periode zu starten.
+        </p>
+      </div>
+    );
   }
 
   return (

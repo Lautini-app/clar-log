@@ -64,10 +64,12 @@ function ObserverLinkSettings({ ownerId, periodId }: { ownerId: string; periodId
 
   const handleShare = () => {
     if (!linkUrl) return;
-    if (navigator.share) {
-      navigator.share({ title: "clar·log Beobachter-Link", url: linkUrl }).catch(() => {});
+    const mailto = `mailto:?subject=${encodeURIComponent("clar·log Beobachtungslink")}&body=${encodeURIComponent(linkUrl)}`;
+    if (typeof navigator.share === "function") {
+      navigator.share({ title: "clar·log Beobachtungslink", url: linkUrl })
+        .catch(() => window.open(mailto, "_blank"));
     } else {
-      window.location.href = `mailto:?subject=${encodeURIComponent("clar·log Beobachter-Link")}&body=${encodeURIComponent(linkUrl)}`;
+      window.open(mailto, "_blank");
     }
   };
 

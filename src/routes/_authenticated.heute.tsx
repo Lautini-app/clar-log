@@ -38,6 +38,8 @@ function HeuteRoute() {
     : selectedDate > offsetDate(today, -30);
   const canGoForward = selectedDate < today;
 
+  const hasExistingLogs = Object.keys(store.logs).length > 0;
+
   return (
     <div>
       {/* Datumsnavigation */}
@@ -97,6 +99,7 @@ function HeuteRoute() {
         onChange={(patch) => upsertLog(selectedDate, patch)}
         onSettingsChange={updateSettings}
         userId={userId ?? undefined}
+        hasExistingLogs={hasExistingLogs}
       />
     </div>
   );
