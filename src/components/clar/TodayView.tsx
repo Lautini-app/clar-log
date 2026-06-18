@@ -270,9 +270,10 @@ export function MedicationEditor({
   );
 }
 
-function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "onSettingsChange">) {
+function Onboarding({ settings, onSettingsChange, userId }: Pick<Props, "settings" | "onSettingsChange" | "userId">) {
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<ObservationPeriod>(() => createPeriod());
+  const [childEmail, setChildEmail] = useState("");
   const catalog = WELLBEING_CATALOG.filter((item) => !item.module || draft.modules[item.module]);
   const categories = Array.from(new Set(catalog.map((item) => item.category)));
 
@@ -536,8 +537,8 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
             <input
               type="email"
               placeholder="kind@familie.ch"
-              value={draft.childEmail ?? ""}
-              onChange={(e) => updateDraft({ childEmail: e.target.value } as any)}
+              value={childEmail}
+              onChange={(e) => setChildEmail(e.target.value)}
               className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
             />
           </label>
@@ -572,7 +573,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
           {step === steps.length - 1 ? (
             <button
               type="button"
-              onClick={() => void savePeriodWithInvite(settings, draft, onSettingsChange, userId)}
+              onClick={() => void savePeriodWithInvite(settings, { ...draft, childEmail } as any, onSettingsChange, userId)}
               className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
             >
               <Check className="h-4 w-4" /> Periode starten
@@ -1402,7 +1403,7 @@ export function TodayView({ log, settings, onChange, onSettingsChange, userId }:
   const isChildParent = period?.profile === "child_parent" || period?.profile === "child_both";
 
   if (!period) {
-    return <Onboarding settings={settings} onSettingsChange={onSettingsChange} />;
+    return <Onboarding settings={settings} onSettingsChange={onSettingsChange} userId={userId} />;
   }
 
   return (

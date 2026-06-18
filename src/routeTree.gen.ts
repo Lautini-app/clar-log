@@ -12,9 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EinladungTokenRouteImport } from './routes/einladung.$token'
+import { Route as DossierTokenRouteImport } from './routes/dossier.$token'
+import { Route as BeobachtungTokenRouteImport } from './routes/beobachtung.$token'
 import { Route as AuthenticatedHeuteRouteImport } from './routes/_authenticated.heute'
 import { Route as AuthenticatedEinstellungenRouteImport } from './routes/_authenticated.einstellungen'
 import { Route as AuthenticatedBerichtRouteImport } from './routes/_authenticated.bericht'
+import { Route as AuthenticatedBeobachtenRouteImport } from './routes/_authenticated.beobachten'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -28,6 +32,21 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EinladungTokenRoute = EinladungTokenRouteImport.update({
+  id: '/einladung/$token',
+  path: '/einladung/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DossierTokenRoute = DossierTokenRouteImport.update({
+  id: '/dossier/$token',
+  path: '/dossier/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BeobachtungTokenRoute = BeobachtungTokenRouteImport.update({
+  id: '/beobachtung/$token',
+  path: '/beobachtung/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedHeuteRoute = AuthenticatedHeuteRouteImport.update({
@@ -46,49 +65,91 @@ const AuthenticatedBerichtRoute = AuthenticatedBerichtRouteImport.update({
   path: '/bericht',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedBeobachtenRoute = AuthenticatedBeobachtenRouteImport.update({
+  id: '/beobachten',
+  path: '/beobachten',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/beobachten': typeof AuthenticatedBeobachtenRoute
   '/bericht': typeof AuthenticatedBerichtRoute
   '/einstellungen': typeof AuthenticatedEinstellungenRoute
   '/heute': typeof AuthenticatedHeuteRoute
+  '/beobachtung/$token': typeof BeobachtungTokenRoute
+  '/dossier/$token': typeof DossierTokenRoute
+  '/einladung/$token': typeof EinladungTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/beobachten': typeof AuthenticatedBeobachtenRoute
   '/bericht': typeof AuthenticatedBerichtRoute
   '/einstellungen': typeof AuthenticatedEinstellungenRoute
   '/heute': typeof AuthenticatedHeuteRoute
+  '/beobachtung/$token': typeof BeobachtungTokenRoute
+  '/dossier/$token': typeof DossierTokenRoute
+  '/einladung/$token': typeof EinladungTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/beobachten': typeof AuthenticatedBeobachtenRoute
   '/_authenticated/bericht': typeof AuthenticatedBerichtRoute
   '/_authenticated/einstellungen': typeof AuthenticatedEinstellungenRoute
   '/_authenticated/heute': typeof AuthenticatedHeuteRoute
+  '/beobachtung/$token': typeof BeobachtungTokenRoute
+  '/dossier/$token': typeof DossierTokenRoute
+  '/einladung/$token': typeof EinladungTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/bericht' | '/einstellungen' | '/heute'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/beobachten'
+    | '/bericht'
+    | '/einstellungen'
+    | '/heute'
+    | '/beobachtung/$token'
+    | '/dossier/$token'
+    | '/einladung/$token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/bericht' | '/einstellungen' | '/heute'
+  to:
+    | '/'
+    | '/auth'
+    | '/beobachten'
+    | '/bericht'
+    | '/einstellungen'
+    | '/heute'
+    | '/beobachtung/$token'
+    | '/dossier/$token'
+    | '/einladung/$token'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/beobachten'
     | '/_authenticated/bericht'
     | '/_authenticated/einstellungen'
     | '/_authenticated/heute'
+    | '/beobachtung/$token'
+    | '/dossier/$token'
+    | '/einladung/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BeobachtungTokenRoute: typeof BeobachtungTokenRoute
+  DossierTokenRoute: typeof DossierTokenRoute
+  EinladungTokenRoute: typeof EinladungTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -114,6 +175,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/einladung/$token': {
+      id: '/einladung/$token'
+      path: '/einladung/$token'
+      fullPath: '/einladung/$token'
+      preLoaderRoute: typeof EinladungTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dossier/$token': {
+      id: '/dossier/$token'
+      path: '/dossier/$token'
+      fullPath: '/dossier/$token'
+      preLoaderRoute: typeof DossierTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/beobachtung/$token': {
+      id: '/beobachtung/$token'
+      path: '/beobachtung/$token'
+      fullPath: '/beobachtung/$token'
+      preLoaderRoute: typeof BeobachtungTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/heute': {
       id: '/_authenticated/heute'
       path: '/heute'
@@ -135,16 +217,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBerichtRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/beobachten': {
+      id: '/_authenticated/beobachten'
+      path: '/beobachten'
+      fullPath: '/beobachten'
+      preLoaderRoute: typeof AuthenticatedBeobachtenRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedBeobachtenRoute: typeof AuthenticatedBeobachtenRoute
   AuthenticatedBerichtRoute: typeof AuthenticatedBerichtRoute
   AuthenticatedEinstellungenRoute: typeof AuthenticatedEinstellungenRoute
   AuthenticatedHeuteRoute: typeof AuthenticatedHeuteRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedBeobachtenRoute: AuthenticatedBeobachtenRoute,
   AuthenticatedBerichtRoute: AuthenticatedBerichtRoute,
   AuthenticatedEinstellungenRoute: AuthenticatedEinstellungenRoute,
   AuthenticatedHeuteRoute: AuthenticatedHeuteRoute,
@@ -158,7 +249,20 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
+  BeobachtungTokenRoute: BeobachtungTokenRoute,
+  DossierTokenRoute: DossierTokenRoute,
+  EinladungTokenRoute: EinladungTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
