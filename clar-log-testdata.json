@@ -1,0 +1,326 @@
+{
+  "meta": {
+    "description": "clar·log Testdaten — Liam, 8 Jahre, child_parent",
+    "period": "2026-06-02 bis 2026-06-15",
+    "medications": [
+      { "id": "concerta-18", "name": "Concerta", "mg": 18, "intakeSlot": "morning", "kind": "retard" },
+      { "id": "ritalin-5", "name": "Ritalin", "mg": 5, "intakeSlot": "midday", "kind": "booster" }
+    ],
+    "profile": "child_parent",
+    "childName": "Liam",
+    "childAge": 8,
+    "gender": "male"
+  },
+  "logs": [
+    {
+      "date": "2026-06-02",
+      "dayOfWeek": "Mo",
+      "periodId": "test-period-child",
+      "updatedAt": 1748894400000,
+      "slots": {
+        "morning": {
+          "status": "done",
+          "medicationTaken": true,
+          "medicationTime": "07:20",
+          "medsTaken": { "concerta-18": true },
+          "medsDose": { "concerta-18": 18 },
+          "answers": {
+            "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 7.5 },
+            "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 35 },
+            "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": true },
+            "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 3 },
+            "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "mid" },
+            "focus": { "itemId": "focus", "slot": "morning", "value": 2 },
+            "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 3 },
+            "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 3 },
+            "ate": { "itemId": "ate", "slot": "morning", "value": true },
+            "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 2 },
+            "headache": { "itemId": "headache", "slot": "morning", "value": true },
+            "stomachache": { "itemId": "stomachache", "slot": "morning", "value": false },
+            "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false },
+            "tension": { "itemId": "tension", "slot": "morning", "value": false }
+          }
+        },
+        "midday": {
+          "status": "done",
+          "medicationTaken": true,
+          "medicationTime": "12:10",
+          "medsTaken": { "ritalin-5": true },
+          "medsDose": { "ritalin-5": 5 },
+          "answers": {
+            "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "mid" },
+            "focus": { "itemId": "focus", "slot": "midday", "value": 3 },
+            "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 3 },
+            "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 2 },
+            "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": true },
+            "ate": { "itemId": "ate", "slot": "midday", "value": true },
+            "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 2 },
+            "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 2 },
+            "headache": { "itemId": "headache", "slot": "midday", "value": false },
+            "stomachache": { "itemId": "stomachache", "slot": "midday", "value": false },
+            "tension": { "itemId": "tension", "slot": "midday", "value": false }
+          }
+        },
+        "evening": {
+          "status": "done",
+          "answers": {
+            "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "low" },
+            "drive": { "itemId": "drive", "slot": "evening", "value": 3 },
+            "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 3 },
+            "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 3 },
+            "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": false },
+            "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 3 },
+            "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 3 },
+            "conflicts": { "itemId": "conflicts", "slot": "evening", "value": false },
+            "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": true },
+            "rebound_intensity": { "itemId": "rebound_intensity", "slot": "evening", "value": 3 },
+            "rebound_time": { "itemId": "rebound_time", "slot": "evening", "value": "16:45" },
+            "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 3 },
+            "ate": { "itemId": "ate", "slot": "evening", "value": true },
+            "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 3 },
+            "headache": { "itemId": "headache", "slot": "evening", "value": false },
+            "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false },
+            "tension": { "itemId": "tension", "slot": "evening", "value": false },
+            "school_performance": { "itemId": "school_performance", "slot": "evening", "value": 3 },
+            "school_social": { "itemId": "school_social", "slot": "evening", "value": 3 },
+            "school_conflicts": { "itemId": "school_conflicts", "slot": "evening", "value": false },
+            "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Hausaufgaben nach der Schule direkt erledigt." }
+          }
+        }
+      }
+    },
+    {
+      "date": "2026-06-03",
+      "dayOfWeek": "Di",
+      "periodId": "test-period-child",
+      "updatedAt": 1748980800000,
+      "slots": {
+        "morning": {
+          "status": "done",
+          "medicationTaken": true,
+          "medicationTime": "07:15",
+          "medsTaken": { "concerta-18": true },
+          "medsDose": { "concerta-18": 18 },
+          "answers": {
+            "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 9.0 },
+            "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 15 },
+            "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": true },
+            "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 4 },
+            "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "high" },
+            "focus": { "itemId": "focus", "slot": "morning", "value": 4 },
+            "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 2 },
+            "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 1 },
+            "ate": { "itemId": "ate", "slot": "morning", "value": true },
+            "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 3 },
+            "headache": { "itemId": "headache", "slot": "morning", "value": false },
+            "stomachache": { "itemId": "stomachache", "slot": "morning", "value": false },
+            "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false },
+            "tension": { "itemId": "tension", "slot": "morning", "value": false }
+          }
+        },
+        "midday": {
+          "status": "done",
+          "medicationTaken": true,
+          "medicationTime": "12:05",
+          "medsTaken": { "ritalin-5": true },
+          "medsDose": { "ritalin-5": 5 },
+          "answers": {
+            "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "high" },
+            "focus": { "itemId": "focus", "slot": "midday", "value": 4 },
+            "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 1 },
+            "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 1 },
+            "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": true },
+            "ate": { "itemId": "ate", "slot": "midday", "value": true },
+            "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 3 },
+            "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 3 },
+            "headache": { "itemId": "headache", "slot": "midday", "value": false },
+            "stomachache": { "itemId": "stomachache", "slot": "midday", "value": false },
+            "tension": { "itemId": "tension", "slot": "midday", "value": false }
+          }
+        },
+        "evening": {
+          "status": "done",
+          "answers": {
+            "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "mid" },
+            "drive": { "itemId": "drive", "slot": "evening", "value": 4 },
+            "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 2 },
+            "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 4 },
+            "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": false },
+            "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 2 },
+            "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 4 },
+            "conflicts": { "itemId": "conflicts", "slot": "evening", "value": false },
+            "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": false },
+            "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 3 },
+            "ate": { "itemId": "ate", "slot": "evening", "value": true },
+            "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 4 },
+            "headache": { "itemId": "headache", "slot": "evening", "value": false },
+            "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false },
+            "tension": { "itemId": "tension", "slot": "evening", "value": false },
+            "school_performance": { "itemId": "school_performance", "slot": "evening", "value": 4 },
+            "school_social": { "itemId": "school_social", "slot": "evening", "value": 4 },
+            "school_conflicts": { "itemId": "school_conflicts", "slot": "evening", "value": false },
+            "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Morgenroutine hat gut funktioniert." }
+          }
+        }
+      }
+    },
+    {
+      "date": "2026-06-04",
+      "dayOfWeek": "Mi",
+      "periodId": "test-period-child",
+      "updatedAt": 1749067200000,
+      "slots": {
+        "morning": { "status": "done", "medicationTaken": true, "medicationTime": "07:25", "medsTaken": { "concerta-18": true }, "medsDose": { "concerta-18": 18 }, "answers": { "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 8.5 }, "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 20 }, "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": true }, "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 4 }, "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "high" }, "focus": { "itemId": "focus", "slot": "morning", "value": 4 }, "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 1 }, "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 2 }, "ate": { "itemId": "ate", "slot": "morning", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 3 }, "headache": { "itemId": "headache", "slot": "morning", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "morning", "value": false }, "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false }, "tension": { "itemId": "tension", "slot": "morning", "value": false } } },
+        "midday": { "status": "done", "medicationTaken": true, "medicationTime": "12:15", "medsTaken": { "ritalin-5": true }, "medsDose": { "ritalin-5": 5 }, "answers": { "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "high" }, "focus": { "itemId": "focus", "slot": "midday", "value": 5 }, "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 1 }, "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 1 }, "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": true }, "ate": { "itemId": "ate", "slot": "midday", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 3 }, "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 2 }, "headache": { "itemId": "headache", "slot": "midday", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "midday", "value": false }, "tension": { "itemId": "tension", "slot": "midday", "value": false } } },
+        "evening": { "status": "done", "answers": { "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "mid" }, "drive": { "itemId": "drive", "slot": "evening", "value": 4 }, "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 2 }, "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 5 }, "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": false }, "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 1 }, "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 5 }, "conflicts": { "itemId": "conflicts", "slot": "evening", "value": false }, "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": false }, "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 3 }, "ate": { "itemId": "ate", "slot": "evening", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 4 }, "headache": { "itemId": "headache", "slot": "evening", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false }, "tension": { "itemId": "tension", "slot": "evening", "value": false }, "school_performance": { "itemId": "school_performance", "slot": "evening", "value": 5 }, "school_social": { "itemId": "school_social", "slot": "evening", "value": 4 }, "school_conflicts": { "itemId": "school_conflicts", "slot": "evening", "value": false }, "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Im Turnen gut mitgemacht, war konzentriert." } } }
+      }
+    },
+    {
+      "date": "2026-06-05",
+      "dayOfWeek": "Do",
+      "periodId": "test-period-child",
+      "updatedAt": 1749153600000,
+      "slots": {
+        "morning": { "status": "done", "medicationTaken": true, "medicationTime": "07:30", "medsTaken": { "concerta-18": true }, "medsDose": { "concerta-18": 18 }, "answers": { "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 9.0 }, "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 18 }, "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": true }, "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 5 }, "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "high" }, "focus": { "itemId": "focus", "slot": "morning", "value": 4 }, "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 2 }, "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 1 }, "ate": { "itemId": "ate", "slot": "morning", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 4 }, "headache": { "itemId": "headache", "slot": "morning", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "morning", "value": false }, "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false }, "tension": { "itemId": "tension", "slot": "morning", "value": false } } },
+        "midday": { "status": "done", "medicationTaken": true, "medicationTime": "12:00", "medsTaken": { "ritalin-5": true }, "medsDose": { "ritalin-5": 5 }, "answers": { "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "high" }, "focus": { "itemId": "focus", "slot": "midday", "value": 4 }, "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 2 }, "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 2 }, "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": true }, "ate": { "itemId": "ate", "slot": "midday", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 3 }, "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 3 }, "headache": { "itemId": "headache", "slot": "midday", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "midday", "value": false }, "tension": { "itemId": "tension", "slot": "midday", "value": false } } },
+        "evening": { "status": "done", "answers": { "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "mid" }, "drive": { "itemId": "drive", "slot": "evening", "value": 4 }, "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 2 }, "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 4 }, "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": false }, "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 2 }, "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 4 }, "conflicts": { "itemId": "conflicts", "slot": "evening", "value": false }, "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": true }, "rebound_intensity": { "itemId": "rebound_intensity", "slot": "evening", "value": 2 }, "rebound_time": { "itemId": "rebound_time", "slot": "evening", "value": "17:00" }, "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 3 }, "ate": { "itemId": "ate", "slot": "evening", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 4 }, "headache": { "itemId": "headache", "slot": "evening", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false }, "tension": { "itemId": "tension", "slot": "evening", "value": false }, "school_performance": { "itemId": "school_performance", "slot": "evening", "value": 4 }, "school_social": { "itemId": "school_social", "slot": "evening", "value": 5 }, "school_conflicts": { "itemId": "school_conflicts", "slot": "evening", "value": false }, "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Hat ein Buch fertig gelesen, war sehr stolz." } } }
+      }
+    },
+    {
+      "date": "2026-06-06",
+      "dayOfWeek": "Fr",
+      "periodId": "test-period-child",
+      "updatedAt": 1749240000000,
+      "slots": {
+        "morning": { "status": "done", "medicationTaken": true, "medicationTime": "07:35", "medsTaken": { "concerta-18": true }, "medsDose": { "concerta-18": 18 }, "answers": { "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 7.0 }, "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 40 }, "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": false }, "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 2 }, "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "low" }, "focus": { "itemId": "focus", "slot": "morning", "value": 2 }, "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 3 }, "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 3 }, "ate": { "itemId": "ate", "slot": "morning", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 2 }, "headache": { "itemId": "headache", "slot": "morning", "value": true }, "stomachache": { "itemId": "stomachache", "slot": "morning", "value": false }, "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false }, "tension": { "itemId": "tension", "slot": "morning", "value": true } } },
+        "midday": { "status": "done", "medicationTaken": true, "medicationTime": "12:20", "medsTaken": { "ritalin-5": true }, "medsDose": { "ritalin-5": 5 }, "answers": { "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "mid" }, "focus": { "itemId": "focus", "slot": "midday", "value": 3 }, "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 3 }, "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 2 }, "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": true }, "ate": { "itemId": "ate", "slot": "midday", "value": false }, "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 1 }, "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 1 }, "headache": { "itemId": "headache", "slot": "midday", "value": true }, "stomachache": { "itemId": "stomachache", "slot": "midday", "value": false }, "tension": { "itemId": "tension", "slot": "midday", "value": false } } },
+        "evening": { "status": "done", "answers": { "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "low" }, "drive": { "itemId": "drive", "slot": "evening", "value": 2 }, "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 4 }, "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 2 }, "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": true }, "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 4 }, "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 3 }, "conflicts": { "itemId": "conflicts", "slot": "evening", "value": true }, "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": true }, "rebound_intensity": { "itemId": "rebound_intensity", "slot": "evening", "value": 4 }, "rebound_time": { "itemId": "rebound_time", "slot": "evening", "value": "16:15" }, "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 2 }, "ate": { "itemId": "ate", "slot": "evening", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 3 }, "headache": { "itemId": "headache", "slot": "evening", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false }, "tension": { "itemId": "tension", "slot": "evening", "value": true }, "school_performance": { "itemId": "school_performance", "slot": "evening", "value": 2 }, "school_social": { "itemId": "school_social", "slot": "evening", "value": 3 }, "school_conflicts": { "itemId": "school_conflicts", "slot": "evening", "value": true }, "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Hat sich bei Streit selbst beruhigt." } } }
+      }
+    },
+    {
+      "date": "2026-06-07",
+      "dayOfWeek": "Sa",
+      "periodId": "test-period-child",
+      "updatedAt": 1749326400000,
+      "slots": {
+        "morning": { "status": "done", "medicationTaken": true, "medicationTime": "08:45", "medsTaken": { "concerta-18": true }, "medsDose": { "concerta-18": 18 }, "answers": { "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 9.5 }, "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 45 }, "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": false }, "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 3 }, "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "low" }, "focus": { "itemId": "focus", "slot": "morning", "value": 2 }, "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 4 }, "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 3 }, "ate": { "itemId": "ate", "slot": "morning", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 2 }, "headache": { "itemId": "headache", "slot": "morning", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "morning", "value": true }, "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false }, "tension": { "itemId": "tension", "slot": "morning", "value": false } } },
+        "midday": { "status": "done", "medicationTaken": false, "answers": { "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "low" }, "focus": { "itemId": "focus", "slot": "midday", "value": 1 }, "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 4 }, "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 4 }, "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": false }, "ate": { "itemId": "ate", "slot": "midday", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 2 }, "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 2 }, "headache": { "itemId": "headache", "slot": "midday", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "midday", "value": true }, "tension": { "itemId": "tension", "slot": "midday", "value": false } } },
+        "evening": { "status": "done", "answers": { "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "low" }, "drive": { "itemId": "drive", "slot": "evening", "value": 2 }, "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 4 }, "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 2 }, "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": true }, "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 3 }, "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 3 }, "conflicts": { "itemId": "conflicts", "slot": "evening", "value": true }, "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": true }, "rebound_intensity": { "itemId": "rebound_intensity", "slot": "evening", "value": 4 }, "rebound_time": { "itemId": "rebound_time", "slot": "evening", "value": "15:30" }, "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 2 }, "ate": { "itemId": "ate", "slot": "evening", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 3 }, "headache": { "itemId": "headache", "slot": "evening", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false }, "tension": { "itemId": "tension", "slot": "evening", "value": true }, "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Ruhiger Nachmittag, hat gut gespielt." } } }
+      }
+    },
+    {
+      "date": "2026-06-08",
+      "dayOfWeek": "So",
+      "periodId": "test-period-child",
+      "updatedAt": 1749412800000,
+      "slots": {
+        "morning": { "status": "done", "medicationTaken": true, "medicationTime": "09:00", "medsTaken": { "concerta-18": true }, "medsDose": { "concerta-18": 18 }, "answers": { "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 10.0 }, "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 50 }, "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": false }, "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 3 }, "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "low" }, "focus": { "itemId": "focus", "slot": "morning", "value": 1 }, "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 4 }, "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 4 }, "ate": { "itemId": "ate", "slot": "morning", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 2 }, "headache": { "itemId": "headache", "slot": "morning", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "morning", "value": false }, "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false }, "tension": { "itemId": "tension", "slot": "morning", "value": true } } },
+        "midday": { "status": "done", "medicationTaken": false, "answers": { "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "low" }, "focus": { "itemId": "focus", "slot": "midday", "value": 1 }, "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 5 }, "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 4 }, "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": false }, "ate": { "itemId": "ate", "slot": "midday", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 3 }, "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 3 }, "headache": { "itemId": "headache", "slot": "midday", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "midday", "value": false }, "tension": { "itemId": "tension", "slot": "midday", "value": false } } },
+        "evening": { "status": "done", "answers": { "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "low" }, "drive": { "itemId": "drive", "slot": "evening", "value": 2 }, "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 4 }, "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 2 }, "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": true }, "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 4 }, "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 2 }, "conflicts": { "itemId": "conflicts", "slot": "evening", "value": true }, "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": true }, "rebound_intensity": { "itemId": "rebound_intensity", "slot": "evening", "value": 5 }, "rebound_time": { "itemId": "rebound_time", "slot": "evening", "value": "15:00" }, "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 2 }, "ate": { "itemId": "ate", "slot": "evening", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 3 }, "headache": { "itemId": "headache", "slot": "evening", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false }, "tension": { "itemId": "tension", "slot": "evening", "value": true }, "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Abends gemeinsam Lego gebaut — war ruhig und fokussiert." } } }
+      }
+    },
+    {
+      "date": "2026-06-09",
+      "dayOfWeek": "Mo",
+      "periodId": "test-period-child",
+      "updatedAt": 1749499200000,
+      "slots": {
+        "morning": { "status": "done", "medicationTaken": true, "medicationTime": "07:25", "medsTaken": { "concerta-18": true }, "medsDose": { "concerta-18": 18 }, "answers": { "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 7.0 }, "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 45 }, "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": false }, "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 2 }, "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "low" }, "focus": { "itemId": "focus", "slot": "morning", "value": 2 }, "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 3 }, "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 3 }, "ate": { "itemId": "ate", "slot": "morning", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 2 }, "headache": { "itemId": "headache", "slot": "morning", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "morning", "value": false }, "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false }, "tension": { "itemId": "tension", "slot": "morning", "value": true } } },
+        "midday": { "status": "done", "medicationTaken": true, "medicationTime": "12:10", "medsTaken": { "ritalin-5": true }, "medsDose": { "ritalin-5": 5 }, "answers": { "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "mid" }, "focus": { "itemId": "focus", "slot": "midday", "value": 3 }, "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 3 }, "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 2 }, "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": true }, "ate": { "itemId": "ate", "slot": "midday", "value": false }, "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 1 }, "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 1 }, "headache": { "itemId": "headache", "slot": "midday", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "midday", "value": false }, "tension": { "itemId": "tension", "slot": "midday", "value": false } } },
+        "evening": { "status": "done", "answers": { "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "low" }, "drive": { "itemId": "drive", "slot": "evening", "value": 3 }, "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 3 }, "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 3 }, "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": false }, "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 3 }, "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 3 }, "conflicts": { "itemId": "conflicts", "slot": "evening", "value": false }, "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": true }, "rebound_intensity": { "itemId": "rebound_intensity", "slot": "evening", "value": 3 }, "rebound_time": { "itemId": "rebound_time", "slot": "evening", "value": "16:30" }, "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 2 }, "ate": { "itemId": "ate", "slot": "evening", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 3 }, "headache": { "itemId": "headache", "slot": "evening", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false }, "tension": { "itemId": "tension", "slot": "evening", "value": false }, "school_performance": { "itemId": "school_performance", "slot": "evening", "value": 3 }, "school_social": { "itemId": "school_social", "slot": "evening", "value": 3 }, "school_conflicts": { "itemId": "school_conflicts", "slot": "evening", "value": false }, "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Trotz Müdigkeit Aufgaben erledigt." } } }
+      }
+    },
+    {
+      "date": "2026-06-10",
+      "dayOfWeek": "Di",
+      "periodId": "test-period-child",
+      "updatedAt": 1749585600000,
+      "slots": {
+        "morning": { "status": "done", "medicationTaken": true, "medicationTime": "07:20", "medsTaken": { "concerta-18": true }, "medsDose": { "concerta-18": 18 }, "answers": { "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 8.5 }, "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 20 }, "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": true }, "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 4 }, "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "high" }, "focus": { "itemId": "focus", "slot": "morning", "value": 5 }, "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 1 }, "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 1 }, "ate": { "itemId": "ate", "slot": "morning", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 4 }, "headache": { "itemId": "headache", "slot": "morning", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "morning", "value": false }, "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false }, "tension": { "itemId": "tension", "slot": "morning", "value": false } } },
+        "midday": { "status": "done", "medicationTaken": true, "medicationTime": "12:00", "medsTaken": { "ritalin-5": true }, "medsDose": { "ritalin-5": 5 }, "answers": { "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "high" }, "focus": { "itemId": "focus", "slot": "midday", "value": 5 }, "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 1 }, "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 1 }, "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": true }, "ate": { "itemId": "ate", "slot": "midday", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 3 }, "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 2 }, "headache": { "itemId": "headache", "slot": "midday", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "midday", "value": false }, "tension": { "itemId": "tension", "slot": "midday", "value": false } } },
+        "evening": { "status": "done", "answers": { "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "high" }, "drive": { "itemId": "drive", "slot": "evening", "value": 5 }, "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 1 }, "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 5 }, "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": false }, "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 1 }, "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 5 }, "conflicts": { "itemId": "conflicts", "slot": "evening", "value": false }, "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": false }, "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 3 }, "ate": { "itemId": "ate", "slot": "evening", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 4 }, "headache": { "itemId": "headache", "slot": "evening", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false }, "tension": { "itemId": "tension", "slot": "evening", "value": false }, "school_performance": { "itemId": "school_performance", "slot": "evening", "value": 5 }, "school_social": { "itemId": "school_social", "slot": "evening", "value": 5 }, "school_conflicts": { "itemId": "school_conflicts", "slot": "evening", "value": false }, "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Bester Tag seit langem — alles hat geklappt." } } }
+      }
+    },
+    {
+      "date": "2026-06-11",
+      "dayOfWeek": "Mi",
+      "periodId": "test-period-child",
+      "updatedAt": 1749672000000,
+      "slots": {
+        "morning": { "status": "done", "medicationTaken": true, "medicationTime": "07:15", "medsTaken": { "concerta-18": true }, "medsDose": { "concerta-18": 18 }, "answers": { "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 9.0 }, "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 15 }, "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": true }, "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 5 }, "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "high" }, "focus": { "itemId": "focus", "slot": "morning", "value": 4 }, "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 2 }, "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 1 }, "ate": { "itemId": "ate", "slot": "morning", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 3 }, "headache": { "itemId": "headache", "slot": "morning", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "morning", "value": false }, "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false }, "tension": { "itemId": "tension", "slot": "morning", "value": false } } },
+        "midday": { "status": "done", "medicationTaken": true, "medicationTime": "12:05", "medsTaken": { "ritalin-5": true }, "medsDose": { "ritalin-5": 5 }, "answers": { "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "high" }, "focus": { "itemId": "focus", "slot": "midday", "value": 4 }, "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 2 }, "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 1 }, "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": true }, "ate": { "itemId": "ate", "slot": "midday", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 2 }, "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 2 }, "headache": { "itemId": "headache", "slot": "midday", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "midday", "value": false }, "tension": { "itemId": "tension", "slot": "midday", "value": false } } },
+        "evening": { "status": "done", "answers": { "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "mid" }, "drive": { "itemId": "drive", "slot": "evening", "value": 4 }, "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 2 }, "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 4 }, "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": false }, "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 2 }, "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 4 }, "conflicts": { "itemId": "conflicts", "slot": "evening", "value": false }, "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": false }, "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 3 }, "ate": { "itemId": "ate", "slot": "evening", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 4 }, "headache": { "itemId": "headache", "slot": "evening", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false }, "tension": { "itemId": "tension", "slot": "evening", "value": false }, "school_performance": { "itemId": "school_performance", "slot": "evening", "value": 4 }, "school_social": { "itemId": "school_social", "slot": "evening", "value": 4 }, "school_conflicts": { "itemId": "school_conflicts", "slot": "evening", "value": false }, "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Hat freiwillig aufgeräumt." } } }
+      }
+    },
+    {
+      "date": "2026-06-12",
+      "dayOfWeek": "Do",
+      "periodId": "test-period-child",
+      "updatedAt": 1749758400000,
+      "slots": {
+        "morning": { "status": "done", "medicationTaken": true, "medicationTime": "07:20", "medsTaken": { "concerta-18": true }, "medsDose": { "concerta-18": 18 }, "answers": { "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 8.0 }, "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 25 }, "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": true }, "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 4 }, "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "high" }, "focus": { "itemId": "focus", "slot": "morning", "value": 3 }, "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 2 }, "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 2 }, "ate": { "itemId": "ate", "slot": "morning", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 3 }, "headache": { "itemId": "headache", "slot": "morning", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "morning", "value": false }, "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false }, "tension": { "itemId": "tension", "slot": "morning", "value": false } } },
+        "midday": { "status": "done", "medicationTaken": true, "medicationTime": "12:15", "medsTaken": { "ritalin-5": true }, "medsDose": { "ritalin-5": 5 }, "answers": { "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "high" }, "focus": { "itemId": "focus", "slot": "midday", "value": 4 }, "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 2 }, "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 1 }, "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": true }, "ate": { "itemId": "ate", "slot": "midday", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 3 }, "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 2 }, "headache": { "itemId": "headache", "slot": "midday", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "midday", "value": false }, "tension": { "itemId": "tension", "slot": "midday", "value": false } } },
+        "evening": { "status": "done", "answers": { "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "mid" }, "drive": { "itemId": "drive", "slot": "evening", "value": 4 }, "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 2 }, "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 4 }, "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": false }, "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 2 }, "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 4 }, "conflicts": { "itemId": "conflicts", "slot": "evening", "value": false }, "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": true }, "rebound_intensity": { "itemId": "rebound_intensity", "slot": "evening", "value": 2 }, "rebound_time": { "itemId": "rebound_time", "slot": "evening", "value": "17:15" }, "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 3 }, "ate": { "itemId": "ate", "slot": "evening", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 4 }, "headache": { "itemId": "headache", "slot": "evening", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false }, "tension": { "itemId": "tension", "slot": "evening", "value": false }, "school_performance": { "itemId": "school_performance", "slot": "evening", "value": 4 }, "school_social": { "itemId": "school_social", "slot": "evening", "value": 4 }, "school_conflicts": { "itemId": "school_conflicts", "slot": "evening", "value": false }, "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Gute Rückmeldung von der Lehrerin." } } }
+      }
+    },
+    {
+      "date": "2026-06-13",
+      "dayOfWeek": "Fr",
+      "periodId": "test-period-child",
+      "updatedAt": 1749844800000,
+      "slots": {
+        "morning": { "status": "done", "medicationTaken": true, "medicationTime": "07:30", "medsTaken": { "concerta-18": true }, "medsDose": { "concerta-18": 18 }, "answers": { "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 7.5 }, "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 30 }, "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": true }, "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 3 }, "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "mid" }, "focus": { "itemId": "focus", "slot": "morning", "value": 3 }, "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 3 }, "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 2 }, "ate": { "itemId": "ate", "slot": "morning", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 2 }, "headache": { "itemId": "headache", "slot": "morning", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "morning", "value": false }, "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false }, "tension": { "itemId": "tension", "slot": "morning", "value": false } } },
+        "midday": { "status": "done", "medicationTaken": true, "medicationTime": "12:25", "medsTaken": { "ritalin-5": true }, "medsDose": { "ritalin-5": 5 }, "answers": { "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "mid" }, "focus": { "itemId": "focus", "slot": "midday", "value": 3 }, "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 2 }, "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 2 }, "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": true }, "ate": { "itemId": "ate", "slot": "midday", "value": false }, "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 1 }, "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 1 }, "headache": { "itemId": "headache", "slot": "midday", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "midday", "value": false }, "tension": { "itemId": "tension", "slot": "midday", "value": false } } },
+        "evening": { "status": "done", "answers": { "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "low" }, "drive": { "itemId": "drive", "slot": "evening", "value": 2 }, "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 3 }, "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 3 }, "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": false }, "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 3 }, "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 3 }, "conflicts": { "itemId": "conflicts", "slot": "evening", "value": false }, "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": true }, "rebound_intensity": { "itemId": "rebound_intensity", "slot": "evening", "value": 3 }, "rebound_time": { "itemId": "rebound_time", "slot": "evening", "value": "16:45" }, "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 2 }, "ate": { "itemId": "ate", "slot": "evening", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 3 }, "headache": { "itemId": "headache", "slot": "evening", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false }, "tension": { "itemId": "tension", "slot": "evening", "value": false }, "school_performance": { "itemId": "school_performance", "slot": "evening", "value": 3 }, "school_social": { "itemId": "school_social", "slot": "evening", "value": 3 }, "school_conflicts": { "itemId": "school_conflicts", "slot": "evening", "value": false }, "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Wochenende! Freut sich auf Ausflug morgen." } } }
+      }
+    },
+    {
+      "date": "2026-06-14",
+      "dayOfWeek": "Sa",
+      "periodId": "test-period-child",
+      "updatedAt": 1749931200000,
+      "slots": {
+        "morning": { "status": "done", "medicationTaken": true, "medicationTime": "08:30", "medsTaken": { "concerta-18": true }, "medsDose": { "concerta-18": 18 }, "answers": { "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 10.0 }, "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 30 }, "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": true }, "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 4 }, "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "mid" }, "focus": { "itemId": "focus", "slot": "morning", "value": 2 }, "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 3 }, "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 3 }, "ate": { "itemId": "ate", "slot": "morning", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 3 }, "headache": { "itemId": "headache", "slot": "morning", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "morning", "value": false }, "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false }, "tension": { "itemId": "tension", "slot": "morning", "value": false } } },
+        "midday": { "status": "done", "medicationTaken": false, "answers": { "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "low" }, "focus": { "itemId": "focus", "slot": "midday", "value": 1 }, "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 4 }, "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 4 }, "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": false }, "ate": { "itemId": "ate", "slot": "midday", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 3 }, "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 3 }, "headache": { "itemId": "headache", "slot": "midday", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "midday", "value": false }, "tension": { "itemId": "tension", "slot": "midday", "value": false } } },
+        "evening": { "status": "done", "answers": { "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "low" }, "drive": { "itemId": "drive", "slot": "evening", "value": 2 }, "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 3 }, "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 3 }, "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": true }, "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 3 }, "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 3 }, "conflicts": { "itemId": "conflicts", "slot": "evening", "value": true }, "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": true }, "rebound_intensity": { "itemId": "rebound_intensity", "slot": "evening", "value": 4 }, "rebound_time": { "itemId": "rebound_time", "slot": "evening", "value": "15:45" }, "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 3 }, "ate": { "itemId": "ate", "slot": "evening", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 4 }, "headache": { "itemId": "headache", "slot": "evening", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false }, "tension": { "itemId": "tension", "slot": "evening", "value": true }, "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Familienausflug — trotz Rebound danach ein schöner Tag." } } }
+      }
+    },
+    {
+      "date": "2026-06-15",
+      "dayOfWeek": "So",
+      "periodId": "test-period-child",
+      "updatedAt": 1750017600000,
+      "slots": {
+        "morning": { "status": "done", "medicationTaken": true, "medicationTime": "09:15", "medsTaken": { "concerta-18": true }, "medsDose": { "concerta-18": 18 }, "answers": { "sleep_duration": { "itemId": "sleep_duration", "slot": "morning", "value": 9.5 }, "sleep_latency": { "itemId": "sleep_latency", "slot": "morning", "value": 40 }, "sleep_through": { "itemId": "sleep_through", "slot": "morning", "value": false }, "sleep_recovery": { "itemId": "sleep_recovery", "slot": "morning", "value": 3 }, "energy_level": { "itemId": "energy_level", "slot": "morning", "value": "low" }, "focus": { "itemId": "focus", "slot": "morning", "value": 2 }, "distractibility": { "itemId": "distractibility", "slot": "morning", "value": 4 }, "impulsivity": { "itemId": "impulsivity", "slot": "morning", "value": 3 }, "ate": { "itemId": "ate", "slot": "morning", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "morning", "value": 2 }, "headache": { "itemId": "headache", "slot": "morning", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "morning", "value": true }, "heart_racing": { "itemId": "heart_racing", "slot": "morning", "value": false }, "tension": { "itemId": "tension", "slot": "morning", "value": false } } },
+        "midday": { "status": "done", "medicationTaken": false, "answers": { "energy_level": { "itemId": "energy_level", "slot": "midday", "value": "low" }, "focus": { "itemId": "focus", "slot": "midday", "value": 1 }, "distractibility": { "itemId": "distractibility", "slot": "midday", "value": 5 }, "impulsivity": { "itemId": "impulsivity", "slot": "midday", "value": 4 }, "school_work_today": { "itemId": "school_work_today", "slot": "midday", "value": false }, "ate": { "itemId": "ate", "slot": "midday", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "midday", "value": 2 }, "meal_hunger": { "itemId": "meal_hunger", "slot": "midday", "value": 2 }, "headache": { "itemId": "headache", "slot": "midday", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "midday", "value": true }, "tension": { "itemId": "tension", "slot": "midday", "value": true } } },
+        "evening": { "status": "done", "answers": { "energy_level": { "itemId": "energy_level", "slot": "evening", "value": "low" }, "drive": { "itemId": "drive", "slot": "evening", "value": 2 }, "inner_tension": { "itemId": "inner_tension", "slot": "evening", "value": 4 }, "frustration_tolerance": { "itemId": "frustration_tolerance", "slot": "evening", "value": 2 }, "emotional_outbursts": { "itemId": "emotional_outbursts", "slot": "evening", "value": true }, "stress_level": { "itemId": "stress_level", "slot": "evening", "value": 4 }, "social_interactions": { "itemId": "social_interactions", "slot": "evening", "value": 2 }, "conflicts": { "itemId": "conflicts", "slot": "evening", "value": true }, "rebound_today": { "itemId": "rebound_today", "slot": "evening", "value": true }, "rebound_intensity": { "itemId": "rebound_intensity", "slot": "evening", "value": 5 }, "rebound_time": { "itemId": "rebound_time", "slot": "evening", "value": "14:45" }, "meals_today": { "itemId": "meals_today", "slot": "evening", "value": 2 }, "ate": { "itemId": "ate", "slot": "evening", "value": true }, "meal_appetite": { "itemId": "meal_appetite", "slot": "evening", "value": 3 }, "headache": { "itemId": "headache", "slot": "evening", "value": false }, "stomachache": { "itemId": "stomachache", "slot": "evening", "value": false }, "tension": { "itemId": "tension", "slot": "evening", "value": true }, "reflection_what_worked": { "itemId": "reflection_what_worked", "slot": "evening", "value": "Abends Hörspiel gehört — war danach ruhiger." } } }
+      }
+    }
+  ],
+  "observer_entries": [
+    { "date": "2026-06-02", "role": "parent", "note": "Montag war anstrengend, Umstellung nach dem Wochenende.", "answers": { "home_mood": 2, "home_cooperation": 2, "home_emotional_regulation": 3, "home_focus_homework": 2, "home_bedtime_routine": 2, "home_rebound_observed": true } },
+    { "date": "2026-06-03", "role": "parent", "note": "Guter Tag, hat Hausaufgaben selbständig gemacht.", "answers": { "home_mood": 4, "home_cooperation": 4, "home_emotional_regulation": 4, "home_focus_homework": 4, "home_bedtime_routine": 4, "home_rebound_observed": false } },
+    { "date": "2026-06-04", "role": "parent", "note": "Sehr ausgeglichen heute.", "answers": { "home_mood": 5, "home_cooperation": 4, "home_emotional_regulation": 5, "home_focus_homework": 4, "home_bedtime_routine": 4, "home_rebound_observed": false } },
+    { "date": "2026-06-05", "role": "parent", "note": "Abends etwas unruhig nach dem Sport.", "answers": { "home_mood": 4, "home_cooperation": 4, "home_emotional_regulation": 3, "home_focus_homework": 4, "home_bedtime_routine": 3, "home_rebound_observed": true } },
+    { "date": "2026-06-07", "role": "parent", "note": "Samstag ohne Booster — Impulsivität deutlich höher ab Mittag.", "answers": { "home_mood": 2, "home_cooperation": 2, "home_emotional_regulation": 2, "home_focus_homework": null, "home_bedtime_routine": 2, "home_rebound_observed": true } },
+    { "date": "2026-06-08", "role": "parent", "note": "Sonntag: langer Rebound, viel Bewegungsdrang.", "answers": { "home_mood": 2, "home_cooperation": 2, "home_emotional_regulation": 2, "home_focus_homework": null, "home_bedtime_routine": 2, "home_rebound_observed": true } },
+    { "date": "2026-06-09", "role": "parent", "note": "Montagmorgen schwierig, hat sich aber gefangen.", "answers": { "home_mood": 3, "home_cooperation": 3, "home_emotional_regulation": 3, "home_focus_homework": 3, "home_bedtime_routine": 3, "home_rebound_observed": true } },
+    { "date": "2026-06-10", "role": "parent", "note": "Richtig toller Tag. Abends friedlich eingeschlafen.", "answers": { "home_mood": 5, "home_cooperation": 5, "home_emotional_regulation": 5, "home_focus_homework": 5, "home_bedtime_routine": 5, "home_rebound_observed": false } },
+    { "date": "2026-06-12", "role": "parent", "note": "Gute Woche bisher, Lehrerin hat sich positiv gemeldet.", "answers": { "home_mood": 4, "home_cooperation": 4, "home_emotional_regulation": 4, "home_focus_homework": 4, "home_bedtime_routine": 4, "home_rebound_observed": true } },
+    { "date": "2026-06-15", "role": "parent", "note": "Wochenende wieder schwieriger, Rebound schon um 14:45.", "answers": { "home_mood": 2, "home_cooperation": 2, "home_emotional_regulation": 2, "home_focus_homework": null, "home_bedtime_routine": 2, "home_rebound_observed": true } }
+  ],
+  "professional_feedback": [
+    {
+      "weekStart": "2026-06-02", "weekEnd": "2026-06-08", "role": "teacher",
+      "name": "Fr. Müller (Klassenlehrerin)",
+      "note": "Liam war diese Woche insgesamt gut dabei. Montag und Freitag etwas unkonzentrierter, Mittwoch besonders aufmerksam. Bei Gruppenarbeiten gut integriert. Aufräumen des Platzes bleibt schwierig.",
+      "answers": { "obs_attention_sustained": 3, "obs_attention_switching": 2, "obs_hyperactivity_classroom": 3, "obs_impulsivity_verbal": 3, "obs_impulsivity_physical": 2, "obs_emotional_regulation": 3, "obs_peer_interaction": 4, "obs_instruction_following": 3, "obs_task_completion": 3, "obs_organizational_skills": 2 }
+    },
+    {
+      "weekStart": "2026-06-09", "weekEnd": "2026-06-15", "role": "teacher",
+      "name": "Fr. Müller (Klassenlehrerin)",
+      "note": "Deutliche Verbesserung gegenüber Vorwoche. Liam meldet sich häufiger, wartet besser ab. Donnerstag kleiner Konflikt auf dem Pausenplatz, hat sich aber selbst beruhigt. Insgesamt positiver Trend.",
+      "answers": { "obs_attention_sustained": 4, "obs_attention_switching": 3, "obs_hyperactivity_classroom": 2, "obs_impulsivity_verbal": 2, "obs_impulsivity_physical": 2, "obs_emotional_regulation": 4, "obs_peer_interaction": 4, "obs_instruction_following": 4, "obs_task_completion": 3, "obs_organizational_skills": 3 }
+    }
+  ]
+}
