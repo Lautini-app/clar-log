@@ -1,7 +1,7 @@
 import { MedicationEditor } from "@/components/clar/TodayView";
 // redeploy 43fb01
 import { useEffect, useState } from "react";
-import { Copy, Download, Loader2, Plus, Trash2 } from "lucide-react"; // Plus/Trash2 used in FamilySettings
+import { Copy, Download, Loader2, Plus, Share2, Trash2 } from "lucide-react"; // Plus/Trash2 used in FamilySettings
 
 import { SectionCard } from "./SectionCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,6 +62,15 @@ function ObserverLinkSettings({ ownerId, periodId }: { ownerId: string; periodId
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleShare = () => {
+    if (!linkUrl) return;
+    if (navigator.share) {
+      navigator.share({ title: "clar·log Beobachter-Link", url: linkUrl }).catch(() => {});
+    } else {
+      window.location.href = `mailto:?subject=${encodeURIComponent("clar·log Beobachter-Link")}&body=${encodeURIComponent(linkUrl)}`;
+    }
+  };
+
   if (loading) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
 
   return (
@@ -71,15 +80,20 @@ function ObserverLinkSettings({ ownerId, periodId }: { ownerId: string; periodId
       </p>
       {linkUrl ? (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
-            <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{linkUrl}</span>
-            <button type="button" onClick={handleCopy}
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-primary hover:bg-primary/10"
-              aria-label="Link kopieren">
-              <Copy className="h-4 w-4" />
-            </button>
+          <div className="rounded-xl border border-border bg-card px-3 py-2">
+            <span className="block truncate text-xs text-muted-foreground">{linkUrl}</span>
           </div>
           {copied && <p className="text-xs text-green-600">Link kopiert!</p>}
+          <div className="flex gap-2">
+            <button type="button" onClick={handleCopy}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-card py-2 text-sm font-semibold text-primary">
+              <Copy className="h-4 w-4" /> Kopieren
+            </button>
+            <button type="button" onClick={handleShare}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-card py-2 text-sm font-semibold text-primary">
+              <Share2 className="h-4 w-4" /> Teilen
+            </button>
+          </div>
           <p className="text-xs text-muted-foreground">
             {link?.name && <span className="font-medium">{link.name} · </span>}
             Gültig bis {new Date(link!.expiresAt).toLocaleDateString("de-DE")}
@@ -88,11 +102,12 @@ function ObserverLinkSettings({ ownerId, periodId }: { ownerId: string; periodId
         </div>
       ) : (
         <div className="space-y-2">
+          <label className="block text-sm font-semibold text-muted-foreground">Name des Beobachters</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Name der Person (optional)"
+            placeholder="z.B. Mama, Papa, Oma"
             className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
           />
         </div>

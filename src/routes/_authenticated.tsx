@@ -80,7 +80,7 @@ function AuthenticatedLayout() {
   useEffect(() => {
     if (!hydrated || !tokenChecked || !userId) return;
     const pathname = window.location.pathname;
-    if (pathname !== "/beobachten") {
+    if (pathname !== "/beobachten" && !pathname.startsWith("/beobachtung/")) {
       // Prüfe ob User ein Beobachter ist (kein Admin)
       import("@/integrations/supabase/client").then(({ supabase }) => {
         supabase.schema("clar_log").from("observers")

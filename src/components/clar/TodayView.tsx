@@ -416,23 +416,22 @@ function Onboarding({ settings, onSettingsChange, userId }: Pick<Props, "setting
                   : "child";
                 const opts: [string, string][] =
                   ageGroup === "child" ? [
-                    ["kindergarten",  "Kindergarten / Kita"],
-                    ["primary",       "Primarschule (1.–6. Kl.)"],
-                    ["special_ed",    "Sonderpäd. Bildungsangebot"],
-                    ["home",          "Zu Hause (nicht in Schule)"],
+                    ["kindergarten",  "Kindergarten"],
+                    ["primary",       "Primarschule"],
+                    ["special_ed",    "Sonderpädagogisches Bildungsangebot"],
                   ] : ageGroup === "teen" ? [
-                    ["primary",       "Primarschule (1.–6. Kl.)"],
-                    ["secondary",     "Sekundarschule (7.–9. Kl.)"],
+                    ["primary",       "Primarschule"],
+                    ["secondary",     "Sekundarschule"],
                     ["gymnasium",     "Gymnasium"],
-                    ["special_ed",    "Sonderpäd. Bildungsangebot"],
-                    ["apprentice",    "Ausbildung / Lehre"],
+                    ["special_ed",    "Sonderpädagogisches Bildungsangebot"],
+                    ["apprentice",    "Ausbildung"],
                   ] : [
                     ["secondary",     "Sekundarschule"],
                     ["gymnasium",     "Gymnasium"],
-                    ["apprentice",    "Ausbildung / Lehre"],
+                    ["apprentice",    "Ausbildung"],
                     ["student",       "Studium"],
                     ["employed",      "Berufstätig"],
-                    ["special_ed",    "Sonderpäd. Bildungsangebot"],
+                    ["special_ed",    "Sonderpädagogisches Bildungsangebot"],
                   ];
                 const selected = draft.lifeContexts ?? [];
                 const toggle = (key: string) => {
