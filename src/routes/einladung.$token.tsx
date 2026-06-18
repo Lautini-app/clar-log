@@ -1,9 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { acceptFamilyInvite } from "@/lib/family.functions";
+import { acceptFamilyInvite, setupTeenSettings } from "@/lib/family.functions";
 import { acceptObserverInvite } from "@/lib/clar-observers";
-import { createPeriod, defaultSettings } from "@/lib/clar-storage";
 
 export const Route = createFileRoute("/einladung/$token")({
   ssr: false,
@@ -55,24 +54,10 @@ await acceptFamilyInvite(token);
             .maybeSingle();
           isObserver = !!asObserver;
 
-          // Kein Beobachter → Familienmitglied: teen_self-Settings anlegen falls noch keine vorhanden
+          // Kein Beobachter → Familienmitglied: teen_self-Settings via SECURITY DEFINER RPC anlegen
+          // (kopiert Medikamente + Einstellungen vom Admin, RLS kann das nicht client-seitig)
           if (!isObserver) {
-            const { data: existing } = await supabase
-              .schema("clar_log")
-              .from("tracker_settings")
-              .select("data")
-              .eq("user_id", userId)
-              .maybeSingle();
-            const existingPeriods = (existing?.data as { periods?: unknown[] } | null)?.periods;
-            if (!existingPeriods?.length) {
-              const period = createPeriod({ profile: "teen_self" });
-              const settings = { ...defaultSettings, periods: [period], activePeriodId: period.id };
-              await supabase.schema("clar_log").from("tracker_settings")
-                .upsert(
-                  { user_id: userId, data: settings, updated_at: new Date().toISOString() },
-                  { onConflict: "user_id" },
-                );
-            }
+            await setupTeenSettings(token);
           }
         }
       } catch (_e) {

@@ -117,3 +117,10 @@ export async function acceptFamilyInvite(token: string): Promise<void> {
   });
   if (error) throw new Error(error.message);
 }
+
+/** Legt teen_self-Settings an und kopiert Medikamente vom Admin-Account.
+ *  Nutzt SECURITY DEFINER RPC um Admin-Settings trotz RLS zu lesen. */
+export async function setupTeenSettings(token: string): Promise<void> {
+  const { error } = await supabase.rpc("setup_teen_settings", { input_token: token });
+  if (error) throw new Error(error.message);
+}
