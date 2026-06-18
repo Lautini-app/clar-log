@@ -731,27 +731,21 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
             />
           </SectionCard>
 
-          {/* Beobachter einladen: nur für Erwachsene (self) */}
-          {userId && (activePeriod.profile === "self" || !activePeriod.profile) && (
-            <SectionCard title="Beobachter" subtitle="Partner oder Familienmitglied → füllt täglich ein Kurzformular aus.">
+          {/* Beobachter: für self + child_parent + teen_self */}
+          {userId && (
+            <SectionCard title="Beobachter" subtitle="Partner oder zweites Elternteil → füllt täglich ein Kurzformular aus.">
               <ObserverSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
-          {/* Lehr-/Fachpersonen-Link: woechentlicher Fragebogen, nur fuer Erwachsene (self) */}
-          {userId && activePeriod.profile === "self" && (
-            <SectionCard title="Lehr- & Fachpersonen" subtitle="Link für wöchentlichen Fragebogen (kein Login nötig)">
+          {/* Lehrperson-Link: für child_parent + teen_self (nicht für self) */}
+          {userId && activePeriod.profile !== "self" && (
+            <SectionCard title="Lehrperson" subtitle="Link für wöchentlichen Fragebogen — kein Login nötig, 7 Tage gültig.">
               <TeacherLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
-          {/* Kind/Jugendliche/r einladen: nur für Elternteile */}
-          {userId && (activePeriod.profile === "child_parent" || activePeriod.profile === "child_both") && (
-            <SectionCard title="Kind einladen" subtitle="Kind oder Jugendliche/r erhält Zugang auf eigenem Gerät.">
-              <FamilySettings userId={userId} childOnly />
-            </SectionCard>
-          )}
-          {/* Jugendliche/r einladen: für teen_self Elternteil */}
+          {/* Jugendliche/r einladen: nur für teen_self */}
           {userId && activePeriod.profile === "teen_self" && (
-            <SectionCard title="Jugendliche/r einladen" subtitle="Jugendliche/r erhält Zugang auf eigenem Gerät.">
+            <SectionCard title="Jugendliche/r einladen" subtitle="Jugendliche/r (12–17) erhält eigenen Zugang und füllt das Tagebuch selbst aus.">
               <FamilySettings userId={userId} childOnly />
             </SectionCard>
           )}
