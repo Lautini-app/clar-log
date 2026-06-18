@@ -300,7 +300,7 @@ function Onboarding({ settings, onSettingsChange }: Pick<Props, "settings" | "on
   // Alter berechnen
   const birthYear = draft.birthYear;
   const age = birthYear ? new Date().getFullYear() - birthYear : null;
-  const isParentFlow = draft.profile === "child_parent";
+  const isParentFlow = draft.profile === "child_parent" || draft.profile === "teen_self";
   const isTeenFlow = draft.profile === "teen_self";
 
   const steps = [
