@@ -82,7 +82,7 @@ type DetailPanel = {
   title: string;
   days: string[];
   dayLogs: (DayLog | undefined)[];
-  type: "emotions" | "focus_detail" | "school" | "body" | "food";
+  type: "emotions" | "focus_detail" | "school" | "body" | "food" | "rebound" | "sleep" | "energy";
 };
 
 function DetailView({ panel, onClose }: { panel: DetailPanel; onClose: () => void }) {
@@ -254,6 +254,80 @@ function DetailView({ panel, onClose }: { panel: DetailPanel; onClose: () => voi
             })}
           </div>
         )}
+        {panel.type === "energy" && (
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead><tr>
+              <th style={{ textAlign: "left", padding: "4px 0", color: "var(--color-text-secondary)", fontSize: 11 }}>Tag</th>
+              <th style={{ textAlign: "center", fontSize: 11, color: "var(--color-text-secondary)" }}>Energie</th>
+            </tr></thead>
+            <tbody>
+              {panel.days.map((day, di) => {
+                const log = panel.dayLogs[di];
+                return (
+                  <tr key={day} style={{ borderTop: "0.5px solid var(--color-border-tertiary)" }}>
+                    <td style={{ padding: "6px 0", color: "var(--color-text-secondary)", fontSize: 12 }}>{DAYS[di]}</td>
+                    <td style={{ textAlign: "center" }}><CellBtn val={collectVal(log, "energy_level")} /></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+
+        {panel.type === "rebound" && (
+          <div>
+            {panel.days.map((day, di) => {
+              const log = panel.dayLogs[di];
+              const had = collectVal(log, "rebound_today");
+              if (had !== 1) return null;
+              const timeA = collectAnswer(log, "rebound_time");
+              const typeA = collectAnswer(log, "rebound_type");
+              const intA = collectVal(log, "rebound_intensity");
+              const timeStr = typeof timeA === "object" && timeA !== null ? String((timeA as any).value ?? "") : String(timeA ?? "");
+              const typeStr = typeof typeA === "object" && typeA !== null ? String((typeA as any).value ?? "") : String(typeA ?? "");
+              return (
+                <div key={day} style={{ marginBottom: "1rem", padding: "8px 0", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
+                  <p style={{ fontSize: 12, fontWeight: 500, color: "var(--color-text-secondary)", marginBottom: 4 }}>{DAYS[di]} {new Date(day).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })}</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, fontSize: 12 }}>
+                    {timeStr && <span style={{ background: "#FAEEDA", color: "#854F0B", borderRadius: 20, padding: "3px 10px" }}>⏰ {timeStr}</span>}
+                    {typeStr && <span style={{ background: "#FCEBEB", color: "#A32D2D", borderRadius: 20, padding: "3px 10px" }}>{typeStr}</span>}
+                    {intA !== undefined && <span style={{ background: intA >= 3 ? "#FCEBEB" : "#FAEEDA", color: intA >= 3 ? "#A32D2D" : "#854F0B", borderRadius: 20, padding: "3px 10px" }}>Stärke {intA}/4</span>}
+                  </div>
+                </div>
+              );
+            })}
+            {panel.dayLogs.every(l => collectVal(l, "rebound_today") !== 1) && (
+              <p style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>Kein Rebound in dieser Woche.</p>
+            )}
+          </div>
+        )}
+
+        {panel.type === "sleep" && (
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead><tr>
+              <th style={{ textAlign: "left", padding: "4px 0", color: "var(--color-text-secondary)", fontSize: 11 }}>Tag</th>
+              <th style={{ textAlign: "center", fontSize: 11, color: "var(--color-text-secondary)" }}>Dauer</th>
+              <th style={{ textAlign: "center", fontSize: 11, color: "var(--color-text-secondary)" }}>Qualität</th>
+              <th style={{ textAlign: "center", fontSize: 11, color: "var(--color-text-secondary)" }}>Einschlaf.</th>
+            </tr></thead>
+            <tbody>
+              {panel.days.map((day, di) => {
+                const log = panel.dayLogs[di];
+                const dur = collectVal(log, "sleep_hours");
+                const qual = collectVal(log, "sleep_quality");
+                const einschl = collectVal(log, "fall_asleep_duration");
+                return (
+                  <tr key={day} style={{ borderTop: "0.5px solid var(--color-border-tertiary)" }}>
+                    <td style={{ padding: "6px 0", color: "var(--color-text-secondary)", fontSize: 12 }}>{DAYS[di]}</td>
+                    <td style={{ textAlign: "center", fontWeight: 500, color: dur !== undefined ? (dur >= 7 ? "#0F6E56" : dur >= 6 ? "#854F0B" : "#A32D2D") : "var(--color-text-tertiary)" }}>{dur !== undefined ? dur + "h" : "—"}</td>
+                    <td style={{ textAlign: "center" }}><CellBtn val={qual} /></td>
+                    <td style={{ textAlign: "center", fontWeight: 500, color: einschl !== undefined ? (einschl <= 20 ? "#0F6E56" : einschl <= 40 ? "#854F0B" : "#A32D2D") : "var(--color-text-tertiary)" }}>{einschl !== undefined ? einschl + "min" : "—"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
@@ -372,12 +446,12 @@ export function DossierView({ settings, logs, ownerId }: Props) {
             <tr><th style={{ width: 86 }} />{DAYS.map(d => <th key={d} style={{ fontSize: 11, fontWeight: 500, color: "var(--color-text-secondary)", textAlign: "center", padding: "3px 1px" }}>{d}</th>)}</tr>
           </thead>
           <tbody>
-            <HmRow label="Energie" vals={energyVals} detailType="focus_detail" />
+            <HmRow label="Energie" vals={energyVals} detailType="energy" />
             <HmRow label="Stimmung" vals={moodVals} detailType="emotions" />
             <HmRow label="Fokus" vals={focusVals} detailType="focus_detail" />
             <HmRow label="Impulsivität" vals={impVals} invert detailType="focus_detail" />
             <tr>
-              <td style={{ textAlign: "left", fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500, paddingRight: 6 }}>Rebound</td>
+              <td style={{ textAlign: "left", fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500, paddingRight: 6 }} onClick={() => setDetail({ title: "Rebound", days, dayLogs, type: "rebound" })} style={{ cursor: "pointer" }}>Rebound ▸</td>
               {reboundDays.map((v, i) => (
                 <td key={i} style={{ textAlign: "center", padding: "2px 1px" }}>
                   <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 26, borderRadius: 4,
@@ -428,7 +502,7 @@ export function DossierView({ settings, logs, ownerId }: Props) {
 
       {/* Schlaf */}
       <div style={{ marginBottom: "1.25rem" }}>
-        <p style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 8 }}>Schlaf</p>
+        <p onClick={() => setDetail({ title: "Schlaf", days, dayLogs, type: "sleep" })} style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 8, cursor: "pointer" }}>Schlaf ▸</p>
         {sleepVals.map((val, i) => val !== undefined ? (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
             <span style={{ fontSize: 11, color: "var(--color-text-secondary)", width: 22 }}>{DAYS[i]}</span>
