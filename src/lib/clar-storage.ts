@@ -259,6 +259,7 @@ export type ObserverObservation = {
   behavior?: number;
   concentration?: number;
   note?: string;
+  answers?: Record<string, unknown>;
   createdAt: string;
 };
 

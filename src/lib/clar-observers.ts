@@ -310,6 +310,7 @@ export async function listObserverObservations(ownerId: string, periodId: string
     behavior: row.behavior ?? undefined,
     concentration: row.concentration ?? undefined,
     note: row.note ?? undefined,
+    answers: row.answers ? (row.answers as Record<string, unknown>) : undefined,
     createdAt: String(row.created_at),
   }));
 }
