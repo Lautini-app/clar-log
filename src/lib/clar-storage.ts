@@ -236,6 +236,18 @@ export type TeacherLink = {
   expiresAt: string;
 };
 
+export type ObserverLink = {
+  id: string;
+  ownerId: string;
+  periodId: string;
+  token: string;
+  name?: string;
+  active: boolean;
+  createdAt: string;
+  expiresAt: string;
+  lastUsedAt?: string;
+};
+
 export type ObserverObservation = {
   id: string;
   ownerId: string;

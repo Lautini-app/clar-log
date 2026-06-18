@@ -1,5 +1,5 @@
 import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
-import type { Observer, ObserverObservation, ObserverRole, TeacherLink } from "./clar-storage";
+import type { Observer, ObserverLink, ObserverObservation, ObserverRole, TeacherLink } from "./clar-storage";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function isUuid(v: string | null | undefined): boolean {
@@ -194,6 +194,101 @@ export async function submitObserverObservation(
     { onConflict: "owner_id,observer_user_id,date" },
   );
   if (error) throw error;
+}
+
+export async function getActiveObserverLink(ownerId: string, periodId: string): Promise<ObserverLink | null> {
+  if (!isUuid(periodId)) return null;
+  const { data, error } = await supabase
+    .schema("clar_log")
+    .from("observer_links")
+    .select("*")
+    .eq("owner_id", ownerId)
+    .eq("period_id", periodId)
+    .eq("active", true)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return {
+    id: String(data.id),
+    ownerId: String(data.owner_id),
+    periodId: String(data.period_id),
+    token: String(data.token),
+    name: data.name ? String(data.name) : undefined,
+    active: Boolean(data.active),
+    createdAt: String(data.created_at),
+    expiresAt: String(data.expires_at),
+    lastUsedAt: data.last_used_at ? String(data.last_used_at) : undefined,
+  };
+}
+
+export async function createObserverLink(ownerId: string, periodId: string, name?: string): Promise<ObserverLink> {
+  await supabase.schema("clar_log").from("observer_links").update({ active: false }).eq("owner_id", ownerId).eq("period_id", periodId);
+  const token = randomToken();
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .schema("clar_log")
+    .from("observer_links")
+    .insert({ owner_id: ownerId, period_id: periodId, token, name: name ?? null, active: true, expires_at: expiresAt })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return {
+    id: String(data.id),
+    ownerId: String(data.owner_id),
+    periodId: String(data.period_id),
+    token: String(data.token),
+    name: data.name ? String(data.name) : undefined,
+    active: Boolean(data.active),
+    createdAt: String(data.created_at),
+    expiresAt: String(data.expires_at),
+    lastUsedAt: data.last_used_at ? String(data.last_used_at) : undefined,
+  };
+}
+
+export async function resolveObserverToken(token: string): Promise<{ ownerId: string; periodId: string } | null> {
+  const { data, error } = await supabase.rpc("resolve_observer_token", { input_token: token });
+  if (error || !data) return null;
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return null;
+  return { ownerId: String(row.owner_id), periodId: String(row.period_id) };
+}
+
+export async function submitObservationByObserverToken(
+  token: string,
+  date: string,
+  answers: {
+    home_mood?: number;
+    home_cooperation?: number;
+    home_emotional_regulation?: number;
+    home_focus_homework?: number;
+    home_bedtime_routine?: number;
+    home_rebound_observed?: boolean;
+    note?: string;
+  },
+): Promise<void> {
+  const { error } = await supabase.rpc("submit_observer_observation_by_token", {
+    input_token: token,
+    input_date: date,
+    input_home_mood: answers.home_mood ?? null,
+    input_home_cooperation: answers.home_cooperation ?? null,
+    input_home_emotional_regulation: answers.home_emotional_regulation ?? null,
+    input_home_focus_homework: answers.home_focus_homework ?? null,
+    input_home_bedtime_routine: answers.home_bedtime_routine ?? null,
+    input_home_rebound_observed: answers.home_rebound_observed ?? null,
+    input_note: answers.note ?? null,
+  });
+  if (error) throw error;
+}
+
+export async function hasObservationToday(ownerId: string, observerUserId: string, date: string): Promise<boolean> {
+  const { count, error } = await supabase
+    .from("observer_observations")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", ownerId)
+    .eq("observer_user_id", observerUserId)
+    .eq("date", date);
+  if (error) return false;
+  return (count ?? 0) > 0;
 }
 
 export async function listObserverObservations(ownerId: string, periodId: string): Promise<ObserverObservation[]> {

@@ -25,7 +25,7 @@ import {
 
 import { Chip } from "./Chip";
 import { SectionCard } from "./SectionCard";
-import { submitObserverObservation } from "@/lib/clar-observers";
+import { hasObservationToday, submitObserverObservation } from "@/lib/clar-observers";
 import type {
   DayLog,
   Medication,
@@ -1279,6 +1279,7 @@ function ParentAdminObserverPanel({
   date: string;
 }) {
   const [open, setOpen]               = useState(false);
+  const [alreadyDone, setAlreadyDone] = useState(false);
   const [mood, setMood]               = useState<number>();
   const [cooperation, setCooperation] = useState<number>();
   const [emotionReg, setEmotionReg]   = useState<number>();
@@ -1288,6 +1289,12 @@ function ParentAdminObserverPanel({
   const [note, setNote]               = useState("");
   const [status, setStatus]           = useState<"idle" | "saving" | "done">("idle");
   const [error, setError]             = useState<string | null>(null);
+
+  useEffect(() => {
+    hasObservationToday(ownerId, ownerId, date)
+      .then(setAlreadyDone)
+      .catch(() => {});
+  }, [ownerId, date]);
 
   const handleSubmit = async () => {
     setStatus("saving");
@@ -1314,6 +1321,7 @@ function ParentAdminObserverPanel({
         },
       );
       setStatus("done");
+      setAlreadyDone(true);
     } catch {
       setError("Speichern fehlgeschlagen. Bitte erneut versuchen.");
       setStatus("idle");
@@ -1325,12 +1333,19 @@ function ParentAdminObserverPanel({
       <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="font-semibold text-foreground">Deine Beobachtung als Elternteil</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">Tägliche Einschätzung · 2 Min.</p>
+            <p className="font-semibold text-foreground">
+              Deine Beobachtung als Elternteil
+              {alreadyDone && (
+                <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">✓</span>
+              )}
+            </p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {alreadyDone ? "Heute bereits ausgefüllt" : "Tägliche Einschätzung · 2 Min."}
+            </p>
           </div>
           <button type="button" onClick={() => setOpen(true)}
             className="shrink-0 rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
-            Ausfüllen
+            {alreadyDone ? "Ändern" : "Ausfüllen"}
           </button>
         </div>
       </div>

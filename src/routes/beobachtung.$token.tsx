@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { resolveTeacherToken, submitTeacherObservation } from "@/lib/clar-observers";
+import {
+  resolveObserverToken,
+  resolveTeacherToken,
+  submitObservationByObserverToken,
+  submitTeacherObservation,
+} from "@/lib/clar-observers";
 import { todayKey } from "@/lib/clar-storage";
 
 export const Route = createFileRoute("/beobachtung/$token")({
@@ -42,10 +47,13 @@ function ScaleInput({ label, hint, value, onChange }: { label: string; hint?: st
   );
 }
 
-function YesNo({ label, value, onChange }: { label: string; value?: boolean; onChange: (v: boolean) => void }) {
+function YesNo({ label, hint, value, onChange }: { label: string; hint?: string; value?: boolean; onChange: (v: boolean) => void }) {
   return (
     <div className="space-y-2">
-      <p className="text-sm font-semibold">{label}</p>
+      <div>
+        <p className="text-sm font-semibold">{label}</p>
+        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      </div>
       <div className="grid grid-cols-2 gap-2">
         {([true, false] as const).map((v) => (
           <button key={String(v)} type="button" onClick={() => onChange(v)}
@@ -65,44 +73,76 @@ function YesNo({ label, value, onChange }: { label: string; value?: boolean; onC
 function BeobachtungRoute() {
   const { token } = Route.useParams();
   const [status, setStatus] = useState<"checking" | "valid" | "invalid" | "done">("checking");
-  const [mode, setMode] = useState<"daily" | "weekly">("daily");
+  const [tokenType, setTokenType] = useState<"teacher" | "observer" | null>(null);
+
+  // Teacher fields
   const [mood, setMood] = useState<number>();
   const [behavior, setBehavior] = useState<number>();
   const [concentration, setConcentration] = useState<number>();
-  const [note, setNote] = useState("");
-  // Wöchentliche Zusatzfelder
-  const [schoolPerf, setSchoolPerf] = useState<number>();
-  const [socialBehavior, setSocialBehavior] = useState<number>();
-  const [conflictsThisWeek, setConflictsThisWeek] = useState<boolean>();
-  const [medEffect, setMedEffect] = useState<number>();
-  const [weekNote, setWeekNote] = useState("");
+  const [teacherNote, setTeacherNote] = useState("");
+
+  // Observer (home/parent) fields
+  const [homeMood, setHomeMood] = useState<number>();
+  const [homeCooperation, setHomeCooperation] = useState<number>();
+  const [homeEmotionReg, setHomeEmotionReg] = useState<number>();
+  const [homeFocus, setHomeFocus] = useState<number>();
+  const [homeBedtime, setHomeBedtime] = useState<number>();
+  const [homeRebound, setHomeRebound] = useState<boolean>();
+  const [observerNote, setObserverNote] = useState("");
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     resolveTeacherToken(token)
-      .then((result) => setStatus(result ? "valid" : "invalid"))
+      .then((result) => {
+        if (result) {
+          setTokenType("teacher");
+          setStatus("valid");
+        } else {
+          return resolveObserverToken(token).then((obsResult) => {
+            if (obsResult) {
+              setTokenType("observer");
+              setStatus("valid");
+            } else {
+              setStatus("invalid");
+            }
+          });
+        }
+      })
       .catch(() => setStatus("invalid"));
   }, [token]);
 
-  const handleSubmit = async () => {
+  const handleTeacherSubmit = async () => {
     setSubmitting(true);
     setError(null);
     try {
-      const combinedNote = [
-        note.trim(),
-        weekNote.trim(),
-        conflictsThisWeek !== undefined ? `Konflikte diese Woche: ${conflictsThisWeek ? "Ja" : "Nein"}` : "",
-        schoolPerf !== undefined ? `Schulleistung: ${schoolPerf}/5` : "",
-        socialBehavior !== undefined ? `Sozialverhalten: ${socialBehavior}/5` : "",
-        medEffect !== undefined ? `Medikamentenwirkung: ${medEffect}/5` : "",
-      ].filter(Boolean).join(" | ");
-
       await submitTeacherObservation(token, todayKey(), {
         mood,
         behavior,
         concentration,
-        note: combinedNote || undefined,
+        note: teacherNote.trim() || undefined,
+      });
+      setStatus("done");
+    } catch {
+      setError("Senden fehlgeschlagen. Bitte erneut versuchen.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleObserverSubmit = async () => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      await submitObservationByObserverToken(token, todayKey(), {
+        home_mood: homeMood,
+        home_cooperation: homeCooperation,
+        home_emotional_regulation: homeEmotionReg,
+        home_focus_homework: homeFocus,
+        home_bedtime_routine: homeBedtime,
+        home_rebound_observed: homeRebound,
+        note: observerNote.trim() || undefined,
       });
       setStatus("done");
     } catch {
@@ -131,6 +171,42 @@ function BeobachtungRoute() {
     </div>
   );
 
+  if (tokenType === "observer") {
+    return (
+      <div className="mx-auto max-w-md space-y-5 px-4 py-8">
+        <header>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">Elternteil-Beobachtung</p>
+          <h1 className="mt-1 text-2xl font-semibold">Wie war es heute?</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Kein Login nötig — Angaben gehen direkt an die Familie.</p>
+        </header>
+
+        <ScaleInput label="Stimmung zu Hause" value={homeMood} onChange={setHomeMood} />
+        <ScaleInput label="Mitarbeit / Kooperation" hint="Anweisungen folgen, Hausaufgaben" value={homeCooperation} onChange={setHomeCooperation} />
+        <ScaleInput label="Emotionsregulation" hint="Frustration, Wutausbrüche, Flexibilität" value={homeEmotionReg} onChange={setHomeEmotionReg} />
+        <ScaleInput label="Fokus / Hausaufgaben" hint="Konzentration bei Aufgaben zu Hause" value={homeFocus} onChange={setHomeFocus} />
+        <ScaleInput label="Zubettgeh-Routine" hint="Einschlafen, Beruhigung am Abend" value={homeBedtime} onChange={setHomeBedtime} />
+        <YesNo label="Rebound beobachtet?" hint="Stimmungsabfall oder Reizbarkeit am Abend" value={homeRebound} onChange={setHomeRebound} />
+
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-muted-foreground">Notiz (optional)</p>
+          <textarea value={observerNote} onChange={(e) => setObserverNote(e.target.value)}
+            placeholder="Auffälligkeiten, Besonderheiten heute…"
+            rows={3}
+            className="w-full resize-none rounded-2xl border border-border bg-card p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
+          />
+        </div>
+
+        {error && <p className="text-sm text-destructive">{error}</p>}
+
+        <button type="button" onClick={handleObserverSubmit} disabled={submitting || (!homeMood && !homeCooperation && !homeEmotionReg && !homeFocus && !homeBedtime && homeRebound === undefined)}
+          className="w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-40">
+          {submitting ? "Wird gesendet…" : "Absenden"}
+        </button>
+      </div>
+    );
+  }
+
+  // Teacher form
   return (
     <div className="mx-auto max-w-md space-y-5 px-4 py-8">
       <header>
@@ -139,47 +215,13 @@ function BeobachtungRoute() {
         <p className="mt-1 text-sm text-muted-foreground">Kein Login nötig — Angaben gehen direkt an die Familie.</p>
       </header>
 
-      {/* Modus-Wahl */}
-      <div className="grid grid-cols-2 gap-2">
-        {(["daily", "weekly"] as const).map((m) => (
-          <button key={m} type="button" onClick={() => setMode(m)}
-            className={`rounded-xl border-2 py-2 text-sm font-semibold transition-all ${
-              mode === m ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
-            }`}>
-            {m === "daily" ? "Tagesfeedback" : "Wochenfeedback"}
-          </button>
-        ))}
-      </div>
-
-      {/* Täglich — immer sichtbar */}
       <ScaleInput label="Stimmung heute" value={mood} onChange={setMood} />
       <ScaleInput label="Verhalten heute" hint="Im Unterricht / in der Gruppe" value={behavior} onChange={setBehavior} />
       <ScaleInput label="Konzentration heute" value={concentration} onChange={setConcentration} />
 
-      {/* Wöchentlich — nur bei weekly */}
-      {mode === "weekly" && (
-        <>
-          <div className="border-t border-border pt-4 space-y-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Wochenrückblick</p>
-            <ScaleInput label="Schulleistung diese Woche" hint="Aufgaben, Tests, Mitarbeit" value={schoolPerf} onChange={setSchoolPerf} />
-            <ScaleInput label="Sozialverhalten" hint="Mit Peers, in Gruppen" value={socialBehavior} onChange={setSocialBehavior} />
-            <ScaleInput label="Medikamentenwirkung" hint="Soweit beobachtbar" value={medEffect} onChange={setMedEffect} />
-            <YesNo label="Konflikte oder besondere Ereignisse diese Woche?" value={conflictsThisWeek} onChange={setConflictsThisWeek} />
-            <div className="space-y-2">
-              <p className="text-sm font-semibold">Wochennotiz</p>
-              <textarea value={weekNote} onChange={(e) => setWeekNote(e.target.value)}
-                placeholder="Auffälligkeiten, Fortschritte, Empfehlungen…"
-                rows={4}
-                className="w-full resize-none rounded-2xl border border-border bg-card p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
-              />
-            </div>
-          </div>
-        </>
-      )}
-
       <div className="space-y-2">
         <p className="text-sm font-semibold text-muted-foreground">Notiz (optional)</p>
-        <textarea value={note} onChange={(e) => setNote(e.target.value)}
+        <textarea value={teacherNote} onChange={(e) => setTeacherNote(e.target.value)}
           placeholder="Besonderheiten heute…"
           rows={2}
           className="w-full resize-none rounded-2xl border border-border bg-card p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
@@ -188,7 +230,7 @@ function BeobachtungRoute() {
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <button type="button" onClick={handleSubmit} disabled={submitting}
+      <button type="button" onClick={handleTeacherSubmit} disabled={submitting}
         className="w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-40">
         {submitting ? "Wird gesendet…" : "Absenden"}
       </button>

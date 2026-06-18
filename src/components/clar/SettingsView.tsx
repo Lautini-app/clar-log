@@ -1,28 +1,25 @@
 import { MedicationEditor } from "@/components/clar/TodayView";
 // redeploy 43fb01
 import { useEffect, useState } from "react";
-import { Copy, Download, Loader2, Plus, Trash2 } from "lucide-react";
+import { Copy, Download, Loader2, Plus, Trash2 } from "lucide-react"; // Plus/Trash2 used in FamilySettings
 
 import { SectionCard } from "./SectionCard";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteAccount } from "@/lib/account.functions";
 import { inviteFamilyMember, listFamilyMembers } from "@/lib/family.functions";
 import { deleteAllUserData } from "@/lib/clar-sync";
-import { getActiveTeacherLink, inviteObserver, listObservers, removeObserver, rotateTeacherLink } from "@/lib/clar-observers";
+import { createObserverLink, getActiveObserverLink, rotateTeacherLink } from "@/lib/clar-observers";
 import { generateDoctorLink, getActiveDoctorLink } from "@/lib/doctor-links";
 import type {
   Medication,
   MedicationType,
-  Observer,
-  ObserverRole,
   ObservationPeriod,
+  ObserverLink,
   Settings,
-  TeacherLink,
   TimeSlot,
   WellbeingItem,
 } from "@/lib/clar-storage";
 import {
-  MAX_OBSERVERS,
   MEDICATION_TYPE_LABELS,
   SLOT_LABELS,
   TIME_SLOTS,
@@ -32,140 +29,78 @@ import {
   getActivePeriod,
 } from "@/lib/clar-storage";
 
-const OBSERVER_ROLE_LABELS: Record<string, string> = {
-  parent: "Familienmitglied / Partner",
-};
-
-function ObserverSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
-  const [observers, setObservers] = useState<Observer[]>([]);
-  const [teacherLink, setTeacherLink] = useState<TeacherLink | null>(null);
+function ObserverLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
+  const [link, setLink] = useState<ObserverLink | null>(null);
+  const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState("");
-  const [inviteName, setInviteName] = useState("");
-  const [role, setRole] = useState<ObserverRole>("parent");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const refresh = async () => {
-    setLoading(true);
-    try {
-      const [obs, link] = await Promise.all([
-        listObservers(ownerId),
-        getActiveTeacherLink(ownerId, periodId),
-      ]);
-      setObservers(obs);
-      setTeacherLink(link);
-    } catch (err) {
-      console.warn("[clar] Beobachter laden fehlgeschlagen:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    refresh();
+    getActiveObserverLink(ownerId, periodId)
+      .then((l) => setLink(l))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [ownerId, periodId]);
 
-  const handleInvite = async () => {
-    const trimmed = email.trim();
-    if (!trimmed) return;
-    if (observers.length >= MAX_OBSERVERS) {
-      setError(`Maximal ${MAX_OBSERVERS} Beobachter pro Periode.`);
-      return;
-    }
+  const linkUrl = link && typeof window !== "undefined" ? `${window.location.origin}/beobachtung/${link.token}` : null;
+
+  const handleCreate = async () => {
     setBusy(true);
-    setError(null);
     try {
-      await inviteObserver(ownerId, trimmed, role, inviteName.trim() || undefined);
-      setEmail("");
-      setInviteName("");
-      await refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : typeof err === "object" ? JSON.stringify(err) : "Einladung fehlgeschlagen.");
+      const newLink = await createObserverLink(ownerId, periodId, name.trim() || undefined);
+      setLink(newLink);
     } finally {
       setBusy(false);
     }
   };
 
-  const handleRemove = async (observerId: string) => {
-    setBusy(true);
-    try {
-      await removeObserver(observerId);
-      await refresh();
-    } finally {
-      setBusy(false);
-    }
+  const handleCopy = () => {
+    if (!linkUrl) return;
+    void navigator.clipboard.writeText(linkUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleRotateLink = async () => {
-    setBusy(true);
-    try {
-      const link = await rotateTeacherLink(ownerId, periodId);
-      setTeacherLink(link);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const linkUrl = teacherLink && typeof window !== "undefined" ? `${window.location.origin}/beobachtung/${teacherLink.token}` : null;
-
-  if (loading) {
-    return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
-  }
+  if (loading) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        {observers.length === 0 && <p className="text-sm text-muted-foreground">Noch keine Beobachter eingeladen.</p>}
-        {observers.map((observer) => (
-          <div key={observer.id} className="flex items-center gap-2 rounded-2xl border border-border bg-background p-3">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{observer.email}</p>
-              <p className="text-xs text-muted-foreground">
-                {OBSERVER_ROLE_LABELS[observer.role]} · {observer.status === "active" ? "Aktiv" : "Einladung ausstehend"}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => handleRemove(observer.id)}
-              disabled={busy}
-              className="grid h-9 w-9 place-items-center rounded-full text-primary transition-colors hover:bg-primary/10 disabled:opacity-40"
-              aria-label="Beobachter entfernen"
-            >
-              <Trash2 className="h-4 w-4" />
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">
+        Zweites Elternteil oder Partner erhält einen Link → kein Login, kein Account nötig. Der Link ist 30 Tage gültig.
+      </p>
+      {linkUrl ? (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2">
+            <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{linkUrl}</span>
+            <button type="button" onClick={handleCopy}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-primary hover:bg-primary/10"
+              aria-label="Link kopieren">
+              <Copy className="h-4 w-4" />
             </button>
           </div>
-        ))}
-      </div>
-
-      {observers.length < MAX_OBSERVERS && (
-        <div className="space-y-2 rounded-2xl border border-border bg-background p-3">
+          {copied && <p className="text-xs text-green-600">Link kopiert!</p>}
+          <p className="text-xs text-muted-foreground">
+            {link?.name && <span className="font-medium">{link.name} · </span>}
+            Gültig bis {new Date(link!.expiresAt).toLocaleDateString("de-DE")}
+            {link?.lastUsedAt && <span> · Zuletzt verwendet {new Date(link.lastUsedAt).toLocaleDateString("de-DE")}</span>}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
           <input
             type="text"
-            value={inviteName}
-            onChange={(event) => setInviteName(event.target.value)}
-            placeholder="Name (optional)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Name der Person (optional)"
             className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
           />
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="email@beispiel.de"
-            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
-          />
-
-          {error && <p className="text-xs text-destructive">{error}</p>}
-          <button
-            type="button"
-            onClick={handleInvite}
-            disabled={busy || !email.trim()}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40"
-          >
-            <Plus className="h-4 w-4" /> Beobachter einladen
-          </button>
         </div>
       )}
+      <button type="button" onClick={handleCreate} disabled={busy}
+        className="w-full rounded-2xl border border-border bg-card p-2.5 text-sm font-semibold text-primary disabled:opacity-40">
+        {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : linkUrl ? "Neuen Link erstellen" : "Link erstellen"}
+      </button>
     </div>
   );
 }
@@ -734,7 +669,7 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
           {/* Beobachter: für self + child_parent + teen_self */}
           {userId && (
             <SectionCard title="Beobachter" subtitle="Partner oder zweites Elternteil → füllt täglich ein Kurzformular aus.">
-              <ObserverSettings ownerId={userId} periodId={activePeriod.id} />
+              <ObserverLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
           {/* Lehrperson-Link: für child_parent + teen_self (nicht für self) */}
