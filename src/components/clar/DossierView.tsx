@@ -26,11 +26,20 @@ function collectVal(log: DayLog | undefined, id: string): number | undefined {
   return undefined;
 }
 
+function collectAnswer(log: DayLog | undefined, id: string): unknown {
+  if (!log) return undefined;
+  for (const slot of Object.values(log.slots ?? {})) {
+    const ans = (slot as any).answers?.[id] as WellbeingAnswer | undefined;
+    if (ans?.value !== undefined) return ans.value;
+  }
+  return undefined;
+}
+
 function collectEmotions(log: DayLog | undefined): Record<string, number> | undefined {
   if (!log) return undefined;
   for (const slot of Object.values(log.slots ?? {})) {
     const ans = (slot as any).answers?.["emotions"] as WellbeingAnswer | undefined;
-    if (ans?.value && typeof ans.value === "object") return ans.value as Record<string, number>;
+    if (ans?.value && typeof ans.value === "object" && !Array.isArray(ans.value)) return ans.value as unknown as Record<string, number>;
   }
   return undefined;
 }
@@ -47,14 +56,18 @@ function moodScore(log: DayLog | undefined): number | undefined {
 
 function heatBg(val: number | undefined, invert = false) {
   if (val === undefined) return "var(--color-background-secondary)";
-  const v = invert ? 5 - val : val;
-  return v >= 3.5 ? "#9FE1CB" : v >= 2.5 ? "#FAC775" : "#F0997B";
+  if (invert) {
+    return val >= 3.5 ? "#FCEBEB" : val >= 2.5 ? "#FAEEDA" : "#E1F5EE";
+  }
+  return val >= 3.5 ? "#E1F5EE" : val >= 2.5 ? "#FAEEDA" : "#FCEBEB";
 }
 
 function heatColor(val: number | undefined, invert = false) {
   if (val === undefined) return "var(--color-text-tertiary)";
-  const v = invert ? 5 - val : val;
-  return v >= 3.5 ? "#0F6E56" : v >= 2.5 ? "#854F0B" : "#A32D2D";
+  if (invert) {
+    return val >= 3.5 ? "#A32D2D" : val >= 2.5 ? "#854F0B" : "#0F6E56";
+  }
+  return val >= 3.5 ? "#0F6E56" : val >= 2.5 ? "#854F0B" : "#A32D2D";
 }
 
 function avg(vals: (number | undefined)[]): number | undefined {
@@ -65,7 +78,10 @@ function avg(vals: (number | undefined)[]): number | undefined {
 function CellBtn({ val, invert = false, label, onClick }: { val?: number; invert?: boolean; label?: string; onClick?: () => void }) {
   const bg = heatBg(val, invert);
   const color = heatColor(val, invert);
-  const text = val === undefined ? "—" : invert ? (val >= 3.5 ? "tief" : val >= 2.5 ? "mid" : "hoch") : (val >= 3.5 ? "gut" : val >= 2.5 ? "mid" : "tief");
+  const text = val === undefined ? "—"
+    : invert
+      ? (val >= 3.5 ? "hoch" : val >= 2.5 ? "mid" : "tief")
+      : (val >= 3.5 ? "gut" : val >= 2.5 ? "mid" : "tief");
   return (
     <div onClick={onClick} style={{
       display: "inline-flex", alignItems: "center", justifyContent: "center",
@@ -313,9 +329,9 @@ function DetailView({ panel, onClose }: { panel: DetailPanel; onClose: () => voi
             <tbody>
               {panel.days.map((day, di) => {
                 const log = panel.dayLogs[di];
-                const dur = collectVal(log, "sleep_hours");
-                const qual = collectVal(log, "sleep_quality");
-                const einschl = collectVal(log, "fall_asleep_duration");
+                const dur = collectVal(log, "sleep_duration");
+                const qual = collectVal(log, "sleep_recovery");
+                const einschl = collectVal(log, "sleep_latency");
                 return (
                   <tr key={day} style={{ borderTop: "0.5px solid var(--color-border-tertiary)" }}>
                     <td style={{ padding: "6px 0", color: "var(--color-text-secondary)", fontSize: 12 }}>{DAYS[di]}</td>
@@ -368,11 +384,20 @@ export function DossierView({ settings, logs, ownerId }: Props) {
 
   const moodVals = dayLogs.map(moodScore);
   const focusVals = dayLogs.map(l => collectVal(l, "focus"));
+  const distractVals = dayLogs.map(l => collectVal(l, "distractibility"));
   const impVals = dayLogs.map(l => collectVal(l, "impulsivity"));
+  const hyperfocusVals = dayLogs.map(l => collectVal(l, "hyperfocus"));
   const energyVals = dayLogs.map(l => collectVal(l, "energy_level"));
   const sleepVals = dayLogs.map(l => collectVal(l, "sleep_duration"));
   const reboundDays = dayLogs.map(l => collectVal(l, "rebound_today") === 1);
   const reboundCount = reboundDays.filter(Boolean).length;
+
+  const mappedWeekObs = weekObs.map(o => ({
+    ...o,
+    mood: o.mood ?? o.answers?.home_mood,
+    behavior: o.behavior ?? o.answers?.home_cooperation,
+    concentration: o.concentration ?? o.answers?.home_focus_homework,
+  }));
 
   const SL = ({ children }: { children: string }) => (
     <td style={{ textAlign: "left", fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500, paddingRight: 6, whiteSpace: "nowrap", cursor: "default" }}>{children}</td>
@@ -386,7 +411,8 @@ export function DossierView({ settings, logs, ownerId }: Props) {
   const HmRow = ({ label, vals, invert = false, detailType }: { label: string; vals: (number|undefined)[]; invert?: boolean; detailType?: DetailPanel["type"] }) => (
     <tr onClick={detailType ? () => setDetail({ title: label, days, dayLogs, type: detailType }) : undefined}
       style={{ cursor: detailType ? "pointer" : "default", background: "transparent" }}
-      className={detailType ? "hover-row" : ""}>
+      onMouseEnter={detailType ? (e) => { e.currentTarget.style.background = "var(--color-background-secondary)"; } : undefined}
+      onMouseLeave={detailType ? (e) => { e.currentTarget.style.background = "transparent"; } : undefined}>
       <td style={{ textAlign: "left", fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500, paddingRight: 6, whiteSpace: "nowrap" }}>
         {label}{detailType && <span style={{ fontSize: 10, marginLeft: 4, color: "var(--color-text-tertiary)" }}>›</span>}
       </td>
@@ -443,15 +469,30 @@ export function DossierView({ settings, logs, ownerId }: Props) {
         </p>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr><th style={{ width: 86 }} />{DAYS.map(d => <th key={d} style={{ fontSize: 11, fontWeight: 500, color: "var(--color-text-secondary)", textAlign: "center", padding: "3px 1px" }}>{d}</th>)}</tr>
+            <tr><th style={{ width: 90 }} />{DAYS.map(d => <th key={d} style={{ fontSize: 10, fontWeight: 500, color: "var(--color-text-secondary)", textAlign: "center", padding: "3px 1px", minWidth: 36 }}>{d}</th>)}</tr>
           </thead>
           <tbody>
             <HmRow label="Energie" vals={energyVals} detailType="energy" />
             <HmRow label="Stimmung" vals={moodVals} detailType="emotions" />
             <HmRow label="Fokus" vals={focusVals} detailType="focus_detail" />
+            <HmRow label="Ablenkung" vals={distractVals} invert detailType="focus_detail" />
             <HmRow label="Impulsivität" vals={impVals} invert detailType="focus_detail" />
             <tr>
-              <td style={{ textAlign: "left", fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500, paddingRight: 6 }} onClick={() => setDetail({ title: "Rebound", days, dayLogs, type: "rebound" })} style={{ cursor: "pointer" }}>Rebound ▸</td>
+              <td style={{ textAlign: "left", fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500, paddingRight: 6, whiteSpace: "nowrap" }}>
+                Hyperfokus
+              </td>
+              {hyperfocusVals.map((v, i) => (
+                <td key={i} style={{ textAlign: "center", padding: "2px 1px" }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 26, borderRadius: 4,
+                    background: v === 1 ? "#E8DFFF" : "var(--color-background-secondary)",
+                    fontSize: 9, fontWeight: 500, color: v === 1 ? "#6B21A8" : "var(--color-text-tertiary)" }}>
+                    {v === 1 ? "ja" : "—"}
+                  </div>
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td style={{ textAlign: "left", fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500, paddingRight: 6, cursor: "pointer" }} onClick={() => setDetail({ title: "Rebound", days, dayLogs, type: "rebound" })}>Rebound ▸</td>
               {reboundDays.map((v, i) => (
                 <td key={i} style={{ textAlign: "center", padding: "2px 1px" }}>
                   <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 30, height: 26, borderRadius: 4,
@@ -473,7 +514,7 @@ export function DossierView({ settings, logs, ownerId }: Props) {
         <p style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 8 }}>Medikamenten-Einnahme</p>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr><th style={{ width: 86 }} />{DAYS.map(d => <th key={d} style={{ fontSize: 11, fontWeight: 500, color: "var(--color-text-secondary)", textAlign: "center", padding: "3px 1px" }}>{d}</th>)}</tr>
+            <tr><th style={{ width: 90 }} />{DAYS.map(d => <th key={d} style={{ fontSize: 10, fontWeight: 500, color: "var(--color-text-secondary)", textAlign: "center", padding: "3px 1px", minWidth: 36 }}>{d}</th>)}</tr>
           </thead>
           <tbody>
             {period?.medications?.map(med => (
@@ -482,12 +523,17 @@ export function DossierView({ settings, logs, ownerId }: Props) {
                   {med.name}<br /><span style={{ fontSize: 10, fontWeight: 400 }}>{med.duration === "long" ? "Retard" : "Kurz"}</span>
                 </td>
                 {dayLogs.map((log, i) => {
-                  const taken = Object.values(log?.slots ?? {}).some((s: any) => (s.medsTaken ?? {})[med.id]);
-                  const time = Object.values(log?.slots ?? {}).map((s: any) => s.medicationTime).find(Boolean);
+                  const slotData = log?.slots?.[med.intakeSlot] as any;
+                  const taken = slotData?.medsTaken?.[med.id] ?? false;
+                  const time = slotData?.medicationTime;
+                  const dose = slotData?.medsDose?.[med.id];
                   return (
                     <td key={i} style={{ textAlign: "center", padding: "2px 1px" }}>
                       {taken
-                        ? <div style={{ fontSize: 10, fontWeight: 500, color: "#0F6E56", lineHeight: 1.3 }}>{time ?? "✓"}</div>
+                        ? <div style={{ fontSize: 10, fontWeight: 500, color: "#0F6E56", lineHeight: 1.3 }}>
+                            {time ?? "✓"}
+                            {dose && <div style={{ fontSize: 9, color: "var(--color-text-secondary)" }}>{dose}mg</div>}
+                          </div>
                         : <span style={{ fontSize: 11, color: "var(--color-text-tertiary)" }}>—</span>}
                     </td>
                   );
@@ -546,8 +592,8 @@ export function DossierView({ settings, logs, ownerId }: Props) {
         <p style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 8 }}>
           Körper & Nebenwirkungen <span style={{ fontSize: 10, fontWeight: 400, textTransform: "none" }}>›</span>
         </p>
-        {(["headache", "stomachache", "tension"] as const).map(id => {
-          const label: Record<string, string> = { headache: "Kopfschmerzen", stomachache: "Bauchschmerzen", tension: "Verspannungen" };
+        {(["headache", "stomachache", "tension", "heart_racing", "dry_mouth"] as const).map(id => {
+          const label: Record<string, string> = { headache: "Kopfschmerzen", stomachache: "Bauchschmerzen", tension: "Verspannungen", heart_racing: "Herzrasen", dry_mouth: "Mundtrockenheit" };
           const count = dayLogs.filter(l => collectVal(l, id) === 1).length;
           const total = dayLogs.filter(l => collectVal(l, id) !== undefined).length;
           const color = count === 0 ? "#0F6E56" : count <= 1 ? "#854F0B" : "#A32D2D";
@@ -587,18 +633,18 @@ export function DossierView({ settings, logs, ownerId }: Props) {
       {/* Beobachter */}
       <div style={{ marginBottom: "1.25rem" }}>
         <p style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 8 }}>Rückmeldung Beobachter</p>
-        {weekObs.length === 0 ? (
+        {mappedWeekObs.length === 0 ? (
           <p style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>Keine Beobachtungen diese Woche.</p>
-        ) : weekObs.map((o, i) => (
+        ) : mappedWeekObs.map((o, i) => (
           <div key={i} style={{ background: "var(--color-background-secondary)", borderRadius: 8, padding: "10px 12px", marginBottom: 8 }}>
             <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 4 }}>
-              {o.observerName ?? "Beobachter"} · {new Date(o.date).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" })}
+              {o.observerName ?? (o.role === "parent" ? "Elternteil" : "Beobachter")} · {new Date(o.date).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" })}
             </div>
             {(o.mood || o.behavior || o.concentration) && (
               <div style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                {o.mood && <span style={{ fontSize: 12, background: "var(--color-background-primary)", borderRadius: 6, padding: "2px 8px" }}>Stimmung {o.mood}/4</span>}
-                {o.behavior && <span style={{ fontSize: 12, background: "var(--color-background-primary)", borderRadius: 6, padding: "2px 8px" }}>Verhalten {o.behavior}/4</span>}
-                {o.concentration && <span style={{ fontSize: 12, background: "var(--color-background-primary)", borderRadius: 6, padding: "2px 8px" }}>Konzentration {o.concentration}/4</span>}
+                {o.mood && <span style={{ fontSize: 12, background: "var(--color-background-primary)", borderRadius: 6, padding: "2px 8px" }}>Stimmung {o.mood}/5</span>}
+                {o.behavior && <span style={{ fontSize: 12, background: "var(--color-background-primary)", borderRadius: 6, padding: "2px 8px" }}>Verhalten {o.behavior}/5</span>}
+                {o.concentration && <span style={{ fontSize: 12, background: "var(--color-background-primary)", borderRadius: 6, padding: "2px 8px" }}>Konzentration {o.concentration}/5</span>}
               </div>
             )}
             {o.note && <div style={{ fontSize: 13, lineHeight: 1.5 }}>{o.note}</div>}
