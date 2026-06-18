@@ -1521,7 +1521,7 @@ export function TodayView({ log, settings, onChange, onSettingsChange, userId }:
         />
       )}
 
-      {period.profile === "child_parent" && userId && (
+      {(period.profile === "child_parent" || period.profile === "child_both") && userId && (
         <ParentAdminObserverPanel
           ownerId={userId}
           periodId={period.id}

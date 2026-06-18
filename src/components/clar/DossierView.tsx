@@ -102,6 +102,17 @@ function energyStyle(val: unknown): { bg: string; color: string; label: string }
 
 const isTruthy = (v: unknown) => v === true || v === 1;
 
+function obsAvg(o: any): number | undefined {
+  const vals: number[] = [];
+  const ans = ((o?.answers) ?? {}) as Record<string, unknown>;
+  [ans.home_mood, ans.home_cooperation, ans.home_emotional_regulation, ans.home_focus_homework, ans.home_bedtime_routine]
+    .forEach(v => { if (v !== undefined && v !== null) vals.push(Number(v)); });
+  if (!vals.length)
+    [o?.mood, o?.behavior, o?.concentration]
+      .forEach(v => { if (v !== undefined && v !== null) vals.push(Number(v)); });
+  return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length * 10) / 10 : undefined;
+}
+
 // ─── shared UI atoms ─────────────────────────────────────────────────────────
 
 function CellBtn({ val, invert = false, label, onClick }: { val?: number; invert?: boolean; label?: string; onClick?: () => void }) {
@@ -164,8 +175,11 @@ type DetailPanel = {
     | "food"
     | "rebound"
     | "sleep"
-    | "energy";
+    | "energy"
+    | "observer_detail"
+    | "teacher_detail";
   medications?: Medication[];
+  observerObs?: any[];
 };
 
 // ─── DetailView ───────────────────────────────────────────────────────────────
@@ -556,6 +570,77 @@ function DetailView({ panel, onClose }: { panel: DetailPanel; onClose: () => voi
           </div>
         )}
 
+        {/* ── observer_detail ── */}
+        {panel.type === "observer_detail" && (
+          <div>
+            {panel.days.map((day, di) => {
+              const o = (panel.observerObs ?? []).find((x: any) => x.date === day);
+              const ans = ((o?.answers) ?? {}) as Record<string, unknown>;
+              const fields: { label: string; val: number | undefined }[] = [
+                { label: "Stimmung",           val: ans.home_mood                !== undefined ? Number(ans.home_mood)                : o?.mood },
+                { label: "Kooperation",        val: ans.home_cooperation         !== undefined ? Number(ans.home_cooperation)         : o?.behavior },
+                { label: "Emotionsregulation", val: ans.home_emotional_regulation !== undefined ? Number(ans.home_emotional_regulation) : undefined },
+                { label: "Fokus / Hausaufg.",  val: ans.home_focus_homework      !== undefined ? Number(ans.home_focus_homework)      : o?.concentration },
+                { label: "Abendroutine",       val: ans.home_bedtime_routine     !== undefined ? Number(ans.home_bedtime_routine)     : undefined },
+              ];
+              const hasRebound = ans.home_rebound_observed !== undefined;
+              const reboundVal = ans.home_rebound_observed === true || ans.home_rebound_observed === "true";
+              const note = o?.note ?? (typeof ans.note === "string" ? ans.note : undefined);
+              const hasData = fields.some(f => f.val !== undefined) || hasRebound;
+              return dayRow(
+                hasData
+                  ? <div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {fields.filter(f => f.val !== undefined).map(f => (
+                          <Bdg key={f.label} label={`${f.val}/5`} sub={f.label} bg={heatBg(f.val)} color={heatColor(f.val)} />
+                        ))}
+                        {hasRebound && (
+                          <Bdg
+                            label={reboundVal ? "Rebound: Ja" : "Rebound: Nein"}
+                            bg={reboundVal ? "#FCEBEB" : "#E1F5EE"}
+                            color={reboundVal ? "#A32D2D" : "#0F6E56"}
+                          />
+                        )}
+                      </div>
+                      {note && <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.5, marginTop: 8 }}>{note}</p>}
+                    </div>
+                  : null,
+                day, di,
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── teacher_detail ── */}
+        {panel.type === "teacher_detail" && (
+          <div>
+            {(panel.observerObs ?? []).map((r: any, i: number) => {
+              const mood          = r.mood          ?? r.answers?.mood;
+              const behavior      = r.behavior      ?? r.answers?.behavior;
+              const concentration = r.concentration ?? r.answers?.concentration;
+              const note          = r.note          ?? r.answers?.note;
+              const dateStr       = r.date ?? r.createdAt;
+              return (
+                <div key={i} style={{ padding: "12px 0", borderBottom: "1px solid #F0F0F0" }}>
+                  <div style={{ fontSize: 11, color: "#6B7280", marginBottom: 8, fontWeight: 600 }}>
+                    {r.observerName ?? r.teacherName ?? r.name ?? "Fachperson"}
+                    {dateStr ? ` · ${new Date(dateStr).toLocaleDateString("de-DE", { weekday: "long", day: "2-digit", month: "2-digit" })}` : ""}
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {mood         !== undefined && <Bdg label={`${mood}/5`}         sub="Stimmung"     bg={heatBg(mood)}         color={heatColor(mood)} />}
+                    {behavior     !== undefined && <Bdg label={`${behavior}/5`}     sub="Verhalten"    bg={heatBg(behavior)}     color={heatColor(behavior)} />}
+                    {concentration !== undefined && <Bdg label={`${concentration}/5`} sub="Konzentration" bg={heatBg(concentration)} color={heatColor(concentration)} />}
+                    {r.focus_morning   && <Bdg label={`${r.focus_morning}/4`}   sub="Fokus Vm."  bg={heatBg(r.focus_morning * 1.25)}   color={heatColor(r.focus_morning * 1.25)} />}
+                    {r.focus_afternoon && <Bdg label={`${r.focus_afternoon}/4`} sub="Fokus Nm."  bg={heatBg(r.focus_afternoon * 1.25)} color={heatColor(r.focus_afternoon * 1.25)} />}
+                    {r.social          && <Bdg label={`${r.social}/4`}          sub="Soziales"   bg={heatBg(r.social * 1.25)}          color={heatColor(r.social * 1.25)} />}
+                  </div>
+                  {note && <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.5, marginTop: 8 }}>{note}</p>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
       </div>
     </div>
   );
@@ -587,8 +672,26 @@ export function DossierView({ settings, logs, ownerId }: Props) {
     if (imported?.teacher_reports) setTeacherReports(imported.teacher_reports);
   }, [settings]);
 
-  const weekObs     = observations.filter(o => days.includes(o.date));
-  const weekTeacher = teacherReports.filter(() => days.some(d => d >= days[0] && d <= days[6]));
+  const weekObs      = observations.filter(o => days.includes(o.date));
+  const weekTeacher  = teacherReports.filter(() => days.some(d => d >= days[0] && d <= days[6]));
+  const teacherWeekObs = weekObs.filter(o => o.observerName === "Lehrperson");
+  const partnerWeekObs = weekObs.filter(o => o.observerName !== "Lehrperson");
+  const partnerGroups  = new Map<string, any[]>();
+  partnerWeekObs.forEach(o => {
+    const k = String(o.observerName ?? o.observerUserId ?? "Beobachter");
+    if (!partnerGroups.has(k)) partnerGroups.set(k, []);
+    partnerGroups.get(k)!.push(o);
+  });
+  const allTeacherEntries = [
+    ...teacherWeekObs,
+    ...(weekTeacher.length > 0 ? weekTeacher : teacherReports),
+  ];
+  const teacherGroups = new Map<string, any[]>();
+  allTeacherEntries.forEach(r => {
+    const k = String(r.observerName ?? r.teacherName ?? r.name ?? "Lehrperson");
+    if (!teacherGroups.has(k)) teacherGroups.set(k, []);
+    teacherGroups.get(k)!.push(r);
+  });
 
   const moodVals      = dayLogs.map(moodScore);
   const focusVals     = dayLogs.map(l => collectVal(l, "focus"));
@@ -600,14 +703,7 @@ export function DossierView({ settings, logs, ownerId }: Props) {
   const reboundDays   = dayLogs.map(l => isTruthy(collectAnswer(l, "rebound_today")));
   const reboundCount  = reboundDays.filter(Boolean).length;
 
-  const mappedWeekObs = weekObs.map(o => ({
-    ...o,
-    mood:          o.mood          ?? o.answers?.home_mood,
-    behavior:      o.behavior      ?? o.answers?.home_cooperation,
-    concentration: o.concentration ?? o.answers?.home_focus_homework,
-  }));
-
-  const open = (title: string, type: DetailPanel["type"], extra?: Pick<DetailPanel, "medications">) =>
+  const open = (title: string, type: DetailPanel["type"], extra?: Partial<Pick<DetailPanel, "medications" | "observerObs">>) =>
     setDetail({ title, days, dayLogs, type, ...extra });
 
   const HmRow = ({ label, vals, invert = false, detailType }: {
@@ -809,6 +905,98 @@ export function DossierView({ settings, logs, ownerId }: Props) {
 
       <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", margin: "1.25rem 0" }} />
 
+      {/* Rückmeldung Beobachter — Mini-Heatmap */}
+      <div style={{ marginBottom: "1.25rem" }}>
+        <p style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 8 }}>
+          Rückmeldung Beobachter
+        </p>
+        {partnerGroups.size === 0
+          ? <p style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>Keine Beobachtungen diese Woche.</p>
+          : <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={{ width: 90 }} />
+                  {DAYS.map(d => <th key={d} style={{ fontSize: 10, fontWeight: 500, color: "var(--color-text-secondary)", textAlign: "center", padding: "3px 1px", minWidth: 36 }}>{d}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from(partnerGroups.entries()).map(([name, obs]) => {
+                  const dayMap: Record<string, any> = {};
+                  obs.forEach(o => { dayMap[o.date] = o; });
+                  return (
+                    <tr key={name}
+                      style={{ cursor: "pointer", background: "transparent" }}
+                      onClick={() => open(name, "observer_detail", { observerObs: obs })}
+                      onMouseEnter={e => { e.currentTarget.style.background = "var(--color-background-secondary)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+                    >
+                      <td style={{ textAlign: "left", fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500, paddingRight: 6, whiteSpace: "nowrap" }}>
+                        {name} <span style={{ fontSize: 10, color: "var(--color-text-tertiary)" }}>›</span>
+                      </td>
+                      {days.map((day, di) => {
+                        const o = dayMap[day];
+                        return (
+                          <td key={di} style={{ textAlign: "center", padding: "2px 1px" }}>
+                            <CellBtn val={o ? obsAvg(o) : undefined} />
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+        }
+      </div>
+
+      {/* Rückmeldung Fachpersonen — Mini-Heatmap + Legacy */}
+      {(teacherGroups.size > 0) && (
+        <>
+          <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", margin: "1.25rem 0" }} />
+          <div style={{ marginBottom: "1.25rem" }}>
+            <p style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 8 }}>
+              Rückmeldung Fachpersonen
+            </p>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={{ width: 90 }} />
+                  {DAYS.map(d => <th key={d} style={{ fontSize: 10, fontWeight: 500, color: "var(--color-text-secondary)", textAlign: "center", padding: "3px 1px", minWidth: 36 }}>{d}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from(teacherGroups.entries()).map(([name, entries]) => {
+                  const dayMap: Record<string, any> = {};
+                  entries.forEach(r => { if (r.date) dayMap[r.date] = r; });
+                  return (
+                    <tr key={name}
+                      style={{ cursor: "pointer", background: "transparent" }}
+                      onClick={() => open(name, "teacher_detail", { observerObs: entries })}
+                      onMouseEnter={e => { e.currentTarget.style.background = "var(--color-background-secondary)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+                    >
+                      <td style={{ textAlign: "left", fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500, paddingRight: 6, whiteSpace: "nowrap" }}>
+                        {name} <span style={{ fontSize: 10, color: "var(--color-text-tertiary)" }}>›</span>
+                      </td>
+                      {days.map((day, di) => {
+                        const r = dayMap[day];
+                        return (
+                          <td key={di} style={{ textAlign: "center", padding: "2px 1px" }}>
+                            <CellBtn val={r ? obsAvg(r) : undefined} />
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", margin: "1.25rem 0" }} />
+
       {/* Essen */}
       <div style={{ marginBottom: "1.25rem", cursor: "pointer" }} onClick={() => open("Essen & Appetit", "food")}>
         <p style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 8 }}>
@@ -872,54 +1060,6 @@ export function DossierView({ settings, logs, ownerId }: Props) {
         })}
       </div>
 
-      <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", margin: "1.25rem 0" }} />
-
-      {/* Beobachter */}
-      <div style={{ marginBottom: "1.25rem" }}>
-        <p style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 8 }}>Rückmeldung Beobachter</p>
-        {mappedWeekObs.length === 0
-          ? <p style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>Keine Beobachtungen diese Woche.</p>
-          : mappedWeekObs.map((o, i) => (
-            <div key={i} style={{ background: "var(--color-background-secondary)", borderRadius: 8, padding: "10px 12px", marginBottom: 8 }}>
-              <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 4 }}>
-                {o.observerName ?? (o.role === "parent" ? "Elternteil" : "Beobachter")} · {new Date(o.date).toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" })}
-              </div>
-              {(o.mood || o.behavior || o.concentration) && (
-                <div style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                  {o.mood         && <span style={{ fontSize: 12, background: "var(--color-background-primary)", borderRadius: 6, padding: "2px 8px" }}>Stimmung {o.mood}/5</span>}
-                  {o.behavior     && <span style={{ fontSize: 12, background: "var(--color-background-primary)", borderRadius: 6, padding: "2px 8px" }}>Verhalten {o.behavior}/5</span>}
-                  {o.concentration && <span style={{ fontSize: 12, background: "var(--color-background-primary)", borderRadius: 6, padding: "2px 8px" }}>Konzentration {o.concentration}/5</span>}
-                </div>
-              )}
-              {o.note && <div style={{ fontSize: 13, lineHeight: 1.5 }}>{o.note}</div>}
-            </div>
-          ))}
-      </div>
-
-      {/* Fachpersonen */}
-      {(weekTeacher.length > 0 || teacherReports.length > 0) && (
-        <>
-          <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", margin: "1.25rem 0" }} />
-          <div>
-            <p style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 8 }}>Rückmeldung Fachpersonen</p>
-            {(weekTeacher.length > 0 ? weekTeacher : teacherReports.slice(-2)).map((r: any, i: number) => (
-              <div key={i} style={{ background: "var(--color-background-secondary)", borderRadius: 8, padding: "10px 12px", marginBottom: 8 }}>
-                <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 4 }}>
-                  {r.teacherName ?? r.name ?? "Fachperson"} · {r.week ?? r.weekStart ?? r.date ?? ""}
-                </div>
-                {(r.focus_morning || r.focus_afternoon) && (
-                  <div style={{ display: "flex", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                    {r.focus_morning  && <span style={{ fontSize: 12, background: "var(--color-background-primary)", borderRadius: 6, padding: "2px 8px" }}>Fokus Vm. {r.focus_morning}/4</span>}
-                    {r.focus_afternoon && <span style={{ fontSize: 12, background: "var(--color-background-primary)", borderRadius: 6, padding: "2px 8px" }}>Fokus Nm. {r.focus_afternoon}/4</span>}
-                    {r.social && <span style={{ fontSize: 12, background: "var(--color-background-primary)", borderRadius: 6, padding: "2px 8px" }}>Soziales {r.social}/4</span>}
-                  </div>
-                )}
-                {r.note && <div style={{ fontSize: 13, lineHeight: 1.5 }}>{r.note}</div>}
-              </div>
-            ))}
-          </div>
-        </>
-      )}
     </div>
   );
 }
