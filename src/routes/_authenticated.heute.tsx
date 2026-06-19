@@ -25,7 +25,7 @@ function offsetDate(base: string, delta: number): string {
 }
 
 function HeuteRoute() {
-  const { store, upsertLog, updateSettings, userId } = useStore();
+  const { store, hydrated, upsertLog, updateSettings, userId } = useStore();
   const today = todayKey();
   const activePeriod = getActivePeriod(store.settings);
   const [selectedDate, setSelectedDate] = useState(today);
@@ -37,6 +37,11 @@ function HeuteRoute() {
     ? selectedDate > activePeriod.startDate
     : selectedDate > offsetDate(today, -30);
   const canGoForward = selectedDate < today;
+
+  // Don't render TodayView until store is hydrated from localStorage.
+  // Without this check, TodayView sees activePeriodId=undefined on its first render
+  // (before the load() useEffect fires) and immediately redirects back to /perioden.
+  if (!hydrated) return null;
 
   return (
     <div>

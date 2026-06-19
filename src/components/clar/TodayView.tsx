@@ -1425,7 +1425,7 @@ export function TodayView({ log, settings, onChange, onSettingsChange, userId }:
 
   useEffect(() => {
     if (!period) {
-      void navigate({ to: "/perioden" });
+      void navigate({ to: "/perioden", replace: true });
     }
   }, [period, navigate]);
 
