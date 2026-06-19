@@ -17,6 +17,7 @@ import { Route as DossierTokenRouteImport } from './routes/dossier.$token'
 import { Route as BeobachtungTokenRouteImport } from './routes/beobachtung.$token'
 import { Route as AuthenticatedHeuteRouteImport } from './routes/_authenticated.heute'
 import { Route as AuthenticatedEinstellungenRouteImport } from './routes/_authenticated.einstellungen'
+import { Route as AuthenticatedPeriodenRouteImport } from './routes/_authenticated.perioden'
 import { Route as AuthenticatedBerichtRouteImport } from './routes/_authenticated.bericht'
 import { Route as AuthenticatedBeobachtenRouteImport } from './routes/_authenticated.beobachten'
 
@@ -54,6 +55,11 @@ const AuthenticatedHeuteRoute = AuthenticatedHeuteRouteImport.update({
   path: '/heute',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPeriodenRoute = AuthenticatedPeriodenRouteImport.update({
+  id: '/perioden',
+  path: '/perioden',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedEinstellungenRoute =
   AuthenticatedEinstellungenRouteImport.update({
     id: '/einstellungen',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/bericht': typeof AuthenticatedBerichtRoute
   '/einstellungen': typeof AuthenticatedEinstellungenRoute
   '/heute': typeof AuthenticatedHeuteRoute
+  '/perioden': typeof AuthenticatedPeriodenRoute
   '/beobachtung/$token': typeof BeobachtungTokenRoute
   '/dossier/$token': typeof DossierTokenRoute
   '/einladung/$token': typeof EinladungTokenRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/bericht': typeof AuthenticatedBerichtRoute
   '/einstellungen': typeof AuthenticatedEinstellungenRoute
   '/heute': typeof AuthenticatedHeuteRoute
+  '/perioden': typeof AuthenticatedPeriodenRoute
   '/beobachtung/$token': typeof BeobachtungTokenRoute
   '/dossier/$token': typeof DossierTokenRoute
   '/einladung/$token': typeof EinladungTokenRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/_authenticated/bericht': typeof AuthenticatedBerichtRoute
   '/_authenticated/einstellungen': typeof AuthenticatedEinstellungenRoute
   '/_authenticated/heute': typeof AuthenticatedHeuteRoute
+  '/_authenticated/perioden': typeof AuthenticatedPeriodenRoute
   '/beobachtung/$token': typeof BeobachtungTokenRoute
   '/dossier/$token': typeof DossierTokenRoute
   '/einladung/$token': typeof EinladungTokenRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/bericht'
     | '/einstellungen'
     | '/heute'
+    | '/perioden'
     | '/beobachtung/$token'
     | '/dossier/$token'
     | '/einladung/$token'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/bericht'
     | '/einstellungen'
     | '/heute'
+    | '/perioden'
     | '/beobachtung/$token'
     | '/dossier/$token'
     | '/einladung/$token'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bericht'
     | '/_authenticated/einstellungen'
     | '/_authenticated/heute'
+    | '/_authenticated/perioden'
     | '/beobachtung/$token'
     | '/dossier/$token'
     | '/einladung/$token'
@@ -224,6 +236,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBeobachtenRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/perioden': {
+      id: '/_authenticated/perioden'
+      path: '/perioden'
+      fullPath: '/perioden'
+      preLoaderRoute: typeof AuthenticatedPeriodenRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -232,6 +251,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedBerichtRoute: typeof AuthenticatedBerichtRoute
   AuthenticatedEinstellungenRoute: typeof AuthenticatedEinstellungenRoute
   AuthenticatedHeuteRoute: typeof AuthenticatedHeuteRoute
+  AuthenticatedPeriodenRoute: typeof AuthenticatedPeriodenRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -239,6 +259,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBerichtRoute: AuthenticatedBerichtRoute,
   AuthenticatedEinstellungenRoute: AuthenticatedEinstellungenRoute,
   AuthenticatedHeuteRoute: AuthenticatedHeuteRoute,
+  AuthenticatedPeriodenRoute: AuthenticatedPeriodenRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

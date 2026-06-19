@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { ChildWizard } from "./ChildWizard";
 import {
   Brain,
@@ -57,7 +58,6 @@ type Props = {
   onChange: (patch: Partial<DayLog>) => void;
   onSettingsChange: (patch: Partial<Settings>) => void;
   userId?: string;
-  hasExistingLogs?: boolean;
 };
 
 const CATEGORY_LABEL: Record<WellbeingItem["category"], string> = {
@@ -275,7 +275,7 @@ export function MedicationEditor({
   );
 }
 
-function Onboarding({ settings, onSettingsChange, userId }: Pick<Props, "settings" | "onSettingsChange" | "userId">) {
+export function Onboarding({ settings, onSettingsChange, userId, onDone }: Pick<Props, "settings" | "onSettingsChange" | "userId"> & { onDone?: () => void }) {
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<ObservationPeriod>(() => createPeriod());
   const [childEmail, setChildEmail] = useState("");
@@ -577,7 +577,7 @@ function Onboarding({ settings, onSettingsChange, userId }: Pick<Props, "setting
           {step === steps.length - 1 ? (
             <button
               type="button"
-              onClick={() => void savePeriodWithInvite(settings, { ...draft, childEmail } as any, onSettingsChange, userId)}
+              onClick={() => void savePeriodWithInvite(settings, { ...draft, childEmail } as any, onSettingsChange, userId).then(() => onDone?.())}
               className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
             >
               <Check className="h-4 w-4" /> Periode starten
@@ -1415,25 +1415,21 @@ function ParentAdminObserverPanel({
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function TodayView({ log, settings, onChange, onSettingsChange, userId, hasExistingLogs }: Props) {
+export function TodayView({ log, settings, onChange, onSettingsChange, userId }: Props) {
   const period = getActivePeriod(settings);
+  const navigate = useNavigate();
   const [activeSlot, setActiveSlot] = useState<TimeSlot | null>(null);
   const [childPhase, setChildPhase] = useState(false);
   const items = useMemo(() => availableWellbeingItems(settings), [settings]);
   const isChildParent = period?.profile === "child_parent" || period?.profile === "child_both";
 
-  if (!period && !hasExistingLogs) {
-    return <Onboarding settings={settings} onSettingsChange={onSettingsChange} userId={userId} />;
-  }
-  if (!period) {
-    return (
-      <div className="space-y-4 pt-6 pb-32 px-1">
-        <p className="text-sm text-muted-foreground">
-          Keine aktive Beobachtungsperiode. Gehe zu <strong>Konto</strong> um eine neue Periode zu starten.
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!period) {
+      void navigate({ to: "/perioden" });
+    }
+  }, [period, navigate]);
+
+  if (!period) return null;
 
   return (
     <div className="space-y-4 pb-32">
@@ -1446,7 +1442,13 @@ export function TodayView({ log, settings, onChange, onSettingsChange, userId, h
           })}
         </p>
         <h1 className="mt-1 text-2xl font-semibold text-foreground">Heute erfassen</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{period.name}</p>
+        <button
+          type="button"
+          onClick={() => void navigate({ to: "/perioden" })}
+          className="mt-1 text-sm text-primary font-medium hover:underline"
+        >
+          {period.name}
+        </button>
       </header>
 
       <div className="grid gap-3">
