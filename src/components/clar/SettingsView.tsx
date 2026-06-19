@@ -162,6 +162,7 @@ function ObserverLinkSettings({ ownerId, periodId }: { ownerId: string; periodId
 
 type Props = {
   settings: Settings;
+  logs?: Record<string, unknown>;
   onChange: (patch: Partial<Settings>) => void;
   onReset: () => void;
   onImport: (data: { logs?: Record<string, unknown>; settings?: Partial<Settings> }) => void;
@@ -299,7 +300,7 @@ function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId:
 function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boolean }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState<"member" | "teen">("member");
+  const [role, setRole] = useState<"member" | "teen" | "child" | "other">("member");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -331,7 +332,7 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
     setSuccess(false);
     setInviteLink(null);
     try {
-      const result = await inviteFamilyMember({ email: email.trim(), role, name: name.trim() || undefined });
+      const result = await inviteFamilyMember({ email: email.trim(), role: role as "member" | "teen", name: name.trim() || undefined });
       setInviteLink(result.inviteUrl);
       setEmail("");
       setName("");
@@ -406,8 +407,8 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
             className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
           />
           <div className="grid grid-cols-2 gap-2">
-            {((childOnly ? ["child", "teen"] : ["member", "child", "teen", "other"]) as const).map((r) => (
-              <button key={r} type="button" onClick={() => setRole(r)}
+            {(childOnly ? ["child", "teen"] : ["member", "child", "teen", "other"]).map((r) => (
+              <button key={r} type="button" onClick={() => setRole(r as typeof role)}
                 className={`rounded-xl border py-2 text-xs font-semibold ${
                   role === r ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"
                 }`}>
@@ -646,7 +647,7 @@ function DoctorLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: 
   );
 }
 
-export function SettingsView({ settings, onChange, onReset, onImport, userId }: Props) {
+export function SettingsView({ settings, logs, onChange, onReset, onImport, userId }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [customLabel, setCustomLabel] = useState("");
   const activePeriod = getActivePeriod(settings);
@@ -666,7 +667,7 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
         const accessToken = sessionData.session?.access_token;
         if (accessToken) {
           try {
-            await deleteAccount({ data: { accessToken } });
+            await deleteAccount({ accessToken });
           } catch (err) {
             console.warn("[clar] account delete failed:", err);
             alert("Daten gelöscht, Account-Löschung konnte nicht abgeschlossen werden.");
@@ -879,7 +880,7 @@ export function SettingsView({ settings, onChange, onReset, onImport, userId }: 
           <button
             type="button"
             onClick={() => {
-              const data = JSON.stringify({ settings, logs: store?.logs ?? {}, exportedAt: new Date().toISOString() }, null, 2);
+              const data = JSON.stringify({ settings, logs: logs ?? {}, exportedAt: new Date().toISOString() }, null, 2);
               const blob = new Blob([data], { type: "application/json" });
               const url = URL.createObjectURL(blob);
               const a = document.createElement("a");

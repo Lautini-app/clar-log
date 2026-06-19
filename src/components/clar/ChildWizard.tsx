@@ -79,7 +79,7 @@ function BatteryButton({ level, selected, onSelect }: { level: 1|2|3; selected: 
 
 function BigYesNo({ question, value, onChange }: { question: string; value?: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div style={{ space: "y-3" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 12, lineHeight: 1.4 }}>{question}</p>
       <div style={{ display: "flex", gap: 12 }}>
         {([true, false] as const).map((v) => (

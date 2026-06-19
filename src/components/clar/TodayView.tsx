@@ -28,6 +28,7 @@ import { SectionCard } from "./SectionCard";
 import { hasObservationToday, submitObserverObservation } from "@/lib/clar-observers";
 import type {
   DayLog,
+  IntakeTime,
   Medication,
   MedicationType,
   ObservationPeriod,
@@ -70,6 +71,7 @@ const CATEGORY_LABEL: Record<WellbeingItem["category"], string> = {
   school: "Schule / Arbeit / Ausbildung",
   cycle: "Zyklus",
   custom: "Eigene",
+  reflection: "Reflexion",
 };
 
 function makeIcs(period: ObservationPeriod) {
@@ -220,8 +222,10 @@ export function MedicationEditor({
                         onChange={(e) => {
                           e.stopPropagation();
                           const current = med.intakeTimes ?? [{ slot: med.intakeSlot }];
-                          const next = active ? current.filter((t) => t.slot !== slot) : [...current, { slot }];
-                          update(med.id, { intakeTimes: next, intakeSlot: next[0]?.slot ?? "morning" });
+                          const next = active ? current.filter((t) => t.slot !== slot) : [...current, { slot: slot as TimeSlot }];
+                          const validSlots: TimeSlot[] = ["morning", "midday", "evening"];
+                          const nextIntakeSlot = next.find((t) => validSlots.includes(t.slot as TimeSlot))?.slot as TimeSlot ?? "morning";
+                          update(med.id, { intakeTimes: next as IntakeTime[], intakeSlot: nextIntakeSlot });
                         }}
                         className="h-4 w-4 rounded accent-primary"
                       />
@@ -762,6 +766,7 @@ const CATEGORY_ICONS: Record<WellbeingItem["category"], typeof Pill> = {
   school: GraduationCap,
   cycle: Heart,
   custom: Sparkles,
+  reflection: Sparkles,
 };
 
 function QuestionIcon({ category }: { category: WellbeingItem["category"] }) {
@@ -1035,7 +1040,7 @@ function WizardInput({
     );
   }
   if (item.kind === "emotions") {
-    return <EmotionsInput value={answer?.value as Record<string, number> | undefined} onChange={setValue} childMode={childMode} />;
+    return <EmotionsInput value={answer?.value as Record<string, number> | undefined} onChange={(v) => setValue(v as unknown as WellbeingAnswer["value"])} childMode={childMode} />;
   }
   if (item.kind === "number") {
     const isSleep = item.id === "sleep_duration";

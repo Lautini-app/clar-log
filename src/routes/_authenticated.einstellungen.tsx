@@ -20,6 +20,7 @@ function EinstellungenRoute() {
   return (
     <SettingsView
       settings={store.settings}
+      logs={store.logs as Record<string, unknown>}
       onChange={updateSettings}
       userId={userId}
       onReset={() => {

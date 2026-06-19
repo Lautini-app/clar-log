@@ -34,7 +34,8 @@ export type WellbeingCategory =
   | "social"
   | "school"
   | "cycle"
-  | "custom";
+  | "custom"
+  | "reflection";
 
 export type IntakeTime = {
   slot?: TimeSlot;
@@ -93,6 +94,7 @@ export type QuestionGroup = {
     value: boolean | string;
   };
   variant?: "school" | "general";
+  childExclude?: boolean;
 };
 
 export // QUESTION_GROUPS defines the wizard flow (updated order)
@@ -279,12 +281,14 @@ export type ObservationPeriod = {
   lifeContexts?: LifeContext[];
   modules: Record<ModuleKey, boolean>;
   name: string;
+  initialen?: string;
   startDate: string;
   endDate: string;
   timeSlots: Record<TimeSlot, string>;
   medications: Medication[];
   selectedWellbeingIds: string[];
   wellbeingSlots: Record<string, TimeSlot[]>;
+  active?: boolean;
   createdAt: number;
   updatedAt: number;
 };
@@ -339,11 +343,12 @@ export const SLOT_LABELS: Record<TimeSlot, string> = {
   evening: "Abend",
 };
 
-export const PROFILE_LABELS: Record<ProfileType, string> = {
-  child: "Kind",
-  youth: "Jugendlicher",
-  adult: "Erwachsen",
-  self: "Eigen",
+export const PROFILE_LABELS: Record<string, string> = {
+  self: "Ich selbst",
+  teen_self: "Jugendliche/r",
+  child_self: "Kind (selbst)",
+  child_parent: "Kind (Eltern)",
+  child_both: "Kind (beide)",
 };
 
 export const MEDICATION_TYPE_LABELS: Record<MedicationType, string> = {
