@@ -108,25 +108,15 @@ function downloadIcs(period: ObservationPeriod) {
   URL.revokeObjectURL(url);
 }
 
-async function savePeriodWithInvite(
+function savePeriodWithInvite(
   settings: Settings,
   period: ObservationPeriod,
   onSettingsChange: Props["onSettingsChange"],
-  userId?: string,
 ) {
   const periods = settings.periods.some((item) => item.id === period.id)
     ? settings.periods.map((item) => (item.id === period.id ? period : item))
     : [...settings.periods, period];
   onSettingsChange({ periods, activePeriodId: period.id });
-  const childEmail = (period as any).childEmail;
-  if (childEmail && userId && (period.profile === "child_both" || period.profile === "child_self" || period.profile === "teen_self")) {
-    try {
-      const { inviteObserver } = await import("@/lib/clar-observers");
-      await inviteObserver(userId, childEmail, "child", period.name);
-    } catch (e) {
-      console.warn("[clar] Kind-Einladung fehlgeschlagen:", e);
-    }
-  }
 }
 
 function savePeriod(
@@ -278,7 +268,6 @@ export function MedicationEditor({
 export function Onboarding({ settings, onSettingsChange, userId, onDone }: Pick<Props, "settings" | "onSettingsChange" | "userId"> & { onDone?: () => void }) {
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<ObservationPeriod>(() => createPeriod());
-  const [childEmail, setChildEmail] = useState("");
   const catalog = WELLBEING_CATALOG.filter((item) => !item.module || draft.modules[item.module]);
   const categories = Array.from(new Set(catalog.map((item) => item.category)));
 
@@ -339,7 +328,7 @@ export function Onboarding({ settings, onSettingsChange, userId, onDone }: Pick<
               <p className="text-xs font-semibold text-muted-foreground">Wer füllt das Tagebuch aus?</p>
               {([
                 ["child_parent", "Kind unter 12", "Du führst das Tagebuch. Das Kind kann mitmachen."],
-                ["teen_self", "Jugendliche/r (12–17)", "Das Kind erhält eine Einladung und füllt auf eigenem Gerät aus."],
+                ["teen_self", "Jugendliche/r (12–17)", "Einladung des Jugendlichen später über den Konto-Tab."],
               ] as const).map(([key, label, desc]) => (
                 <button
                   key={key}
@@ -529,31 +518,6 @@ export function Onboarding({ settings, onSettingsChange, userId, onDone }: Pick<
         </div>
       ),
     },
-    ...(draft.profile === "teen_self" ? [{
-      title: "Kind einladen",
-      body: (
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Dein Kind erhält eine Einladungs-E-Mail und kann sich auf seinem eigenen Gerät einloggen. Es sieht nur seine eigene Ansicht.
-          </p>
-          <label className="block rounded-2xl border border-border bg-card p-3">
-            <span className="text-xs font-semibold text-muted-foreground">E-Mail des Kindes</span>
-            <input
-              type="email"
-              placeholder="kind@familie.ch"
-              value={childEmail}
-              onChange={(e) => setChildEmail(e.target.value)}
-              className="mt-1 w-full bg-transparent text-sm font-semibold outline-none"
-            />
-          </label>
-          <div className="rounded-2xl border border-border bg-card p-3 text-xs text-muted-foreground space-y-2">
-            <p>Das Kind kann nur seine eigene Ansicht sehen</p>
-            <p>Du als Elternteil siehst alle Daten</p>
-            <p>Die Einladung kann jederzeit widerrufen werden</p>
-          </div>
-        </div>
-      ),
-    }] : []),
   ];
 
   return (
@@ -577,7 +541,7 @@ export function Onboarding({ settings, onSettingsChange, userId, onDone }: Pick<
           {step === steps.length - 1 ? (
             <button
               type="button"
-              onClick={() => void savePeriodWithInvite(settings, { ...draft, childEmail } as any, onSettingsChange, userId).then(() => onDone?.())}
+              onClick={() => { savePeriodWithInvite(settings, draft, onSettingsChange); onDone?.(); }}
               className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
             >
               <Check className="h-4 w-4" /> Periode starten

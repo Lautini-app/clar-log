@@ -1,13 +1,12 @@
 import { MedicationEditor } from "@/components/clar/TodayView";
 // redeploy 43fb01
 import { useEffect, useState } from "react";
-import { Copy, Download, Loader2, Plus, Share2, Trash2 } from "lucide-react"; // Plus/Trash2 used in FamilySettings
+import { Copy, Download, Loader2, Plus, Share2, Trash2 } from "lucide-react";
 
 import { SectionCard } from "./SectionCard";
 import { supabase } from "@/integrations/supabase/client";
-import { deleteAccount } from "@/lib/account.functions";
 import { inviteFamilyMember, listFamilyMembers } from "@/lib/family.functions";
-import { deleteAllUserData } from "@/lib/clar-sync";
+import { deletePeriodData } from "@/lib/clar-sync";
 import { createObserverLink, listObserverLinks, deleteObserverLink, listTeacherLinks, deleteTeacherLink, createTeacherLink } from "@/lib/clar-observers";
 import { generateDoctorLink, getActiveDoctorLink } from "@/lib/doctor-links";
 import type {
@@ -37,6 +36,7 @@ function LinkRow({
   onDelete: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const url = `${urlBase}/beobachtung/${link.token}`;
 
   const handleCopy = () => {
@@ -58,26 +58,44 @@ function LinkRow({
     <div className="rounded-2xl border border-border bg-background p-3 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">{link.name || "Beobachter"}</p>
-        <button type="button" onClick={onDelete}
+        <button type="button" onClick={() => setConfirmDelete(true)}
           className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive">
           <Trash2 className="h-3.5 w-3.5" />
         </button>
       </div>
-      <p className="truncate text-xs text-muted-foreground">{url}</p>
-      <p className="text-xs text-muted-foreground">
-        Gültig bis {new Date(link.expiresAt).toLocaleDateString("de-DE")}
-        {link.lastUsedAt && <span> · Zuletzt {new Date(link.lastUsedAt).toLocaleDateString("de-DE")}</span>}
-      </p>
-      <div className="flex gap-2">
-        <button type="button" onClick={handleCopy}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
-          <Copy className="h-3.5 w-3.5" /> {copied ? "Kopiert!" : "Kopieren"}
-        </button>
-        <button type="button" onClick={handleShare}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
-          <Share2 className="h-3.5 w-3.5" /> Teilen
-        </button>
-      </div>
+      {confirmDelete ? (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 space-y-2">
+          <p className="text-xs font-semibold text-destructive">Link wirklich löschen?</p>
+          <div className="flex gap-2">
+            <button type="button" onClick={onDelete}
+              className="flex-1 rounded-xl bg-destructive py-1.5 text-xs font-semibold text-white">
+              Löschen
+            </button>
+            <button type="button" onClick={() => setConfirmDelete(false)}
+              className="flex-1 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-muted-foreground">
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <p className="truncate text-xs text-muted-foreground">{url}</p>
+          <p className="text-xs text-muted-foreground">
+            Gültig bis {new Date(link.expiresAt).toLocaleDateString("de-DE")}
+            {link.lastUsedAt && <span> · Zuletzt {new Date(link.lastUsedAt).toLocaleDateString("de-DE")}</span>}
+          </p>
+          <div className="flex gap-2">
+            <button type="button" onClick={handleCopy}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
+              <Copy className="h-3.5 w-3.5" /> {copied ? "Kopiert!" : "Kopieren"}
+            </button>
+            <button type="button" onClick={handleShare}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
+              <Share2 className="h-3.5 w-3.5" /> Teilen
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -164,7 +182,6 @@ type Props = {
   settings: Settings;
   logs?: Record<string, unknown>;
   onChange: (patch: Partial<Settings>) => void;
-  onReset: () => void;
   onImport: (data: { logs?: Record<string, unknown>; settings?: Partial<Settings> }) => void;
   userId: string | null;
 };
@@ -177,6 +194,7 @@ function TeacherLinkRow({
   onDelete: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const url = `${urlBase}/beobachtung/${link.token}`;
 
   const handleCopy = () => {
@@ -198,23 +216,41 @@ function TeacherLinkRow({
     <div className="rounded-2xl border border-border bg-background p-3 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">{link.name || "Lehrperson"}</p>
-        <button type="button" onClick={onDelete}
+        <button type="button" onClick={() => setConfirmDelete(true)}
           className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive">
           <Trash2 className="h-3.5 w-3.5" />
         </button>
       </div>
-      <p className="truncate text-xs text-muted-foreground">{url}</p>
-      <p className="text-xs text-muted-foreground">Gültig bis {new Date(link.expiresAt).toLocaleDateString("de-DE")}</p>
-      <div className="flex gap-2">
-        <button type="button" onClick={handleCopy}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
-          <Copy className="h-3.5 w-3.5" /> {copied ? "Kopiert!" : "Kopieren"}
-        </button>
-        <button type="button" onClick={handleShare}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
-          <Share2 className="h-3.5 w-3.5" /> Teilen
-        </button>
-      </div>
+      {confirmDelete ? (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 space-y-2">
+          <p className="text-xs font-semibold text-destructive">Link wirklich löschen?</p>
+          <div className="flex gap-2">
+            <button type="button" onClick={onDelete}
+              className="flex-1 rounded-xl bg-destructive py-1.5 text-xs font-semibold text-white">
+              Löschen
+            </button>
+            <button type="button" onClick={() => setConfirmDelete(false)}
+              className="flex-1 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-muted-foreground">
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <p className="truncate text-xs text-muted-foreground">{url}</p>
+          <p className="text-xs text-muted-foreground">Gültig bis {new Date(link.expiresAt).toLocaleDateString("de-DE")}</p>
+          <div className="flex gap-2">
+            <button type="button" onClick={handleCopy}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
+              <Copy className="h-3.5 w-3.5" /> {copied ? "Kopiert!" : "Kopieren"}
+            </button>
+            <button type="button" onClick={handleShare}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
+              <Share2 className="h-3.5 w-3.5" /> Teilen
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -307,6 +343,8 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
   const [members, setMembers] = useState<{ member_user_id: string; role: string }[]>([]);
   const [pending, setPending] = useState<{ email: string; role: string; expires_at: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [confirmRemoveMember, setConfirmRemoveMember] = useState<string | null>(null);
+  const [confirmRemovePending, setConfirmRemovePending] = useState<string | null>(null);
 
   const refresh = async () => {
     setLoading(true);
@@ -352,6 +390,18 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
     } catch (err) {
       console.warn("Einladung löschen fehlgeschlagen:", err);
     }
+    setConfirmRemovePending(null);
+  };
+
+  const handleRemoveMember = async (memberUserId: string) => {
+    try {
+      await supabase.schema("clar_log").from("family_members").delete()
+        .eq("member_user_id", memberUserId).eq("admin_user_id", userId);
+      await refresh();
+    } catch (err) {
+      console.warn("Mitglied löschen fehlgeschlagen:", err);
+    }
+    setConfirmRemoveMember(null);
   };
 
   const ROLE_LABELS: Record<string, string> = {
@@ -370,21 +420,53 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
             <p className="text-sm text-muted-foreground">Noch keine Mitglieder eingeladen.</p>
           )}
           {members.filter((m) => !childOnly || m.role === "child" || m.role === "teen").map((m) => (
-            <div key={m.member_user_id} className="flex items-center justify-between rounded-2xl border border-border bg-background p-3">
-              <div>
-                <p className="text-sm font-semibold">{(m as any).name || ROLE_LABELS[m.role] || m.role}</p>
-                <p className="text-xs text-muted-foreground">{ROLE_LABELS[m.role]} · Aktiv</p>
+            <div key={m.member_user_id} className="rounded-2xl border border-border bg-background p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold">{(m as any).name || ROLE_LABELS[m.role] || m.role}</p>
+                  <p className="text-xs text-muted-foreground">{ROLE_LABELS[m.role]} · Aktiv</p>
+                </div>
+                <button type="button" onClick={() => setConfirmRemoveMember(m.member_user_id)}
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive ml-2">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
+              {confirmRemoveMember === m.member_user_id && (
+                <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 space-y-2">
+                  <p className="text-xs font-semibold text-destructive">Mitglied wirklich entfernen?</p>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => handleRemoveMember(m.member_user_id)}
+                      className="flex-1 rounded-xl bg-destructive py-1.5 text-xs font-semibold text-white">Entfernen</button>
+                    <button type="button" onClick={() => setConfirmRemoveMember(null)}
+                      className="flex-1 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-muted-foreground">Abbrechen</button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
           {pending.filter((p) => !childOnly || p.role === "child" || p.role === "teen").map((p) => (
-            <div key={p.email} className="flex items-center justify-between rounded-2xl border border-border bg-background p-3">
-              <div>
-                <p className="text-sm font-semibold">{(p as any).name || p.email}</p>
-                <p className="text-xs text-muted-foreground">{ROLE_LABELS[p.role] ?? p.role} · Einladung ausstehend</p>
+            <div key={p.email} className="rounded-2xl border border-border bg-background p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold">{(p as any).name || p.email}</p>
+                  <p className="text-xs text-muted-foreground">{ROLE_LABELS[p.role] ?? p.role} · Einladung ausstehend</p>
+                </div>
+                <button type="button" onClick={() => setConfirmRemovePending(p.email)}
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive ml-2">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
-              <button type="button" onClick={() => handleRemovePending(p.email)}
-                className="text-xs text-destructive font-semibold shrink-0 ml-2">Entfernen</button>
+              {confirmRemovePending === p.email && (
+                <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 space-y-2">
+                  <p className="text-xs font-semibold text-destructive">Einladung wirklich löschen?</p>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => handleRemovePending(p.email)}
+                      className="flex-1 rounded-xl bg-destructive py-1.5 text-xs font-semibold text-white">Löschen</button>
+                    <button type="button" onClick={() => setConfirmRemovePending(null)}
+                      className="flex-1 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-muted-foreground">Abbrechen</button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </>
@@ -647,46 +729,30 @@ function DoctorLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: 
   );
 }
 
-export function SettingsView({ settings, logs, onChange, onReset, onImport, userId }: Props) {
-  const [deleting, setDeleting] = useState(false);
+export function SettingsView({ settings, logs, onChange, onImport, userId }: Props) {
   const [customLabel, setCustomLabel] = useState("");
+  const [pendingDeletePeriod, setPendingDeletePeriod] = useState<ObservationPeriod | null>(null);
+  const [deletingPeriod, setDeletingPeriod] = useState(false);
   const activePeriod = getActivePeriod(settings);
-
-  async function handleHardDelete() {
-    const ok = confirm(
-      "Alle deine Daten dauerhaft löschen?\n\nDas entfernt alle Logs und Einstellungen aus der Cloud und auf diesem Gerät. Nicht widerrufbar.",
-    );
-    if (!ok) return;
-    const confirm2 = prompt('Zur Bestätigung bitte "LÖSCHEN" eingeben:');
-    if (confirm2 !== "LÖSCHEN") return;
-    setDeleting(true);
-    try {
-      if (userId) {
-        await deleteAllUserData(userId);
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData.session?.access_token;
-        if (accessToken) {
-          try {
-            await deleteAccount({ accessToken });
-          } catch (err) {
-            console.warn("[clar] account delete failed:", err);
-            alert("Daten gelöscht, Account-Löschung konnte nicht abgeschlossen werden.");
-          }
-        }
-      } else {
-        localStorage.removeItem("clar.tracker.v1");
-        localStorage.removeItem("clar.tracker.migrated.v1");
-      }
-      await supabase.auth.signOut();
-      window.location.reload();
-    } finally {
-      setDeleting(false);
-    }
-  }
 
   const updateActivePeriod = (patch: Partial<ObservationPeriod>) => {
     const next = createPeriod({ ...activePeriod, ...patch, id: activePeriod?.id });
     upsertPeriod(settings, next, onChange);
+  };
+
+  const doDeletePeriod = async (period: ObservationPeriod) => {
+    setDeletingPeriod(true);
+    try {
+      if (userId) {
+        await deletePeriodData(userId, period.id).catch(() => {});
+      }
+      const remaining = settings.periods.filter((p) => p.id !== period.id);
+      const newActive = settings.activePeriodId === period.id ? remaining[0]?.id : settings.activePeriodId;
+      onChange({ periods: remaining, activePeriodId: newActive });
+    } finally {
+      setDeletingPeriod(false);
+      setPendingDeletePeriod(null);
+    }
   };
 
   const addCustomItem = () => {
@@ -760,6 +826,13 @@ export function SettingsView({ settings, logs, onChange, onReset, onImport, user
             >
               <Download className="h-4 w-4" /> Kalender erneut exportieren
             </button>
+            <button
+              type="button"
+              onClick={() => setPendingDeletePeriod(activePeriod)}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/40 px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/5"
+            >
+              <Trash2 className="h-4 w-4" /> Periode löschen
+            </button>
           </div>
         ) : (
           <button
@@ -831,7 +904,7 @@ export function SettingsView({ settings, logs, onChange, onReset, onImport, user
               <DoctorLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
-          <SectionCard title="Datensicherung & Reset">
+          <SectionCard title="Daten">
         <div className="space-y-2">
           <label className="block w-full cursor-pointer rounded-xl border border-border bg-card py-3 text-sm font-semibold text-primary text-left px-4">
             Daten importieren (JSON)
@@ -893,33 +966,61 @@ export function SettingsView({ settings, logs, onChange, onReset, onImport, user
           >
             Daten exportieren (JSON) →
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (!confirm("Alle lokalen Logs und Einstellungen löschen?\n\nEmpfehlung: Vorher exportieren.")) return;
-              onReset();
-            }}
-            className="w-full rounded-xl border border-primary/40 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
-          >
-            Daten auf diesem Gerät zurücksetzen
-          </button>
         </div>
       </SectionCard>
 
-      <SectionCard
-        title="Konto löschen (DSGVO)"
-        subtitle={userId ? "Eingeloggt und synchronisiert." : "Nicht eingeloggt → nur lokale Daten."}
-      >
-        <button
-          type="button"
-          onClick={handleHardDelete}
-          disabled={deleting}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/40 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 disabled:opacity-60"
+      {pendingDeletePeriod && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 px-4 pb-8"
+          onClick={() => !deletingPeriod && setPendingDeletePeriod(null)}
         >
-          {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-          Konto und Daten löschen
-        </button>
-      </SectionCard>
+          <div
+            className="w-full max-w-lg rounded-2xl bg-card p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-base font-bold">Periode „{pendingDeletePeriod.name}" wirklich löschen?</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Alle zugehörigen Einträge werden unwiderruflich gelöscht. Empfehlung: vorher exportieren.
+            </p>
+            <div className="space-y-2">
+              <button
+                type="button"
+                disabled={deletingPeriod}
+                onClick={() => {
+                  const data = JSON.stringify({ settings, logs: logs ?? {}, exportedAt: new Date().toISOString() }, null, 2);
+                  const blob = new Blob([data], { type: "application/json" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `clar-periode-${pendingDeletePeriod.name || pendingDeletePeriod.id}-${new Date().toISOString().split("T")[0]}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  void doDeletePeriod(pendingDeletePeriod);
+                }}
+                className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-40"
+              >
+                Exportieren &amp; Löschen
+              </button>
+              <button
+                type="button"
+                disabled={deletingPeriod}
+                onClick={() => void doDeletePeriod(pendingDeletePeriod)}
+                className="w-full rounded-xl border border-destructive/50 py-3 text-sm font-semibold text-destructive disabled:opacity-40"
+              >
+                {deletingPeriod ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Löschen"}
+              </button>
+              <button
+                type="button"
+                disabled={deletingPeriod}
+                onClick={() => setPendingDeletePeriod(null)}
+                className="w-full rounded-xl border border-border py-3 text-sm font-semibold text-muted-foreground"
+              >
+                Abbrechen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

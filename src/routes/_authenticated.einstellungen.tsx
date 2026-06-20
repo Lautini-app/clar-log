@@ -23,12 +23,6 @@ function EinstellungenRoute() {
       logs={store.logs as Record<string, unknown>}
       onChange={updateSettings}
       userId={userId}
-      onReset={() => {
-        setStore({ logs: {}, settings: store.settings });
-        try {
-          localStorage.removeItem("clar.log.v1");
-        } catch {}
-      }}
       onImport={(data: { logs?: Record<string, unknown>; settings?: unknown }) => {
         const next = {
           logs: (data.logs ?? store.logs) as typeof store.logs,

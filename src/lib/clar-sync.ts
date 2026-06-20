@@ -184,6 +184,17 @@ export async function migrateLocalToSupabase(
   localStorage.setItem(MIGRATION_FLAG, "1");
 }
 
+/** Löscht alle Daten einer einzelnen Periode (Logs, Beobachtungen, Links). */
+export async function deletePeriodData(userId: string, periodId: string): Promise<void> {
+  await Promise.all([
+    supabase.from("daily_logs").delete().eq("user_id", userId).eq("period_id", periodId),
+    supabase.from("observation_periods").delete().eq("id", periodId).eq("user_id", userId),
+    supabase.from("observer_observations").delete().eq("owner_id", userId).eq("period_id", periodId),
+    supabase.schema("clar_log").from("observer_links").update({ active: false }).eq("owner_id", userId).eq("period_id", periodId),
+    supabase.schema("clar_log").from("teacher_links").update({ active: false }).eq("owner_id", userId).eq("period_id", periodId),
+  ]);
+}
+
 /** DSGVO: Alle Daten des Users löschen (Supabase + lokal). */
 export async function deleteAllUserData(userId: string): Promise<void> {
   await Promise.all([
