@@ -55,25 +55,43 @@ begin
 
   if v_admin_id is null then return '[]'::jsonb; end if;
 
+  -- 1. activePeriodId aus tracker_settings holen
   select data into v_admin_data
   from clar_log.tracker_settings
   where user_id = v_admin_id;
 
-  if v_admin_data is null then return '[]'::jsonb; end if;
-
   v_active_pid := v_admin_data->>'activePeriodId';
 
+  -- 2. Bevorzuge observation_periods (enthält immer aktuelle Medikamentendaten)
   if v_active_pid is not null then
-    select elem into v_period
-    from jsonb_array_elements(coalesce(v_admin_data->'periods', '[]'::jsonb)) elem
-    where elem->>'id' = v_active_pid
+    select data into v_period
+    from clar_log.observation_periods
+    where user_id = v_admin_id and id = v_active_pid
     limit 1;
   end if;
 
+  -- 3. Fallback: neueste observation_period
   if v_period is null then
-    select elem into v_period
-    from jsonb_array_elements(coalesce(v_admin_data->'periods', '[]'::jsonb)) elem
+    select data into v_period
+    from clar_log.observation_periods
+    where user_id = v_admin_id
+    order by updated_at desc
     limit 1;
+  end if;
+
+  -- 4. Letzter Fallback: tracker_settings.periods (ältere Datenhaltung)
+  if v_period is null and v_admin_data is not null then
+    if v_active_pid is not null then
+      select elem into v_period
+      from jsonb_array_elements(coalesce(v_admin_data->'periods', '[]'::jsonb)) elem
+      where elem->>'id' = v_active_pid
+      limit 1;
+    end if;
+    if v_period is null then
+      select elem into v_period
+      from jsonb_array_elements(coalesce(v_admin_data->'periods', '[]'::jsonb)) elem
+      limit 1;
+    end if;
   end if;
 
   if v_period is null then return '[]'::jsonb; end if;

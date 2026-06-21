@@ -138,14 +138,33 @@ begin
     return jsonb_build_object('ok', true, 'action', 'already_exists');
   end if;
 
-  -- Admin-Settings laden (SECURITY DEFINER übergeht die "own settings"-RLS-Policy)
+  -- Admin-Settings: activePeriodId aus tracker_settings; Perioden aus observation_periods
+  -- (observation_periods enthält immer die aktuellsten Medikamentendaten)
   select data into v_admin_data
   from clar_log.tracker_settings
   where user_id = v_admin_id;
 
-  -- Aktive Periode des Admins finden
-  if v_admin_data is not null then
-    v_active_pid := v_admin_data->>'activePeriodId';
+  v_active_pid := v_admin_data->>'activePeriodId';
+
+  -- 1. Bevorzuge observation_periods mit bekannter activePeriodId
+  if v_active_pid is not null then
+    select data into v_admin_period
+    from clar_log.observation_periods
+    where user_id = v_admin_id and id = v_active_pid
+    limit 1;
+  end if;
+
+  -- 2. Fallback: neueste observation_period
+  if v_admin_period is null then
+    select data into v_admin_period
+    from clar_log.observation_periods
+    where user_id = v_admin_id
+    order by updated_at desc
+    limit 1;
+  end if;
+
+  -- 3. Letzter Fallback: tracker_settings.periods (ältere Datenhaltung)
+  if v_admin_period is null and v_admin_data is not null then
     if v_active_pid is not null then
       select elem into v_admin_period
       from jsonb_array_elements(coalesce(v_admin_data->'periods', '[]'::jsonb)) elem

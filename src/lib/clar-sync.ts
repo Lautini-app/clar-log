@@ -28,18 +28,21 @@ export async function loadFromSupabase(userId: string): Promise<RemoteStore> {
       const data = ((row.data as DayLog | undefined) ?? row) as DayLog;
       logs[date] = { ...data, date };
     }
-    // tracker_settings is the authoritative source for activePeriodId (always written by upsertSettingsToSupabase).
-    // Fall back to first non-disabled period only when no saved value exists.
-    const savedActivePeriodId = (settingsRes.data?.data as Settings | undefined)?.activePeriodId;
+    // tracker_settings is the authoritative source for activePeriodId.
+    // When observation_periods is empty (e.g. first launch or write failed), fall back to
+    // the periods stored directly in tracker_settings.data.periods.
+    const settingsData = settingsRes.data?.data as Settings | undefined;
+    const savedActivePeriodId = settingsData?.activePeriodId;
+    const effectivePeriods = periods.length > 0 ? periods : (settingsData?.periods ?? []);
     return {
       logs,
       settings:
-        periods.length > 0
+        effectivePeriods.length > 0
           ? {
               ...defaultSettings,
-              periods,
+              periods: effectivePeriods,
               activePeriodId: savedActivePeriodId
-                ?? periods.find((p: Record<string,unknown>) => p.active !== false)?.id,
+                ?? effectivePeriods.find((p: Record<string,unknown>) => p.active !== false)?.id,
             }
           : null,
     };
