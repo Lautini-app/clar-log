@@ -34,7 +34,9 @@ function BerichtRoute() {
 
   if (!userId) return null;
 
-  const logs = Object.values(isTeenSelf && teenLogs ? teenLogs : (store.logs ?? {}));
+  // teenLogs is non-null once loaded — keep showing them even if settings
+  // hydration temporarily flips isTeenSelf to false (wrong activePeriodId reconstruction).
+  const logs = Object.values(teenLogs !== null ? teenLogs : (store.logs ?? {}));
 
   return (
     <div style={{ maxWidth: 680, margin: "0 auto", padding: "0 1rem 4rem" }}>

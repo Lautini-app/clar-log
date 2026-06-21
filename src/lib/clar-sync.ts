@@ -11,9 +11,10 @@ export type RemoteStore = {
 
 /** Lädt alle Logs + Settings des Users aus Supabase. */
 export async function loadFromSupabase(userId: string): Promise<RemoteStore> {
-  const [periodsRes, dailyLogsRes] = await Promise.all([
+  const [periodsRes, dailyLogsRes, settingsRes] = await Promise.all([
     supabase.from("observation_periods").select("*").eq("user_id", userId),
     supabase.from("daily_logs").select("*").eq("user_id", userId),
+    supabase.from("tracker_settings").select("data").eq("user_id", userId).maybeSingle(),
   ]);
 
   if (!periodsRes.error && !dailyLogsRes.error) {
@@ -27,6 +28,9 @@ export async function loadFromSupabase(userId: string): Promise<RemoteStore> {
       const data = ((row.data as DayLog | undefined) ?? row) as DayLog;
       logs[date] = { ...data, date };
     }
+    // tracker_settings is the authoritative source for activePeriodId (always written by upsertSettingsToSupabase).
+    // Fall back to first non-disabled period only when no saved value exists.
+    const savedActivePeriodId = (settingsRes.data?.data as Settings | undefined)?.activePeriodId;
     return {
       logs,
       settings:
@@ -34,22 +38,18 @@ export async function loadFromSupabase(userId: string): Promise<RemoteStore> {
           ? {
               ...defaultSettings,
               periods,
-              activePeriodId: periods.find((p: Record<string,unknown>) => p.active !== false)?.id,
+              activePeriodId: savedActivePeriodId
+                ?? periods.find((p: Record<string,unknown>) => p.active !== false)?.id,
             }
           : null,
     };
   }
 
-  const [logsRes, settingsRes] = await Promise.all([
+  const [logsRes] = await Promise.all([
     supabase
       .from("tracker_logs")
       .select("date, data")
       .eq("user_id", userId),
-    supabase
-      .from("tracker_settings")
-      .select("data")
-      .eq("user_id", userId)
-      .maybeSingle(),
   ]);
 
   if (logsRes.error) throw logsRes.error;
@@ -100,9 +100,10 @@ export async function upsertSettingsToSupabase(
       },
       { onConflict: "id" },
     );
-    if (!periodError) return;
+    if (periodError) console.warn("[clar-sync] upsert period failed:", periodError.message);
   }
 
+  // Always write to tracker_settings so activePeriodId can be reliably restored by loadFromSupabase.
   const settingsData = settings.activePeriodId
     ? settings
     : { ...settings, activePeriodId: null };
