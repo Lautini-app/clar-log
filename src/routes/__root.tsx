@@ -135,14 +135,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "clar·log — Stimulanzien-Tagebuch" },
+      { name: "description", content: "Dein Tagebuch für Medikation & Wohlbefinden. Von Lautini." },
+      { name: "author", content: "Lautini" },
+      { name: "apple-mobile-web-app-title", content: "clar·log" },
+      { property: "og:title", content: "clar·log — Stimulanzien-Tagebuch" },
+      { property: "og:description", content: "Dein Tagebuch für Medikation & Wohlbefinden. Von Lautini." },
+      { property: "og:site_name", content: "clar by Lautini" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "clar·log — Stimulanzien-Tagebuch" },
     ],
     links: [
       {
