@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as EinladungTokenRouteImport } from './routes/einladung.$token'
 import { Route as DossierTokenRouteImport } from './routes/dossier.$token'
 import { Route as BeobachtungTokenRouteImport } from './routes/beobachtung.$token'
+import { Route as TagebuchTokenRouteImport } from './routes/tagebuch.$token'
 import { Route as AuthenticatedHeuteRouteImport } from './routes/_authenticated.heute'
 import { Route as AuthenticatedEinstellungenRouteImport } from './routes/_authenticated.einstellungen'
 import { Route as AuthenticatedPeriodenRouteImport } from './routes/_authenticated.perioden'
@@ -48,6 +49,11 @@ const DossierTokenRoute = DossierTokenRouteImport.update({
 const BeobachtungTokenRoute = BeobachtungTokenRouteImport.update({
   id: '/beobachtung/$token',
   path: '/beobachtung/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TagebuchTokenRoute = TagebuchTokenRouteImport.update({
+  id: '/tagebuch/$token',
+  path: '/tagebuch/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedHeuteRoute = AuthenticatedHeuteRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/beobachtung/$token': typeof BeobachtungTokenRoute
   '/dossier/$token': typeof DossierTokenRoute
   '/einladung/$token': typeof EinladungTokenRoute
+  '/tagebuch/$token': typeof TagebuchTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/beobachtung/$token': typeof BeobachtungTokenRoute
   '/dossier/$token': typeof DossierTokenRoute
   '/einladung/$token': typeof EinladungTokenRoute
+  '/tagebuch/$token': typeof TagebuchTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/beobachtung/$token': typeof BeobachtungTokenRoute
   '/dossier/$token': typeof DossierTokenRoute
   '/einladung/$token': typeof EinladungTokenRoute
+  '/tagebuch/$token': typeof TagebuchTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/beobachtung/$token'
     | '/dossier/$token'
     | '/einladung/$token'
+    | '/tagebuch/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/beobachtung/$token'
     | '/dossier/$token'
     | '/einladung/$token'
+    | '/tagebuch/$token'
   id:
     | '__root__'
     | '/'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/beobachtung/$token'
     | '/dossier/$token'
     | '/einladung/$token'
+    | '/tagebuch/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -162,10 +174,18 @@ export interface RootRouteChildren {
   BeobachtungTokenRoute: typeof BeobachtungTokenRoute
   DossierTokenRoute: typeof DossierTokenRoute
   EinladungTokenRoute: typeof EinladungTokenRoute
+  TagebuchTokenRoute: typeof TagebuchTokenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tagebuch/$token': {
+      id: '/tagebuch/$token'
+      path: '/tagebuch/$token'
+      fullPath: '/tagebuch/$token'
+      preLoaderRoute: typeof TagebuchTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -273,6 +293,7 @@ const rootRouteChildren: RootRouteChildren = {
   BeobachtungTokenRoute: BeobachtungTokenRoute,
   DossierTokenRoute: DossierTokenRoute,
   EinladungTokenRoute: EinladungTokenRoute,
+  TagebuchTokenRoute: TagebuchTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

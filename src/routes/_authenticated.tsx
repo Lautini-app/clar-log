@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout() {
-  const { hydrated, userId } = useStore();
+  const { hydrated, userId, authChecked } = useStore();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [tokenChecked, setTokenChecked] = useState(false);
@@ -120,7 +120,11 @@ function AuthenticatedLayout() {
   }, [hydrated, tokenChecked, userId, navigate]);
 
   useEffect(() => {
-    if (!hydrated || !tokenChecked) return;
+    // Wait until the initial Supabase session check completes (authChecked) AND the URL
+    // token has been processed (tokenChecked). Without authChecked the redirect fires before
+    // supabase has read the persisted session from localStorage, logging the admin out on
+    // every page visit.
+    if (!hydrated || !authChecked || !tokenChecked) return;
     if (!userId && !tokenConsumed) {
       if (isEmbeddedShell() && !shellSessionTimeout) {
         // Embedded: wait for shell's clar:session postMessage (bridge installed above).
@@ -131,7 +135,7 @@ function AuthenticatedLayout() {
       }
       navigate({ to: "/auth", replace: true });
     }
-  }, [hydrated, tokenChecked, tokenConsumed, userId, navigate, shellSessionTimeout]);
+  }, [hydrated, authChecked, tokenChecked, tokenConsumed, userId, navigate, shellSessionTimeout]);
 
   // Teen = nur Familienmitglieder; Admin hat kein family_members-Eintrag als member_user_id
   const isTeen = isFamilyMember;
@@ -143,8 +147,8 @@ function AuthenticatedLayout() {
     }
   }, [isTeen, hydrated, pathname, navigate]);
 
-  // Wenn userId bereits gesetzt (gecachte Session), nicht auf tokenChecked warten
-  if (!hydrated || (!userId && !tokenChecked)) return <LoadingScreen />;
+  // Block render until auth state is confirmed and URL token has been processed.
+  if (!hydrated || !authChecked || !tokenChecked) return <LoadingScreen />;
 
   if (!userId) {
     return <LoadingScreen />;

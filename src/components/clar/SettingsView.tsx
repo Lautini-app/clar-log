@@ -1,11 +1,10 @@
 import { MedicationEditor } from "@/components/clar/TodayView";
-// redeploy 43fb01
 import { useEffect, useState } from "react";
 import { Copy, Download, Loader2, Plus, Share2, Trash2 } from "lucide-react";
 
 import { SectionCard } from "./SectionCard";
-import { supabase } from "@/integrations/supabase/client";
-import { inviteFamilyMember, listFamilyMembers } from "@/lib/family.functions";
+import { createTeenToken, deleteTeenToken, listTeenTokens } from "@/lib/family.functions";
+import type { TeenToken } from "@/lib/family.functions";
 import { deletePeriodData } from "@/lib/clar-sync";
 import { createObserverLink, listObserverLinks, deleteObserverLink, listTeacherLinks, deleteTeacherLink, createTeacherLink } from "@/lib/clar-observers";
 import { generateDoctorLink, getActiveDoctorLink } from "@/lib/doctor-links";
@@ -333,182 +332,154 @@ function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId:
   );
 }
 
-function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boolean }) {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [role, setRole] = useState<"member" | "teen" | "child" | "other">(childOnly ? "teen" : "member");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [members, setMembers] = useState<{ member_user_id: string; role: string }[]>([]);
-  const [pending, setPending] = useState<{ email: string; role: string; expires_at: string }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [confirmRemoveMember, setConfirmRemoveMember] = useState<string | null>(null);
-  const [confirmRemovePending, setConfirmRemovePending] = useState<string | null>(null);
+function TeenTokenRow({
+  link, urlBase, onDelete,
+}: {
+  link: TeenToken;
+  urlBase: string;
+  onDelete: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const url = `${urlBase}/tagebuch/${link.token}`;
 
-  const refresh = async () => {
-    setLoading(true);
-    try {
-      const result = await listFamilyMembers();
-      setMembers(result.members);
-      setPending(result.pendingInvites);
-    } catch {
-      // Tabellen noch nicht angelegt → kein Fehler zeigen
-    } finally {
-      setLoading(false);
+  const handleCopy = () => {
+    void navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleShare = () => {
+    const text = `clar·log Tagebuch für ${link.name}: ${url}`;
+    if (typeof navigator.share === "function") {
+      navigator.share({ title: `clar·log Tagebuch — ${link.name}`, url, text }).catch(() => {
+        void navigator.clipboard.writeText(url);
+      });
+    } else {
+      void navigator.clipboard.writeText(url);
     }
   };
 
-  useEffect(() => { refresh(); }, [userId]);
+  return (
+    <div className="rounded-2xl border border-border bg-background p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold">{link.name}</p>
+        <button type="button" onClick={() => setConfirmDelete(true)}
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive">
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      {confirmDelete ? (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 space-y-2">
+          <p className="text-xs font-semibold text-destructive">Link wirklich löschen?</p>
+          <div className="flex gap-2">
+            <button type="button" onClick={onDelete}
+              className="flex-1 rounded-xl bg-destructive py-1.5 text-xs font-semibold text-white">
+              Löschen
+            </button>
+            <button type="button" onClick={() => setConfirmDelete(false)}
+              className="flex-1 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-muted-foreground">
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <p className="truncate text-xs text-muted-foreground">{url}</p>
+          <p className="text-xs text-muted-foreground">
+            Gültig bis {new Date(link.expiresAt).toLocaleDateString("de-DE")}
+          </p>
+          <div className="flex gap-2">
+            <button type="button" onClick={handleCopy}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
+              <Copy className="h-3.5 w-3.5" /> {copied ? "Kopiert!" : "Kopieren"}
+            </button>
+            <button type="button" onClick={handleShare}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
+              <Share2 className="h-3.5 w-3.5" /> Teilen
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
+function TeenLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: string }) {
+  const [links, setLinks] = useState<TeenToken[]>([]);
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const urlBase = typeof window !== "undefined" ? window.location.origin : "";
 
-  const handleInvite = async () => {
-    if (!email.trim()) return;
+  const reload = () =>
+    listTeenTokens(ownerId, periodId)
+      .then(setLinks)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+
+  useEffect(() => { reload(); }, [ownerId, periodId]);
+
+  const handleCreate = async () => {
+    if (!name.trim()) return;
     setBusy(true);
-    setError(null);
-    setSuccess(false);
-    setInviteLink(null);
     try {
-      const result = await inviteFamilyMember({ email: email.trim(), role: role as "member" | "teen", name: name.trim() || undefined });
-      setInviteLink(result.inviteUrl);
-      setEmail("");
+      await createTeenToken(ownerId, periodId, name.trim());
       setName("");
-      setSuccess(true);
-      await refresh();
+      setAdding(false);
+      await reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : typeof err === "object" ? JSON.stringify(err) : "Einladung fehlgeschlagen.");
+      console.warn("[teen] Link erstellen fehlgeschlagen:", err);
     } finally {
       setBusy(false);
     }
   };
 
-  const handleRemovePending = async (email: string) => {
-    try {
-      await supabase.schema("clar_log").from("family_invites").delete().eq("email", email).eq("admin_user_id", userId);
-      await refresh();
-    } catch (err) {
-      console.warn("Einladung löschen fehlgeschlagen:", err);
-    }
-    setConfirmRemovePending(null);
+  const handleDelete = async (id: string) => {
+    await deleteTeenToken(id).catch(() => {});
+    await reload();
   };
 
-  const handleRemoveMember = async (memberUserId: string) => {
-    try {
-      await supabase.schema("clar_log").from("family_members").delete()
-        .eq("member_user_id", memberUserId).eq("admin_user_id", userId);
-      await refresh();
-    } catch (err) {
-      console.warn("Mitglied löschen fehlgeschlagen:", err);
-    }
-    setConfirmRemoveMember(null);
-  };
-
-  const ROLE_LABELS: Record<string, string> = {
-    member: "Familienmitglied / Partner",
-    teen: "Jugendliche/r (12—17)",
-    child: "Kind unter 12",
-  };
+  if (loading) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
 
   return (
-    <div className="space-y-4">
-      {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-      ) : (
-        <>
-          {members.length === 0 && pending.length === 0 && (
-            <p className="text-sm text-muted-foreground">Noch keine Mitglieder eingeladen.</p>
-          )}
-          {members.filter((m) => !childOnly || m.role === "child" || m.role === "teen").map((m) => (
-            <div key={m.member_user_id} className="rounded-2xl border border-border bg-background p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold">{(m as any).name || ROLE_LABELS[m.role] || m.role}</p>
-                  <p className="text-xs text-muted-foreground">{ROLE_LABELS[m.role]} · Aktiv</p>
-                </div>
-                <button type="button" onClick={() => setConfirmRemoveMember(m.member_user_id)}
-                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive ml-2">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              {confirmRemoveMember === m.member_user_id && (
-                <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 space-y-2">
-                  <p className="text-xs font-semibold text-destructive">Mitglied wirklich entfernen?</p>
-                  <div className="flex gap-2">
-                    <button type="button" onClick={() => handleRemoveMember(m.member_user_id)}
-                      className="flex-1 rounded-xl bg-destructive py-1.5 text-xs font-semibold text-white">Entfernen</button>
-                    <button type="button" onClick={() => setConfirmRemoveMember(null)}
-                      className="flex-1 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-muted-foreground">Abbrechen</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-          {pending.filter((p) => !childOnly || p.role === "child" || p.role === "teen").map((p) => (
-            <div key={p.email} className="rounded-2xl border border-border bg-background p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold">{(p as any).name || p.email}</p>
-                  <p className="text-xs text-muted-foreground">{ROLE_LABELS[p.role] ?? p.role} · Einladung ausstehend</p>
-                </div>
-                <button type="button" onClick={() => setConfirmRemovePending(p.email)}
-                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-destructive ml-2">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              {confirmRemovePending === p.email && (
-                <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 space-y-2">
-                  <p className="text-xs font-semibold text-destructive">Einladung wirklich löschen?</p>
-                  <div className="flex gap-2">
-                    <button type="button" onClick={() => handleRemovePending(p.email)}
-                      className="flex-1 rounded-xl bg-destructive py-1.5 text-xs font-semibold text-white">Löschen</button>
-                    <button type="button" onClick={() => setConfirmRemovePending(null)}
-                      className="flex-1 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-muted-foreground">Abbrechen</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </>
-      )}
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">
+        Jugendliche/r erhält einen persönlichen Link — kein Login, kein Konto nötig. Link ist 30 Tage gültig.
+      </p>
 
-      {(true) && (
-        <div className="space-y-3 rounded-2xl border border-border bg-background p-3">
+      {links.map((l) => (
+        <TeenTokenRow key={l.id} link={l} urlBase={urlBase} onDelete={() => handleDelete(l.id)} />
+      ))}
+
+      {adding ? (
+        <div className="space-y-2 rounded-2xl border border-border bg-background p-3">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Name oder Initialen (z.B. Mama, L.M.)"
+            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+            placeholder="Vorname, z.B. Lena"
+            autoFocus
             className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
           />
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="email@beispiel.ch"
-            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
-          />
-          {!childOnly && (
-            <div className="grid grid-cols-2 gap-2">
-              {["member", "child", "teen", "other"].map((r) => (
-                <button key={r} type="button" onClick={() => setRole(r as typeof role)}
-                  className={`rounded-xl border py-2 text-xs font-semibold ${
-                    role === r ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"
-                  }`}>
-                  {ROLE_LABELS[r]}
-                </button>
-              ))}
-            </div>
-          )}
-          {error && <p className="text-xs text-destructive">{error}</p>}
-          {success && (
-            <p className="text-xs font-semibold text-primary">✓ Einladung verschickt.</p>
-          )}
-          <button type="button" onClick={handleInvite} disabled={busy || !email.trim()}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
-            <Plus className="h-4 w-4" /> Einladen
-          </button>
+          <div className="flex gap-2">
+            <button type="button" onClick={handleCreate} disabled={busy || !name.trim()}
+              className="flex-1 rounded-xl bg-primary py-2 text-sm font-semibold text-primary-foreground disabled:opacity-40">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Link erstellen"}
+            </button>
+            <button type="button" onClick={() => { setAdding(false); setName(""); }}
+              className="rounded-xl border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
+              Abbrechen
+            </button>
+          </div>
         </div>
+      ) : (
+        <button type="button" onClick={() => setAdding(true)}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card p-2.5 text-sm font-semibold text-primary">
+          <Plus className="h-4 w-4" /> Jugendliche/n hinzufügen
+        </button>
       )}
     </div>
   );
@@ -891,10 +862,10 @@ export function SettingsView({ settings, logs, onChange, onImport, userId }: Pro
               <TeacherLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
-          {/* Jugendliche/r einladen: nur für teen_self */}
+          {/* Jugendliche/r einladen: nur für teen_self — Token-Link wie Beobachter, kein Konto */}
           {userId && activePeriod.profile === "teen_self" && (
-            <SectionCard title="Jugendliche/r einladen" subtitle="Jugendliche/r (12–17) erhält eigenen Zugang und füllt das Tagebuch selbst aus.">
-              <FamilySettings userId={userId} childOnly />
+            <SectionCard title="Jugendliche/r einladen" subtitle="Jugendliche/r erhält einen täglichen Link — kein Login, kein Konto, keine E-Mail nötig.">
+              <TeenLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
 

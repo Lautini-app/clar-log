@@ -700,6 +700,9 @@ export function useStore() {
   const [store, setStoreState] = useState<Store>({ logs: {}, settings: defaultSettings });
   const [hydrated, setHydrated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  // authChecked becomes true once the initial session check completes (via INITIAL_SESSION event).
+  // Guards against premature /auth redirects before supabase has read the cached session.
+  const [authChecked, setAuthChecked] = useState(false);
 
   const setStore = useCallback((next: Store) => {
     const normalized = normalizeStore(next);
@@ -713,17 +716,14 @@ export function useStore() {
     setHydrated(true);
 
     let active = true;
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (!active) return;
-      const uid = data.user?.id ?? null;
-      setUserId(uid);
-      if (uid) await hydrateFromRemote(uid, local);
-    });
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!active) return;
       const uid = session?.user?.id ?? null;
       setUserId(uid);
-      if (event === "SIGNED_IN" && uid) {
+      if (event === "INITIAL_SESSION") {
+        setAuthChecked(true);
+        if (uid) await hydrateFromRemote(uid, load());
+      } else if (event === "SIGNED_IN" && uid) {
         await hydrateFromRemote(uid, load());
       }
     });
@@ -790,5 +790,5 @@ export function useStore() {
     [update, userId],
   );
 
-  return { store, hydrated, userId, upsertLog, updateSettings, setStore };
+  return { store, hydrated, userId, authChecked, upsertLog, updateSettings, setStore };
 }

@@ -142,3 +142,71 @@ export async function getTeenFamilyName(userId: string): Promise<string | null> 
     .maybeSingle();
   return (data as any)?.name ?? null;
 }
+
+// ─── Teen Token-Links (kein Konto, kein Login) ───────────────────────────────
+
+export type TeenToken = {
+  id: string;
+  ownerId: string;
+  periodId: string;
+  token: string;
+  name: string;
+  active: boolean;
+  createdAt: string;
+  expiresAt: string;
+};
+
+export async function listTeenTokens(ownerId: string, periodId: string): Promise<TeenToken[]> {
+  const { data, error } = await supabase
+    .schema("clar_log")
+    .from("teen_tokens")
+    .select("*")
+    .eq("owner_id", ownerId)
+    .eq("period_id", periodId)
+    .eq("active", true)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row: any) => ({
+    id: String(row.id),
+    ownerId: String(row.owner_id),
+    periodId: String(row.period_id),
+    token: String(row.token),
+    name: String(row.name ?? ""),
+    active: Boolean(row.active),
+    createdAt: String(row.created_at),
+    expiresAt: String(row.expires_at),
+  }));
+}
+
+export async function createTeenToken(ownerId: string, periodId: string, name: string): Promise<TeenToken> {
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(18)))
+    .map((b) => b.toString(36).padStart(2, "0"))
+    .join("");
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .schema("clar_log")
+    .from("teen_tokens")
+    .insert({ owner_id: ownerId, period_id: periodId, token, name, active: true, expires_at: expiresAt })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return {
+    id: String((data as any).id),
+    ownerId: String((data as any).owner_id),
+    periodId: String((data as any).period_id),
+    token: String((data as any).token),
+    name: String((data as any).name ?? ""),
+    active: Boolean((data as any).active),
+    createdAt: String((data as any).created_at),
+    expiresAt: String((data as any).expires_at),
+  };
+}
+
+export async function deleteTeenToken(id: string): Promise<void> {
+  const { error } = await supabase
+    .schema("clar_log")
+    .from("teen_tokens")
+    .update({ active: false })
+    .eq("id", id);
+  if (error) throw error;
+}

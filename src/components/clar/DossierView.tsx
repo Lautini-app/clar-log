@@ -678,7 +678,15 @@ export function DossierView({ settings, logs, ownerId }: Props) {
 
   const weekObs      = observations.filter(o => days.includes(o.date));
   const weekTeacher  = teacherReports.filter(() => days.some(d => d >= days[0] && d <= days[6]));
-  const isHomeObs = (o: any) => !!o.answers && Object.keys(o.answers as Record<string, unknown>).some((k: string) => k.startsWith("home_"));
+  // Home observations: either answers JSONB has home_* keys, or the row has direct home_* columns.
+  const isHomeObs = (o: any) => {
+    const ans = o?.answers ?? {};
+    return (
+      Object.keys(ans as Record<string, unknown>).some((k: string) => k.startsWith("home_")) ||
+      o?.home_mood !== undefined ||
+      o?.home_cooperation !== undefined
+    );
+  };
   const partnerWeekObs = weekObs.filter(isHomeObs);
   const teacherWeekObs = weekObs.filter((o: any) => !isHomeObs(o));
   const partnerGroups  = new Map<string, any[]>();
