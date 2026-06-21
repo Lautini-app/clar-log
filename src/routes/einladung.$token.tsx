@@ -13,7 +13,7 @@ export const Route = createFileRoute("/einladung/$token")({
 function EinladungRoute() {
   const { token } = Route.useParams();
   const navigate = useNavigate();
-  const [step, setStep] = useState<"loading" | "register" | "accepting" | "done" | "error">("loading");
+  const [step, setStep] = useState<"loading" | "register" | "accepting" | "done" | "error" | "already_accepted">("loading");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +66,25 @@ await acceptFamilyInvite(token);
       setStep("done");
       setTimeout(() => navigate({ to: isObserver ? "/beobachten" : "/heute" }), 2000);
     } catch (err) {
+      // Prüfen ob der User das Invite bereits angenommen hat (family_members-Eintrag vorhanden)
+      try {
+        const { data: sid } = await supabase.auth.getSession();
+        const uid = sid.session?.user?.id;
+        if (uid) {
+          const { data: member } = await supabase
+            .schema("clar_log")
+            .from("family_members")
+            .select("id")
+            .eq("member_user_id", uid)
+            .eq("status", "active")
+            .maybeSingle();
+          if (member) {
+            setStep("already_accepted");
+            setBusy(false);
+            return;
+          }
+        }
+      } catch { /* ignore, zeige normalen Fehler */ }
       setError(err instanceof Error ? err.message : "Fehler beim Annehmen der Einladung.");
       setStep("error");
     } finally {
@@ -138,6 +157,31 @@ await acceptFamilyInvite(token);
         <p className="text-lg font-semibold">Willkommen!</p>
         <p className="text-sm text-muted-foreground">Du wirst weitergeleitet…</p>
       </div>
+    </div>
+  );
+
+  if (step === "already_accepted") return (
+    <div className="mx-auto max-w-md space-y-5 px-4 py-12">
+      <header>
+        <div className="mb-4 grid h-10 w-10 place-items-center rounded-xl bg-primary/20">
+          <span className="text-sm font-bold text-primary">c.</span>
+        </div>
+        <h1 className="text-xl font-semibold">Einladung bereits angenommen</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Du hast diese Einladung bereits angenommen. Melde dich mit deiner E-Mail-Adresse an, um clar·log zu öffnen.
+        </p>
+      </header>
+      <button
+        type="button"
+        onClick={() => navigate({ to: "/heute" })}
+        className="w-full rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
+      >
+        Weiter zu clar·log →
+      </button>
+      <p className="text-center text-xs text-muted-foreground">
+        Noch nicht angemeldet?{" "}
+        <a href="/auth" className="underline underline-offset-2">Zur Anmeldung</a>
+      </p>
     </div>
   );
 
