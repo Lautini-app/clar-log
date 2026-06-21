@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Calendar, BarChart3, Settings as SettingsIcon } from "lucide-react";
-import { useStore, getActivePeriod } from "@/lib/clar-storage";
+import { useStore } from "@/lib/clar-storage";
 import { supabase } from "@/integrations/supabase/client";
 import { consumeSessionTokenFromUrl } from "@/lib/clar-auth";
 import {
@@ -33,13 +33,15 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout() {
-  const { hydrated, userId, store } = useStore();
+  const { hydrated, userId } = useStore();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [tokenChecked, setTokenChecked] = useState(false);
   const [tokenConsumed, setTokenConsumed] = useState(false);
   const [observerChecked, setObserverChecked] = useState(false);
   const [isObserver, setIsObserver] = useState(false);
+  // Teen = Familienmitglied (member_user_id in family_members), nicht Admin
+  const [isFamilyMember, setIsFamilyMember] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -84,26 +86,31 @@ function AuthenticatedLayout() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // Observer-Rolle prüfen und weiterleiten
+  // Observer-Rolle + Familienmitglied (Teen) parallel prüfen
   useEffect(() => {
     if (!hydrated || !tokenChecked || !userId) return;
-    const pathname = window.location.pathname;
-    if (pathname !== "/beobachten" && !pathname.startsWith("/beobachtung/")) {
-      // Prüfe ob User ein Beobachter ist (kein Admin)
-      import("@/integrations/supabase/client").then(({ supabase }) => {
-        supabase.schema("clar_log").from("observers")
-          .select("owner_id, period_id")
-          .eq("observer_user_id", userId)
-          .maybeSingle()
-          .then(({ data }) => {
-            setObserverChecked(true);
-              setIsObserver(!!data);
-              if (data) {
-              navigate({ to: "/beobachten", replace: true });
-            }
-          }, () => setObserverChecked(true));
-      });
+    const currentPath = window.location.pathname;
+    if (currentPath === "/beobachten" || currentPath.startsWith("/beobachtung/")) {
+      setObserverChecked(true);
+      return;
     }
+    Promise.all([
+      supabase.schema("clar_log").from("observers")
+        .select("owner_id, period_id")
+        .eq("observer_user_id", userId)
+        .maybeSingle(),
+      supabase.schema("clar_log").from("family_members")
+        .select("id")
+        .eq("member_user_id", userId)
+        .eq("status", "active")
+        .maybeSingle(),
+    ]).then(([{ data: obsData }, { data: memberData }]) => {
+      const isObs = !!obsData;
+      setIsObserver(isObs);
+      setIsFamilyMember(!!memberData);
+      setObserverChecked(true);
+      if (isObs) navigate({ to: "/beobachten", replace: true });
+    }).catch(() => setObserverChecked(true));
   }, [hydrated, tokenChecked, userId, navigate]);
 
   useEffect(() => {
@@ -113,7 +120,8 @@ function AuthenticatedLayout() {
     }
   }, [hydrated, tokenChecked, tokenConsumed, userId, navigate]);
 
-  const isTeen = hydrated ? getActivePeriod(store.settings)?.profile === "teen_self" : false;
+  // Teen = nur Familienmitglieder; Admin hat kein family_members-Eintrag als member_user_id
+  const isTeen = isFamilyMember;
 
   useEffect(() => {
     if (!isTeen || !hydrated) return;
@@ -122,13 +130,13 @@ function AuthenticatedLayout() {
     }
   }, [isTeen, hydrated, pathname, navigate]);
 
-  if (!hydrated || !tokenChecked) return <LoadingScreen />;
+  // Wenn userId bereits gesetzt (gecachte Session), nicht auf tokenChecked warten
+  if (!hydrated || (!userId && !tokenChecked)) return <LoadingScreen />;
 
   if (!userId) {
     return <LoadingScreen />;
   }
 
-  // Beobachter: kein Onboarding/keine Patienten-Seiten anzeigen, solange Status geprueft wird oder Observer erkannt
   if (pathname !== "/beobachten" && (!observerChecked || isObserver)) {
     return <LoadingScreen />;
   }
