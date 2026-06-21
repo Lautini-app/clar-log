@@ -472,7 +472,7 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
         </>
       )}
 
-      {(childOnly ? members.filter((m) => m.role === "child" || m.role === "teen").length + pending.filter((p) => p.role === "child" || p.role === "teen").length : members.length + pending.length) < 4 && (
+      {(true) && (
         <div className="space-y-3 rounded-2xl border border-border bg-background p-3">
           <input
             type="text"

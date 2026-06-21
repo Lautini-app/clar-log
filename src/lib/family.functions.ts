@@ -50,7 +50,6 @@ export async function inviteFamilyMember(params: {
     .select("id", { count: "exact", head: true })
     .eq("admin_user_id", userId)
     .in("status", ["pending", "accepted"]);
-  if ((count ?? 0) >= 4) throw new Error("Maximal 4 Familienmitglieder erlaubt.");
 
   const token = randomToken();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
