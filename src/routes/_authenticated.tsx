@@ -43,6 +43,8 @@ function AuthenticatedLayout() {
   const [isObserver, setIsObserver] = useState(false);
   // Teen = Familienmitglied (member_user_id in family_members), nicht Admin
   const [isFamilyMember, setIsFamilyMember] = useState(false);
+  // Fallback: nach 4s im Embed-Modus trotzdem zu /auth, falls Shell nie antwortet
+  const [shellSessionTimeout, setShellSessionTimeout] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -71,7 +73,10 @@ function AuthenticatedLayout() {
 
   useEffect(() => {
     if (!isEmbeddedShell()) return;
-    return installShellBridge();
+    const cleanup = installShellBridge();
+    // If the shell never sends clar:session, fall back to /auth after 4s.
+    const t = setTimeout(() => setShellSessionTimeout(true), 4000);
+    return () => { cleanup(); clearTimeout(t); };
   }, []);
 
   useEffect(() => {
@@ -117,16 +122,16 @@ function AuthenticatedLayout() {
   useEffect(() => {
     if (!hydrated || !tokenChecked) return;
     if (!userId && !tokenConsumed) {
-      if (isEmbeddedShell()) {
-        // Embedded in iframe: don't redirect — the shell will send clar:session via
-        // postMessage. installShellBridge() (above) calls setSession() on arrival,
-        // which triggers onAuthStateChange → userId is set → component re-renders.
+      if (isEmbeddedShell() && !shellSessionTimeout) {
+        // Embedded: wait for shell's clar:session postMessage (bridge installed above).
+        // signalNeedsSession() asks the shell to re-send its session.
+        // After 4s shellSessionTimeout → falls through to /auth.
         signalNeedsSession();
         return;
       }
       navigate({ to: "/auth", replace: true });
     }
-  }, [hydrated, tokenChecked, tokenConsumed, userId, navigate]);
+  }, [hydrated, tokenChecked, tokenConsumed, userId, navigate, shellSessionTimeout]);
 
   // Teen = nur Familienmitglieder; Admin hat kein family_members-Eintrag als member_user_id
   const isTeen = isFamilyMember;

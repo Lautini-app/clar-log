@@ -45,7 +45,8 @@ export function isEmbeddedShell(): boolean {
       new URLSearchParams(window.location.search).get("clar_embedded") === "1" ||
       navigator.userAgent.includes("clar-shell") ||
       typeof window.clarShell !== "undefined" ||
-      typeof window.ReactNativeWebView !== "undefined"
+      typeof window.ReactNativeWebView !== "undefined" ||
+      window !== window.parent // iframe-Embed (z.B. home.lautini.ch)
     );
   } catch {
     return false;
