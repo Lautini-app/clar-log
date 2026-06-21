@@ -39,7 +39,7 @@ function BerichtRoute() {
     listFamilyMembers()
       .then(({ members }) => {
         console.log("[bericht] family members:", members.length, members.map(m => m.member_user_id));
-        const teen = members[0];
+        const teen = members.find(m => m.role === "teen") ?? members[0];
         if (!teen) {
           console.warn("[bericht] no teen member found");
           return;
