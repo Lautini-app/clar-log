@@ -336,7 +336,7 @@ function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId:
 function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boolean }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState<"member" | "teen" | "child" | "other">("member");
+  const [role, setRole] = useState<"member" | "teen" | "child" | "other">(childOnly ? "teen" : "member");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -488,16 +488,18 @@ function FamilySettings({ userId, childOnly }: { userId: string; childOnly?: boo
             placeholder="email@beispiel.ch"
             className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
           />
-          <div className="grid grid-cols-2 gap-2">
-            {(childOnly ? ["child", "teen"] : ["member", "child", "teen", "other"]).map((r) => (
-              <button key={r} type="button" onClick={() => setRole(r as typeof role)}
-                className={`rounded-xl border py-2 text-xs font-semibold ${
-                  role === r ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"
-                }`}>
-                {ROLE_LABELS[r]}
-              </button>
-            ))}
-          </div>
+          {!childOnly && (
+            <div className="grid grid-cols-2 gap-2">
+              {["member", "child", "teen", "other"].map((r) => (
+                <button key={r} type="button" onClick={() => setRole(r as typeof role)}
+                  className={`rounded-xl border py-2 text-xs font-semibold ${
+                    role === r ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"
+                  }`}>
+                  {ROLE_LABELS[r]}
+                </button>
+              ))}
+            </div>
+          )}
           {error && <p className="text-xs text-destructive">{error}</p>}
           {success && (
             <p className="text-xs font-semibold text-primary">✓ Einladung verschickt.</p>

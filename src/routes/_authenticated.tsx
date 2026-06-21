@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Calendar, BarChart3, Settings as SettingsIcon } from "lucide-react";
-import { useStore } from "@/lib/clar-storage";
+import { useStore, getActivePeriod } from "@/lib/clar-storage";
 import { supabase } from "@/integrations/supabase/client";
 import { consumeSessionTokenFromUrl } from "@/lib/clar-auth";
 import {
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout() {
-  const { hydrated, userId } = useStore();
+  const { hydrated, userId, store } = useStore();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [tokenChecked, setTokenChecked] = useState(false);
@@ -113,6 +113,15 @@ function AuthenticatedLayout() {
     }
   }, [hydrated, tokenChecked, tokenConsumed, userId, navigate]);
 
+  const isTeen = hydrated ? getActivePeriod(store.settings)?.profile === "teen_self" : false;
+
+  useEffect(() => {
+    if (!isTeen || !hydrated) return;
+    if (pathname === "/einstellungen") {
+      void navigate({ to: "/heute", replace: true });
+    }
+  }, [isTeen, hydrated, pathname, navigate]);
+
   if (!hydrated || !tokenChecked) return <LoadingScreen />;
 
   if (!userId) {
@@ -124,7 +133,7 @@ function AuthenticatedLayout() {
     return <LoadingScreen />;
   }
 
-  const tabs: Array<{
+  const allTabs: Array<{
     to: "/heute" | "/bericht" | "/einstellungen";
     label: string;
     Icon: typeof Calendar;
@@ -133,6 +142,7 @@ function AuthenticatedLayout() {
     { to: "/bericht", label: "Verlauf", Icon: BarChart3 },
     { to: "/einstellungen", label: "Konto", Icon: SettingsIcon },
   ];
+  const tabs = isTeen ? allTabs.slice(0, 2) : allTabs;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -152,7 +162,7 @@ function AuthenticatedLayout() {
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card/95 backdrop-blur-md">
-        <div className="mx-auto grid max-w-md grid-cols-3">
+        <div className={`mx-auto grid max-w-md ${isTeen ? "grid-cols-2" : "grid-cols-3"}`}>
           {tabs.map(({ to, label, Icon }) => {
             const active = pathname === to;
             return (

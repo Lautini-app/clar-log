@@ -1,4 +1,5 @@
 import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
+import type { Medication } from "@/lib/clar-storage";
 
 const FUNCTIONS_BASE = `${SUPABASE_URL}/functions/v1`;
 
@@ -122,4 +123,22 @@ export async function acceptFamilyInvite(token: string): Promise<void> {
 export async function setupTeenSettings(token: string): Promise<void> {
   const { error } = await supabase.rpc("setup_teen_settings", { input_token: token });
   if (error) throw new Error(error.message);
+}
+
+export async function getAdminMedsForTeen(): Promise<Medication[]> {
+  const { data, error } = await supabase.rpc("get_admin_meds_for_teen");
+  if (error) return [];
+  if (!Array.isArray(data)) return [];
+  return data as Medication[];
+}
+
+export async function getTeenFamilyName(userId: string): Promise<string | null> {
+  const { data } = await supabase
+    .schema("clar_log")
+    .from("family_members")
+    .select("name")
+    .eq("member_user_id", userId)
+    .eq("status", "active")
+    .maybeSingle();
+  return (data as any)?.name ?? null;
 }

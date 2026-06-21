@@ -58,6 +58,8 @@ type Props = {
   onChange: (patch: Partial<DayLog>) => void;
   onSettingsChange: (patch: Partial<Settings>) => void;
   userId?: string;
+  adminMeds?: Medication[];
+  teenName?: string | null;
 };
 
 const CATEGORY_LABEL: Record<WellbeingItem["category"], string> = {
@@ -1379,13 +1381,17 @@ function ParentAdminObserverPanel({
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function TodayView({ log, settings, onChange, onSettingsChange, userId }: Props) {
+export function TodayView({ log, settings, onChange, onSettingsChange, userId, adminMeds, teenName }: Props) {
   const period = getActivePeriod(settings);
   const navigate = useNavigate();
   const [activeSlot, setActiveSlot] = useState<TimeSlot | null>(null);
   const [childPhase, setChildPhase] = useState(false);
   const items = useMemo(() => availableWellbeingItems(settings), [settings]);
   const isChildParent = period?.profile === "child_parent" || period?.profile === "child_both";
+  const isTeen = period?.profile === "teen_self";
+  const effectivePeriod = (isTeen && adminMeds && adminMeds.length > 0 && period)
+    ? { ...period, medications: adminMeds }
+    : period;
 
   useEffect(() => {
     if (!period) {
@@ -1405,14 +1411,18 @@ export function TodayView({ log, settings, onChange, onSettingsChange, userId }:
             month: "long",
           })}
         </p>
-        <h1 className="mt-1 text-2xl font-semibold text-foreground">Heute erfassen</h1>
-        <button
-          type="button"
-          onClick={() => void navigate({ to: "/perioden" })}
-          className="mt-1 text-sm text-primary font-medium hover:underline"
-        >
-          {period.name}
-        </button>
+        <h1 className="mt-1 text-2xl font-semibold text-foreground">
+          {isTeen ? (teenName ? `Hallo ${teenName}` : "Mein Tagebuch") : "Heute erfassen"}
+        </h1>
+        {!isTeen && (
+          <button
+            type="button"
+            onClick={() => void navigate({ to: "/perioden" })}
+            className="mt-1 text-sm text-primary font-medium hover:underline"
+          >
+            {period.name}
+          </button>
+        )}
       </header>
 
       <div className="grid gap-3">
@@ -1480,7 +1490,7 @@ export function TodayView({ log, settings, onChange, onSettingsChange, userId }:
             <span className="text-xs text-muted-foreground">Kind-Teil</span>
           </div>
           <ChildWizard
-            period={period}
+            period={effectivePeriod!}
             log={log}
             onDone={(patch) => {
               onChange(patch);
@@ -1494,7 +1504,7 @@ export function TodayView({ log, settings, onChange, onSettingsChange, userId }:
         <SlotWizard
           slot={activeSlot}
           log={log}
-          period={period}
+          period={effectivePeriod!}
           items={items}
           onClose={() => setActiveSlot(null)}
           onChange={onChange}
