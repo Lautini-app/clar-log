@@ -19,6 +19,14 @@ import {
   signalSignedOut,
 } from "@/lib/embedded-shell";
 
+function LoadingScreen() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <p className="text-sm text-muted-foreground">clar·log lädt…</p>
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   component: AuthenticatedLayout,
@@ -105,15 +113,15 @@ function AuthenticatedLayout() {
     }
   }, [hydrated, tokenChecked, tokenConsumed, userId, navigate]);
 
-  if (!hydrated || !tokenChecked) return <div className="min-h-screen bg-background" />;
+  if (!hydrated || !tokenChecked) return <LoadingScreen />;
 
   if (!userId) {
-    return <div className="min-h-screen bg-background" />;
+    return <LoadingScreen />;
   }
 
   // Beobachter: kein Onboarding/keine Patienten-Seiten anzeigen, solange Status geprueft wird oder Observer erkannt
   if (pathname !== "/beobachten" && (!observerChecked || isObserver)) {
-    return <div className="min-h-screen bg-background" />;
+    return <LoadingScreen />;
   }
 
   const tabs: Array<{
