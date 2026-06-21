@@ -1412,21 +1412,10 @@ export function TodayView({ log, settings, onChange, onSettingsChange, userId, a
           })}
         </p>
         <h1 className="mt-1 text-2xl font-semibold text-foreground">
-          {isTeen ? (teenName ? `Hallo ${teenName}` : (
-            <button type="button" onClick={() => void navigate({ to: "/perioden" })} className="hover:underline text-left">
-              {period.name}
-            </button>
-          )) : "Heute erfassen"}
-        </h1>
-        {!isTeen && (
-          <button
-            type="button"
-            onClick={() => void navigate({ to: "/perioden" })}
-            className="mt-1 text-sm text-primary font-medium hover:underline"
-          >
+          <button type="button" onClick={() => void navigate({ to: "/perioden" })} className="hover:underline text-left">
             {period.name}
           </button>
-        )}
+        </h1>
       </header>
 
       <div className="grid gap-3">
