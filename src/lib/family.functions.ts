@@ -210,3 +210,24 @@ export async function deleteTeenToken(id: string): Promise<void> {
     .eq("id", id);
   if (error) throw error;
 }
+
+export type TeenLogEntry = { teenName: string; date: string; log: import("./clar-storage").DayLog };
+
+export async function loadTeenLogsForOwner(
+  ownerId: string,
+  periodId: string,
+): Promise<TeenLogEntry[]> {
+  const { data, error } = await supabase
+    .schema("clar_log")
+    .from("teen_logs")
+    .select("teen_name, date, data")
+    .eq("owner_id", ownerId)
+    .eq("period_id", periodId)
+    .order("date", { ascending: false });
+  if (error || !data) return [];
+  return (data as any[]).map((row) => ({
+    teenName: String(row.teen_name),
+    date: String(row.date),
+    log: { ...(row.data as import("./clar-storage").DayLog), date: String(row.date) },
+  }));
+}

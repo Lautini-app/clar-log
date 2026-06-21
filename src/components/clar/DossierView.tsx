@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { DayLog, Medication, Settings, WellbeingAnswer } from "@/lib/clar-storage";
 import { listObserverObservations } from "@/lib/clar-observers";
 
-type Props = { settings: Settings; logs: DayLog[]; ownerId: string; };
+type Props = {
+  settings: Settings;
+  logs: DayLog[];
+  ownerId: string;
+  teenLogGroups?: Map<string, DayLog[]>;
+};
 const DAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 const EMOTIONS_NEG = new Set(["Verzweifelt","Traurig","Melancholisch","Ängstlich","Wütend","Aufgewühlt"]);
 const SLOT_LABELS: Record<string, string> = { morning: "Morgen", midday: "Mittag", evening: "Abend" };
@@ -652,7 +657,7 @@ function DetailView({ panel, onClose }: { panel: DetailPanel; onClose: () => voi
 
 // ─── DossierView ──────────────────────────────────────────────────────────────
 
-export function DossierView({ settings, logs, ownerId }: Props) {
+export function DossierView({ settings, logs, ownerId, teenLogGroups }: Props) {
   const [weekOffset, setWeekOffset]     = useState(0);
   const [observations, setObservations] = useState<any[]>([]);
   const [teacherReports, setTeacherReports] = useState<any[]>([]);
@@ -1072,6 +1077,82 @@ export function DossierView({ settings, logs, ownerId }: Props) {
           );
         })}
       </div>
+
+      {/* Teen-Tagebücher — eine Sektion pro Jugendliche/m */}
+      {teenLogGroups && teenLogGroups.size > 0 && Array.from(teenLogGroups.entries()).map(([teenName, teenDayLogs]) => {
+        const teenDayLogsForWeek = days.map(d => teenDayLogs.find(l => l.date === d));
+        const teenMoodVals   = teenDayLogsForWeek.map(moodScore);
+        // Teen energy is stored as string enum; convert to 1/3/5 for heatmap.
+        const teenEnergyVals = teenDayLogsForWeek.map(l => {
+          const raw = collectAnswer(l, "energy_level");
+          if (raw === "high") return 5;
+          if (raw === "mid")  return 3;
+          if (raw === "low")  return 1;
+          const n = collectVal(l, "energy_level");
+          return n;
+        });
+        const hasSomeData    = [...teenMoodVals, ...teenEnergyVals].some(v => v !== undefined);
+        if (!hasSomeData) return null;
+        return (
+          <div key={teenName}>
+            <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", margin: "1.25rem 0" }} />
+            <div style={{ marginBottom: "1.25rem" }}>
+              <p style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 8 }}>
+                Tagebuch {teenName}
+              </p>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: 90 }} />
+                    {DAYS.map(d => <th key={d} style={{ fontSize: 10, fontWeight: 500, color: "var(--color-text-secondary)", textAlign: "center", padding: "3px 1px", minWidth: 36 }}>{d}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ textAlign: "left", fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500, paddingRight: 6, whiteSpace: "nowrap" }}>Energie</td>
+                    {teenEnergyVals.map((v, i) => (
+                      <td key={i} style={{ textAlign: "center", padding: "2px 1px" }}><CellBtn val={v} /></td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td style={{ textAlign: "left", fontSize: 12, color: "var(--color-text-secondary)", fontWeight: 500, paddingRight: 6, whiteSpace: "nowrap" }}>Stimmung</td>
+                    {teenMoodVals.map((v, i) => (
+                      <td key={i} style={{ textAlign: "center", padding: "2px 1px" }}><CellBtn val={v} /></td>
+                    ))}
+                  </tr>
+                  {period?.medications?.map(med => {
+                    const takenVals = teenDayLogsForWeek.map(log => {
+                      const slotData = (log?.slots as any)?.[med.intakeSlot];
+                      return slotData?.medsTaken?.[med.id] as boolean | undefined;
+                    });
+                    const hasMedData = takenVals.some(v => v !== undefined);
+                    if (!hasMedData) return null;
+                    return (
+                      <tr key={med.id}>
+                        <td style={{ textAlign: "left", fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 500, paddingRight: 6, whiteSpace: "nowrap" }}>
+                          {med.name}
+                        </td>
+                        {takenVals.map((taken, i) => (
+                          <td key={i} style={{ textAlign: "center", padding: "2px 1px" }}>
+                            <div style={{
+                              display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              width: 30, height: 26, borderRadius: 4, fontSize: 10, fontWeight: 500,
+                              background: taken === undefined ? "var(--color-background-secondary)" : taken ? "#E1F5EE" : "#FCEBEB",
+                              color: taken === undefined ? "var(--color-text-tertiary)" : taken ? "#0F6E56" : "#A32D2D",
+                            }}>
+                              {taken === undefined ? "—" : taken ? "✓" : "✗"}
+                            </div>
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })}
 
     </div>
   );
