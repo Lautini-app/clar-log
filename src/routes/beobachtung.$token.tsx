@@ -77,38 +77,40 @@ type WeeklyAnswers = {
 
 // ─── Shared UI components ─────────────────────────────────────────────────────
 
+const SCALE_LABELS: Record<number, string> = {
+  1: "sehr\nschwach",
+  2: "schwach",
+  3: "mittel",
+  4: "gut",
+  5: "sehr\ngut",
+};
+
 function ScaleInput({
-  label, hint, loLabel, hiLabel, value, onChange,
+  label, hint, value, onChange,
 }: {
-  label: string; hint?: string; loLabel?: string; hiLabel?: string;
+  label: string; hint?: string;
   value?: number; onChange: (v: number) => void;
 }) {
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold leading-snug">{label}</p>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-      <div className="flex gap-1.5">
+      <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((v) => (
           <button
             key={v}
             type="button"
             onClick={() => onChange(v)}
-            className={`flex-1 rounded-xl border-2 py-3 text-base font-bold transition-all ${
+            className={`flex-1 rounded-xl border-2 py-2.5 text-[11px] font-semibold leading-tight whitespace-pre-line text-center transition-all ${
               value === v
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-card text-muted-foreground"
             }`}
           >
-            {v}
+            {SCALE_LABELS[v]}
           </button>
         ))}
       </div>
-      {(loLabel || hiLabel) && (
-        <div className="flex justify-between px-0.5">
-          <span className="text-[10px] text-muted-foreground">{loLabel}</span>
-          <span className="text-[10px] text-muted-foreground text-right">{hiLabel}</span>
-        </div>
-      )}
     </div>
   );
 }
@@ -389,27 +391,22 @@ function BeobachtungRoute() {
       <SectionBox title="Vormittag">
         <ScaleInput
           label="Aufmerksamkeit im Unterricht"
-          loLabel="1 = sehr unaufmerksam" hiLabel="5 = sehr aufmerksam"
           value={wa.amAttention} onChange={(v) => patch({ amAttention: v })}
         />
         <ScaleInput
           label="Instruktionen befolgen"
-          loLabel="1 = kaum" hiLabel="5 = zuverlässig"
           value={wa.amInstructions} onChange={(v) => patch({ amInstructions: v })}
         />
         <ScaleInput
           label="Aufgaben beginnen und abschliessen"
-          loLabel="1 = kaum" hiLabel="5 = vollständig"
           value={wa.amTaskCompletion} onChange={(v) => patch({ amTaskCompletion: v })}
         />
         <ScaleInput
           label="Motorische Unruhe"
-          loLabel="1 = sehr unruhig" hiLabel="5 = ruhig"
           value={wa.amMotorUnrest} onChange={(v) => patch({ amMotorUnrest: v })}
         />
         <ScaleInput
           label="Impulsives Reinrufen"
-          loLabel="1 = sehr häufig" hiLabel="5 = nie"
           value={wa.amImpulsivity} onChange={(v) => patch({ amImpulsivity: v })}
         />
       </SectionBox>
@@ -418,22 +415,18 @@ function BeobachtungRoute() {
       <SectionBox title="Nachmittag">
         <ScaleInput
           label="Aufmerksamkeit"
-          loLabel="1 = sehr unaufmerksam" hiLabel="5 = sehr aufmerksam"
           value={wa.pmAttention} onChange={(v) => patch({ pmAttention: v })}
         />
         <ScaleInput
           label="Aufgaben abschliessen"
-          loLabel="1 = kaum" hiLabel="5 = vollständig"
           value={wa.pmTaskCompletion} onChange={(v) => patch({ pmTaskCompletion: v })}
         />
         <ScaleInput
           label="Motorische Unruhe"
-          loLabel="1 = sehr unruhig" hiLabel="5 = ruhig"
           value={wa.pmMotorUnrest} onChange={(v) => patch({ pmMotorUnrest: v })}
         />
         <ScaleInput
           label="Impulsivität"
-          loLabel="1 = sehr impulsiv" hiLabel="5 = gut kontrolliert"
           value={wa.pmImpulsivity} onChange={(v) => patch({ pmImpulsivity: v })}
         />
         <YesNo
@@ -456,12 +449,10 @@ function BeobachtungRoute() {
       <SectionBox title="Soziales & Emotionales">
         <ScaleInput
           label="Interaktion mit Gleichaltrigen"
-          loLabel="1 = sehr schwierig" hiLabel="5 = sehr gut"
           value={wa.socialPeers} onChange={(v) => patch({ socialPeers: v })}
         />
         <ScaleInput
           label="Emotionale Regulation"
-          loLabel="1 = sehr schwierig" hiLabel="5 = sehr gut"
           value={wa.socialEmotionReg} onChange={(v) => patch({ socialEmotionReg: v })}
         />
         <YesNo
@@ -480,7 +471,6 @@ function BeobachtungRoute() {
         )}
         <ScaleInput
           label="Frustrationstoleranz"
-          loLabel="1 = sehr niedrig" hiLabel="5 = sehr hoch"
           value={wa.socialFrustration} onChange={(v) => patch({ socialFrustration: v })}
         />
       </SectionBox>
@@ -489,17 +479,14 @@ function BeobachtungRoute() {
       <SectionBox title="Organisation">
         <ScaleInput
           label="Arbeitsplatz ordentlich"
-          loLabel="1 = sehr unordentlich" hiLabel="5 = sehr ordentlich"
           value={wa.orgWorkspace} onChange={(v) => patch({ orgWorkspace: v })}
         />
         <ScaleInput
           label="Material dabei"
-          loLabel="1 = selten" hiLabel="5 = immer"
           value={wa.orgMaterials} onChange={(v) => patch({ orgMaterials: v })}
         />
         <ScaleInput
           label="Übergänge zwischen Aktivitäten"
-          loLabel="1 = sehr schwierig" hiLabel="5 = problemlos"
           value={wa.orgTransitions} onChange={(v) => patch({ orgTransitions: v })}
         />
       </SectionBox>
@@ -508,7 +495,6 @@ function BeobachtungRoute() {
       <SectionBox title="Gesamteindruck">
         <ScaleInput
           label="Gesamtbeurteilung der Woche"
-          loLabel="1 = sehr schwierig" hiLabel="5 = sehr gut"
           value={wa.overallRating} onChange={(v) => patch({ overallRating: v })}
         />
         <div className="space-y-2">
