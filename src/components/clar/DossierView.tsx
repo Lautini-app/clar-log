@@ -360,7 +360,7 @@ function DetailView({ panel, onClose }: { panel: DetailPanel; onClose: () => voi
                   <DayHdr day={day} di={di} />
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {(panel.medications ?? []).map(med => {
-                      const slotData = (log?.slots as any)?.[med.intakeSlot];
+                      const slotData = (log?.slots as any)?.[med.intakeSlot ?? "morning"];
                       const taken = slotData?.medsTaken?.[med.id] ?? false;
                       const time  = slotData?.medicationTime as string | undefined;
                       const dose  = slotData?.medsDose?.[med.id] as number | undefined;
@@ -879,7 +879,7 @@ export function DossierView({ settings, logs, ownerId, teenLogGroups }: Props) {
                   {med.name}<br /><span style={{ fontSize: 10, fontWeight: 400 }}>{med.duration === "long" ? "Retard" : "Kurz"}</span>
                 </td>
                 {dayLogs.map((log, i) => {
-                  const slotData = (log?.slots as any)?.[med.intakeSlot];
+                  const slotData = (log?.slots as any)?.[med.intakeSlot ?? "morning"];
                   const taken = slotData?.medsTaken?.[med.id] ?? false;
                   const time  = slotData?.medicationTime as string | undefined;
                   const dose  = slotData?.medsDose?.[med.id] as number | undefined;
@@ -1122,7 +1122,7 @@ export function DossierView({ settings, logs, ownerId, teenLogGroups }: Props) {
                   </tr>
                   {period?.medications?.map(med => {
                     const takenVals = teenDayLogsForWeek.map(log => {
-                      const slotData = (log?.slots as any)?.[med.intakeSlot];
+                      const slotData = (log?.slots as any)?.[med.intakeSlot ?? "morning"];
                       return slotData?.medsTaken?.[med.id] as boolean | undefined;
                     });
                     const hasMedData = takenVals.some(v => v !== undefined);
