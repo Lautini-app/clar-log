@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { DossierView } from "@/components/clar/DossierView";
 import { listFamilyMembers } from "@/lib/family.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { getActivePeriod, useStore } from "@/lib/clar-storage";
+import { useStore } from "@/lib/clar-storage";
 import type { DayLog } from "@/lib/clar-storage";
 
 export const Route = createFileRoute("/_authenticated/bericht")({
@@ -13,9 +13,6 @@ export const Route = createFileRoute("/_authenticated/bericht")({
 });
 
 async function loadTeenLogs(teenId: string): Promise<Record<string, DayLog>> {
-  // Query tracker_logs directly — RLS policy "family admin read logs" lives here.
-  // loadFromSupabase tries daily_logs first and returns early with 0 rows if the
-  // teen's data is only in tracker_logs, never reaching the RLS-protected table.
   const { data, error } = await supabase
     .from("tracker_logs")
     .select("date, data")
@@ -37,30 +34,28 @@ async function loadTeenLogs(teenId: string): Promise<Record<string, DayLog>> {
 
 function BerichtRoute() {
   const { store, userId } = useStore();
-  // useRef so teen logs survive React re-renders triggered by store updates
-  const teenLogsRef = useRef<Record<string, DayLog> | null>(null);
-  const [teenLogsLoaded, setTeenLogsLoaded] = useState(false);
-
-  const activePeriod = getActivePeriod(store.settings);
-  const isTeenSelf = activePeriod?.profile === "teen_self";
+  // useState (not useRef) so React re-renders when teen logs arrive.
+  // Null = not yet checked; {} = admin has no teen or teen has no logs.
+  const [teenLogs, setTeenLogs] = useState<Record<string, DayLog> | null>(null);
 
   useEffect(() => {
-    if (!isTeenSelf || !userId) return;
+    if (!userId) return;
+    // listFamilyMembers queries WHERE admin_user_id = userId, so only admins get results.
+    // For the teen's own /bericht view, this returns empty and store.logs is shown instead.
     listFamilyMembers()
       .then(async ({ members }) => {
-        const teen = members.find(m => m.role === "teen") ?? members[0];
-        if (!teen) return;
+        const teen = members.find((m) => m.role === "teen");
+        if (!teen) return; // Not an admin with a teen — show own logs
         const logs = await loadTeenLogs(teen.member_user_id);
-        teenLogsRef.current = logs;
-        setTeenLogsLoaded(true);
+        setTeenLogs(logs);
       })
       .catch(() => {});
-  }, [isTeenSelf, userId]);
+  }, [userId]);
 
   if (!userId) return null;
 
-  // Ref survives store re-renders that may temporarily flip isTeenSelf via settings hydration.
-  const logs = Object.values(teenLogsRef.current ?? (store.logs ?? {}));
+  // When admin has a teen: show teen logs. Otherwise show own logs.
+  const logs = Object.values(teenLogs ?? store.logs ?? {});
 
   return (
     <div style={{ maxWidth: 680, margin: "0 auto", padding: "0 1rem 4rem" }}>
