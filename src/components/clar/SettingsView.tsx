@@ -1,5 +1,6 @@
 import { MedicationEditor } from "@/components/clar/TodayView";
 import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Copy, Download, Loader2, Plus, Share2, Trash2 } from "lucide-react";
 
 import { SectionCard } from "./SectionCard";
@@ -706,6 +707,7 @@ export function SettingsView({ settings, logs, onChange, onImport, userId }: Pro
   const [customLabel, setCustomLabel] = useState("");
   const [pendingDeletePeriod, setPendingDeletePeriod] = useState<ObservationPeriod | null>(null);
   const [deletingPeriod, setDeletingPeriod] = useState(false);
+  const navigate = useNavigate();
   const activePeriod = getActivePeriod(settings);
 
   const updateActivePeriod = (patch: Partial<ObservationPeriod>) => {
@@ -836,6 +838,7 @@ export function SettingsView({ settings, logs, onChange, onImport, userId }: Pro
                 };
                 try { localStorage.removeItem("clar.tracker.v1"); } catch {}
                 onChange(next);
+                void navigate({ to: "/perioden" });
               }}
               className="w-full rounded-2xl border border-border bg-card p-3 text-sm font-semibold text-primary text-left"
             >
