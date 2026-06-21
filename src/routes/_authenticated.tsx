@@ -15,6 +15,7 @@ import {
   installShellBridge,
   persistEmbeddedFlag,
   signalShellReady,
+  signalNeedsSession,
   signalSignedIn,
   signalSignedOut,
 } from "@/lib/embedded-shell";
@@ -116,6 +117,13 @@ function AuthenticatedLayout() {
   useEffect(() => {
     if (!hydrated || !tokenChecked) return;
     if (!userId && !tokenConsumed) {
+      if (isEmbeddedShell()) {
+        // Embedded in iframe: don't redirect — the shell will send clar:session via
+        // postMessage. installShellBridge() (above) calls setSession() on arrival,
+        // which triggers onAuthStateChange → userId is set → component re-renders.
+        signalNeedsSession();
+        return;
+      }
       navigate({ to: "/auth", replace: true });
     }
   }, [hydrated, tokenChecked, tokenConsumed, userId, navigate]);
