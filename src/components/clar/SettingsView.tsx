@@ -1013,8 +1013,7 @@ function LegalSection({ userId }: { userId: string | null }) {
     let active = true;
     (async () => {
       try {
-        const { data } = await (supabase as any)
-          .schema("clar_log")
+        const { data } = await supabase
           .from("user_consents")
           .select("consent_given_at, consent_version")
           .eq("user_id", userId)

@@ -102,17 +102,18 @@ function AuthenticatedLayout() {
     let active = true;
     (async () => {
       try {
-        const { data } = await (supabase as any)
-          .schema("clar_log")
+        const { data, error } = await supabase
           .from("user_consents")
           .select("id")
           .eq("user_id", userId)
           .maybeSingle();
+        console.log("[consent] check result:", { data, error, userId });
         if (active) {
           setHasConsent(!!data);
           setConsentChecked(true);
         }
-      } catch {
+      } catch (e) {
+        console.error("[consent] check failed:", e);
         if (active) setConsentChecked(true);
       }
     })();
@@ -123,10 +124,16 @@ function AuthenticatedLayout() {
     if (!userId) return;
     setConsentSaving(true);
     try {
-      await (supabase as any)
-        .schema("clar_log")
+      const { data, error } = await supabase
         .from("user_consents")
-        .insert({ user_id: userId, consent_version: "v1.0" });
+        .insert({ user_id: userId, consent_version: "v1.0" })
+        .select("id")
+        .single();
+      console.log("[consent] insert result:", { data, error });
+      if (error) {
+        console.error("[consent] insert error:", error.message, error.details, error.hint);
+        return;
+      }
       setHasConsent(true);
     } catch (e) {
       console.error("[consent] save failed", e);
