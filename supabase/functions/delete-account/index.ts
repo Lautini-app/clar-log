@@ -40,8 +40,12 @@ serve(async (req) => {
 
           for (const sub of subData.data ?? []) {
             await fetch(`https://api.stripe.com/v1/subscriptions/${sub.id}`, {
-              method: "DELETE",
-              headers: { Authorization: `Bearer ${STRIPE_KEY}` },
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${STRIPE_KEY}`,
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: "cancel_at_period_end=true",
             });
           }
         }

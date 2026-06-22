@@ -1141,8 +1141,9 @@ function DeleteAccountSection({ userId }: { userId: string | null }) {
             Möchtest du wirklich dein Konto und ALLE Daten unwiderruflich löschen?
           </p>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Dies kann nicht rückgängig gemacht werden. Dein Abonnement wird ebenfalls gekündigt.
-            Tippe <strong>LÖSCHEN</strong> zur Bestätigung.
+            Dies kann nicht rückgängig gemacht werden. Dein Abonnement wird zum Ende der aktuellen
+            Abrechnungsperiode gekündigt und nicht verlängert. Eine Rückerstattung für die laufende
+            Periode erfolgt nicht. Tippe <strong>LÖSCHEN</strong> zur Bestätigung.
           </p>
           <input
             type="text"
