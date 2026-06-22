@@ -5,11 +5,12 @@ import {
   useRouterState,
   Link,
 } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Calendar, BarChart3, Settings as SettingsIcon } from "lucide-react";
 import { useStore } from "@/lib/clar-storage";
 import { supabase } from "@/integrations/supabase/client";
 import { consumeSessionTokenFromUrl } from "@/lib/clar-auth";
+import { ConsentScreen } from "@/components/clar/ConsentScreen";
 import {
   isEmbeddedShell,
   installShellBridge,
@@ -43,6 +44,9 @@ function AuthenticatedLayout() {
   const [isObserver, setIsObserver] = useState(false);
   const [shellSessionTimeout, setShellSessionTimeout] = useState(false);
   const [redirectingToAuth, setRedirectingToAuth] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [hasConsent, setHasConsent] = useState(false);
+  const [consentSaving, setConsentSaving] = useState(false);
 
   // Install the shell bridge FIRST, before consuming URL tokens, so that a
   // clar:session postMessage that arrives while consumeSessionTokenFromUrl()
@@ -91,6 +95,45 @@ function AuthenticatedLayout() {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // Consent prüfen
+  useEffect(() => {
+    if (!hydrated || !tokenChecked || !userId) return;
+    let active = true;
+    (async () => {
+      try {
+        const { data } = await (supabase as any)
+          .schema("clar_log")
+          .from("user_consents")
+          .select("id")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (active) {
+          setHasConsent(!!data);
+          setConsentChecked(true);
+        }
+      } catch {
+        if (active) setConsentChecked(true);
+      }
+    })();
+    return () => { active = false; };
+  }, [hydrated, tokenChecked, userId]);
+
+  const acceptConsent = useCallback(async () => {
+    if (!userId) return;
+    setConsentSaving(true);
+    try {
+      await (supabase as any)
+        .schema("clar_log")
+        .from("user_consents")
+        .insert({ user_id: userId, consent_version: "v1.0" });
+      setHasConsent(true);
+    } catch (e) {
+      console.error("[consent] save failed", e);
+    } finally {
+      setConsentSaving(false);
+    }
+  }, [userId]);
 
   // Observer-Rolle + Familienmitglied (Teen) parallel prüfen
   useEffect(() => {
@@ -141,6 +184,11 @@ function AuthenticatedLayout() {
 
   if (pathname !== "/beobachten" && (!observerChecked || isObserver)) {
     return <LoadingScreen />;
+  }
+
+  if (!consentChecked) return <LoadingScreen />;
+  if (!hasConsent) {
+    return <ConsentScreen onAccept={acceptConsent} loading={consentSaving} />;
   }
 
   const tabs: Array<{
