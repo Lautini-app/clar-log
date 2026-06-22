@@ -16,6 +16,9 @@ CREATE INDEX IF NOT EXISTS idx_user_consents_user ON clar_log.user_consents(user
 
 ALTER TABLE clar_log.user_consents ENABLE ROW LEVEL SECURITY;
 
+-- Table-level privileges (required in addition to RLS policies)
+GRANT SELECT, INSERT ON clar_log.user_consents TO authenticated;
+
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users view own consent' AND tablename = 'user_consents') THEN
     CREATE POLICY "Users view own consent" ON clar_log.user_consents

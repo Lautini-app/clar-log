@@ -121,7 +121,7 @@ function AuthenticatedLayout() {
   }, [hydrated, tokenChecked, userId]);
 
   const acceptConsent = useCallback(async () => {
-    if (!userId) return;
+    if (!userId || consentSaving) return;
     setConsentSaving(true);
     try {
       const { data, error } = await supabase
