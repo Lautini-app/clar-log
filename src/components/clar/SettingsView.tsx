@@ -1088,9 +1088,45 @@ function DeleteAccountSection({ userId }: { userId: string | null }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [deleted, setDeleted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [subType, setSubType] = useState<"none" | "single" | "combined" | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    (async () => {
+      try {
+        const { data } = await supabase.schema("public")
+          .from("subscribers")
+          .select("app, subscribed, subscription_plan")
+          .eq("user_id", userId)
+          .eq("subscribed", true);
+        if (!active) return;
+        if (!data || data.length === 0) {
+          setSubType("none");
+          return;
+        }
+        const hasAll = data.some((r: { app: string }) => ["all", "premium", "pro"].includes(r.app));
+        const hasCombined = data.some((r: { subscription_plan?: string }) => r.subscription_plan === "two");
+        if (hasAll || hasCombined) {
+          setSubType("combined");
+        } else {
+          const hasLog = data.some((r: { app: string }) =>
+            ["clarlog", "clar·log", "clar.log", "clar-log", "log"].includes(r.app)
+          );
+          setSubType(hasLog ? "single" : "none");
+        }
+      } catch {
+        if (active) setSubType("none");
+      }
+    })();
+    return () => { active = false; };
+  }, [userId]);
 
   const canDelete = confirmText === "LÖSCHEN";
+
+  const PORTAL_URL = "https://billing.stripe.com/p/login/8wM6r9edt7DsdZm288";
 
   async function handleDelete() {
     if (!userId || !canDelete || deleting) return;
@@ -1108,8 +1144,7 @@ function DeleteAccountSection({ userId }: { userId: string | null }) {
         localStorage.removeItem("clar.tracker.v1");
         localStorage.removeItem("clar.tracker.migrated.v1");
       }
-      // Don't sign out — auth user is shared across all clar apps
-      window.location.href = "https://home.lautini.ch";
+      setDeleted(true);
     } catch (e) {
       setError((e as Error).message || "Löschen fehlgeschlagen.");
       setDeleting(false);
@@ -1118,16 +1153,67 @@ function DeleteAccountSection({ userId }: { userId: string | null }) {
 
   if (!userId) return null;
 
+  if (deleted) {
+    return (
+      <div className="mt-6 rounded-2xl border border-border bg-card p-4 space-y-3">
+        <p className="text-sm font-semibold text-foreground">Deine clar·log-Daten wurden gelöscht.</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Dein clar-Konto und andere Apps bleiben bestehen.
+          {subType === "single" && " Vergiss nicht, dein Abo im Kundenportal zu kündigen."}
+        </p>
+        {(subType === "single" || subType === "combined") && (
+          <a
+            href={PORTAL_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full rounded-xl border border-border bg-card py-3 text-center text-sm font-semibold text-primary"
+          >
+            Abo verwalten ↗
+          </a>
+        )}
+        <button
+          type="button"
+          onClick={() => { window.location.href = "https://home.lautini.ch"; }}
+          className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground"
+        >
+          Zurück zu clar
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div id="delete-account-section" className="mt-6 rounded-2xl border border-destructive/30 bg-card p-4 space-y-3">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-destructive">Gefahrenzone</p>
         <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
           Löscht alle deine clar·log-Daten (Perioden, Einträge, Beobachtungen, Einwilligung)
-          sofort und unwiderruflich. Dein clar-Konto und andere Apps (clar·markt, clar·heim,
-          clar·tag) bleiben bestehen.
+          sofort und unwiderruflich. Dein clar-Konto und andere Apps bleiben bestehen.
         </p>
       </div>
+
+      {subType === "single" && (
+        <div className="rounded-xl border border-border bg-background p-3">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Nach der Löschung deiner Daten kannst du dein clar·log-Abonnement im Kundenportal
+            kündigen, damit es sich nicht verlängert.{" "}
+            <a href={PORTAL_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-primary">
+              Abo verwalten ↗
+            </a>
+          </p>
+        </div>
+      )}
+      {subType === "combined" && (
+        <div className="rounded-xl border border-border bg-background p-3">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Dein Abonnement umfasst weitere clar-Apps und bleibt nach der Löschung deiner
+            clar·log-Daten aktiv. Du kannst es jederzeit im Kundenportal anpassen.{" "}
+            <a href={PORTAL_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-primary">
+              Abo verwalten ↗
+            </a>
+          </p>
+        </div>
+      )}
 
       {!showConfirm ? (
         <button
