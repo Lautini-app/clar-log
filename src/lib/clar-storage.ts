@@ -716,25 +716,15 @@ export function useStore() {
     setHydrated(true);
 
     let active = true;
-    const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!active) return;
-      const uid = session?.user?.id ?? null;
-      setUserId(uid);
-      if (event === "INITIAL_SESSION") {
-        setAuthChecked(true);
-        if (uid) await hydrateFromRemote(uid, load());
-      } else if (event === "SIGNED_IN" && uid) {
-        await hydrateFromRemote(uid, load());
-      }
-    });
-    return () => {
-      active = false;
-      sub.subscription.unsubscribe();
-    };
+    let remoteHydrated = false;
+
     async function hydrateFromRemote(uid: string, localStore: Store) {
+      if (remoteHydrated) return;
+      remoteHydrated = true;
       try {
         await migrateLocalToSupabase(uid, localStore);
         const remote = await loadFromSupabase(uid);
+        if (!active) return;
         setStoreState((prev) => {
           const remoteSettings = remote.settings ?? prev.settings;
           const mergedSettings: typeof remoteSettings = remote.settings
@@ -751,6 +741,36 @@ export function useStore() {
         console.warn("[clar-storage] remote hydrate failed:", err);
       }
     }
+
+    // Read the persisted session from localStorage immediately so userId and
+    // authChecked are set on the first render — without waiting for the async
+    // INITIAL_SESSION event from onAuthStateChange.
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!active) return;
+      const uid = session?.user?.id ?? null;
+      setUserId(uid);
+      setAuthChecked(true);
+      if (uid) void hydrateFromRemote(uid, load());
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+      const uid = session?.user?.id ?? null;
+      setUserId(uid);
+      // authChecked is already set by getSession() above; set it here too as a
+      // fallback in case getSession() resolves after INITIAL_SESSION fires.
+      if (event === "INITIAL_SESSION") {
+        setAuthChecked(true);
+        if (uid) void hydrateFromRemote(uid, load());
+      } else if (event === "SIGNED_IN" && uid) {
+        void hydrateFromRemote(uid, load());
+      }
+    });
+
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const update = useCallback((updater: (s: Store) => Store) => {
