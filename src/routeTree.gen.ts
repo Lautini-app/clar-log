@@ -12,13 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TagebuchTokenRouteImport } from './routes/tagebuch.$token'
 import { Route as EinladungTokenRouteImport } from './routes/einladung.$token'
 import { Route as DossierTokenRouteImport } from './routes/dossier.$token'
 import { Route as BeobachtungTokenRouteImport } from './routes/beobachtung.$token'
-import { Route as TagebuchTokenRouteImport } from './routes/tagebuch.$token'
+import { Route as AuthenticatedPeriodenRouteImport } from './routes/_authenticated.perioden'
 import { Route as AuthenticatedHeuteRouteImport } from './routes/_authenticated.heute'
 import { Route as AuthenticatedEinstellungenRouteImport } from './routes/_authenticated.einstellungen'
-import { Route as AuthenticatedPeriodenRouteImport } from './routes/_authenticated.perioden'
 import { Route as AuthenticatedBerichtRouteImport } from './routes/_authenticated.bericht'
 import { Route as AuthenticatedBeobachtenRouteImport } from './routes/_authenticated.beobachten'
 
@@ -36,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TagebuchTokenRoute = TagebuchTokenRouteImport.update({
+  id: '/tagebuch/$token',
+  path: '/tagebuch/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EinladungTokenRoute = EinladungTokenRouteImport.update({
   id: '/einladung/$token',
   path: '/einladung/$token',
@@ -51,19 +56,14 @@ const BeobachtungTokenRoute = BeobachtungTokenRouteImport.update({
   path: '/beobachtung/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TagebuchTokenRoute = TagebuchTokenRouteImport.update({
-  id: '/tagebuch/$token',
-  path: '/tagebuch/$token',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedPeriodenRoute = AuthenticatedPeriodenRouteImport.update({
+  id: '/perioden',
+  path: '/perioden',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedHeuteRoute = AuthenticatedHeuteRouteImport.update({
   id: '/heute',
   path: '/heute',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedPeriodenRoute = AuthenticatedPeriodenRouteImport.update({
-  id: '/perioden',
-  path: '/perioden',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedEinstellungenRoute =
@@ -179,13 +179,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/tagebuch/$token': {
-      id: '/tagebuch/$token'
-      path: '/tagebuch/$token'
-      fullPath: '/tagebuch/$token'
-      preLoaderRoute: typeof TagebuchTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -205,6 +198,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tagebuch/$token': {
+      id: '/tagebuch/$token'
+      path: '/tagebuch/$token'
+      fullPath: '/tagebuch/$token'
+      preLoaderRoute: typeof TagebuchTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/einladung/$token': {
@@ -227,6 +227,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/beobachtung/$token'
       preLoaderRoute: typeof BeobachtungTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/perioden': {
+      id: '/_authenticated/perioden'
+      path: '/perioden'
+      fullPath: '/perioden'
+      preLoaderRoute: typeof AuthenticatedPeriodenRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/heute': {
       id: '/_authenticated/heute'
@@ -254,13 +261,6 @@ declare module '@tanstack/react-router' {
       path: '/beobachten'
       fullPath: '/beobachten'
       preLoaderRoute: typeof AuthenticatedBeobachtenRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/perioden': {
-      id: '/_authenticated/perioden'
-      path: '/perioden'
-      fullPath: '/perioden'
-      preLoaderRoute: typeof AuthenticatedPeriodenRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
   }

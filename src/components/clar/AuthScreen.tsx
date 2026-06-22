@@ -37,7 +37,7 @@ export function AuthScreen({ onLogin }: { onLogin: () => void }) {
           <div>
             <h1 className="text-xl font-semibold">Anmelden</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Für Beobachter:innen und Jugendliche mit eigenem Konto.
+              Melde dich mit deinem Konto an.
             </p>
           </div>
 
