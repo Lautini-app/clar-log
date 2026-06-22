@@ -865,8 +865,7 @@ export function SettingsView({ settings, logs, onChange, onImport, userId }: Pro
               <TeacherLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
           )}
-          {/* Jugendliche/r einladen: nur für teen_self — Token-Link wie Beobachter, kein Konto */}
-          {userId && activePeriod.profile === "teen_self" && (
+          {userId && (
             <SectionCard title="Jugendliche/r einladen" subtitle="Jugendliche/r erhält einen täglichen Link — kein Login, kein Konto, keine E-Mail nötig.">
               <TeenLinkSettings ownerId={userId} periodId={activePeriod.id} />
             </SectionCard>
