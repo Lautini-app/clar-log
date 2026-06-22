@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DatenschutzRouteImport } from './routes/datenschutz'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AgbRouteImport } from './routes/agb'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TagebuchTokenRouteImport } from './routes/tagebuch.$token'
@@ -22,9 +24,19 @@ import { Route as AuthenticatedEinstellungenRouteImport } from './routes/_authen
 import { Route as AuthenticatedBerichtRouteImport } from './routes/_authenticated.bericht'
 import { Route as AuthenticatedBeobachtenRouteImport } from './routes/_authenticated.beobachten'
 
+const DatenschutzRoute = DatenschutzRouteImport.update({
+  id: '/datenschutz',
+  path: '/datenschutz',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgbRoute = AgbRouteImport.update({
+  id: '/agb',
+  path: '/agb',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -85,7 +97,9 @@ const AuthenticatedBeobachtenRoute = AuthenticatedBeobachtenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agb': typeof AgbRoute
   '/auth': typeof AuthRoute
+  '/datenschutz': typeof DatenschutzRoute
   '/beobachten': typeof AuthenticatedBeobachtenRoute
   '/bericht': typeof AuthenticatedBerichtRoute
   '/einstellungen': typeof AuthenticatedEinstellungenRoute
@@ -98,7 +112,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agb': typeof AgbRoute
   '/auth': typeof AuthRoute
+  '/datenschutz': typeof DatenschutzRoute
   '/beobachten': typeof AuthenticatedBeobachtenRoute
   '/bericht': typeof AuthenticatedBerichtRoute
   '/einstellungen': typeof AuthenticatedEinstellungenRoute
@@ -113,7 +129,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/agb': typeof AgbRoute
   '/auth': typeof AuthRoute
+  '/datenschutz': typeof DatenschutzRoute
   '/_authenticated/beobachten': typeof AuthenticatedBeobachtenRoute
   '/_authenticated/bericht': typeof AuthenticatedBerichtRoute
   '/_authenticated/einstellungen': typeof AuthenticatedEinstellungenRoute
@@ -128,7 +146,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/agb'
     | '/auth'
+    | '/datenschutz'
     | '/beobachten'
     | '/bericht'
     | '/einstellungen'
@@ -141,7 +161,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/agb'
     | '/auth'
+    | '/datenschutz'
     | '/beobachten'
     | '/bericht'
     | '/einstellungen'
@@ -155,7 +177,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/agb'
     | '/auth'
+    | '/datenschutz'
     | '/_authenticated/beobachten'
     | '/_authenticated/bericht'
     | '/_authenticated/einstellungen'
@@ -170,7 +194,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AgbRoute: typeof AgbRoute
   AuthRoute: typeof AuthRoute
+  DatenschutzRoute: typeof DatenschutzRoute
   BeobachtungTokenRoute: typeof BeobachtungTokenRoute
   DossierTokenRoute: typeof DossierTokenRoute
   EinladungTokenRoute: typeof EinladungTokenRoute
@@ -179,11 +205,25 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/datenschutz': {
+      id: '/datenschutz'
+      path: '/datenschutz'
+      fullPath: '/datenschutz'
+      preLoaderRoute: typeof DatenschutzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agb': {
+      id: '/agb'
+      path: '/agb'
+      fullPath: '/agb'
+      preLoaderRoute: typeof AgbRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -289,7 +329,9 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AgbRoute: AgbRoute,
   AuthRoute: AuthRoute,
+  DatenschutzRoute: DatenschutzRoute,
   BeobachtungTokenRoute: BeobachtungTokenRoute,
   DossierTokenRoute: DossierTokenRoute,
   EinladungTokenRoute: EinladungTokenRoute,
@@ -298,13 +340,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

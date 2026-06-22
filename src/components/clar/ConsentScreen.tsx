@@ -43,10 +43,11 @@ export function ConsentScreen({ onAccept, loading }: Props) {
                 className="mt-0.5 h-5 w-5 shrink-0 accent-[#085041] rounded"
               />
               <span className="text-sm text-[#1a1a1a]/80 leading-snug">
-                Ich bestätige, dass mir bewusst ist, dass clar·log kein
-                Medizinprodukt ist und keine medizinischen Zwecke (Diagnose,
-                Therapie, Überwachung im medizinischen Sinn) erfüllt. Die
-                Nutzung erfolgt auf eigene Verantwortung.
+                Mir ist bewusst, dass clar·log kein Medizinprodukt ist und keine
+                medizinischen Zwecke erfüllt (insbesondere keine Diagnose,
+                Therapie oder medizinische Überwachung). Die App dient
+                ausschliesslich der persönlichen Dokumentation. Die Nutzung
+                erfolgt auf eigene Verantwortung.
               </span>
             </label>
 
@@ -60,7 +61,7 @@ export function ConsentScreen({ onAccept, loading }: Props) {
               <span className="text-sm text-[#1a1a1a]/80 leading-snug">
                 Ich habe die{" "}
                 <a
-                  href="https://home.lautini.ch/datenschutz-clar-log"
+                  href="https://blog.lautini.ch/datenschutz-clar-log.html"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-[#085041] underline"
@@ -70,7 +71,7 @@ export function ConsentScreen({ onAccept, loading }: Props) {
                 </a>{" "}
                 und die{" "}
                 <a
-                  href="https://home.lautini.ch/agb-clar-log"
+                  href="https://blog.lautini.ch/agb-clar-log.html"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-[#085041] underline"
@@ -78,19 +79,27 @@ export function ConsentScreen({ onAccept, loading }: Props) {
                 >
                   AGB
                 </a>{" "}
-                gelesen und stimme der Verarbeitung besonders schützenswerter
-                Gesundheitsdaten (einschliesslich Daten von Minderjährigen,
-                falls zutreffend) zu den genannten Bedingungen zu.
+                gelesen und stimme ausdrücklich der Verarbeitung meiner besonders
+                schützenswerten Gesundheitsdaten (einschliesslich Daten von
+                Minderjährigen, falls zutreffend) zu den darin genannten
+                Bedingungen zu. Mir ist bekannt, dass ich diese Einwilligung
+                jederzeit mit Wirkung für die Zukunft widerrufen kann.
               </span>
             </label>
           </div>
 
+          <p className="mt-4 text-xs text-[#1a1a1a]/50 leading-snug">
+            Mit dem Fortfahren bestätigen Sie, dass Sie mindestens 18 Jahre alt
+            sind oder die erforderliche Einwilligung eines Erziehungsberechtigten
+            haben.
+          </p>
+
           <button
             onClick={onAccept}
             disabled={!allChecked || loading}
-            className="mt-6 w-full rounded-xl bg-[#085041] py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
+            className="mt-5 w-full rounded-xl bg-[#085041] py-3 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
           >
-            {loading ? "Wird gespeichert …" : "Weiter"}
+            {loading ? "Wird gespeichert …" : "Einwilligung erteilen und App nutzen"}
           </button>
         </div>
 
