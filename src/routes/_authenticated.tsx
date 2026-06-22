@@ -41,10 +41,21 @@ function AuthenticatedLayout() {
   const [tokenConsumed, setTokenConsumed] = useState(false);
   const [observerChecked, setObserverChecked] = useState(false);
   const [isObserver, setIsObserver] = useState(false);
-  // Teen = Familienmitglied (member_user_id in family_members), nicht Admin
   const [isFamilyMember, setIsFamilyMember] = useState(false);
-  // Fallback: nach 4s im Embed-Modus trotzdem zu /auth, falls Shell nie antwortet
   const [shellSessionTimeout, setShellSessionTimeout] = useState(false);
+  // Tracks whether the auth-guard has already decided to redirect to /auth.
+  // Once true, we stop showing the loading screen and let the navigate() take effect.
+  const [redirectingToAuth, setRedirectingToAuth] = useState(false);
+
+  // Install the shell bridge FIRST, before consuming URL tokens, so that a
+  // clar:session postMessage that arrives while consumeSessionTokenFromUrl()
+  // is still running is not missed.
+  useEffect(() => {
+    if (!isEmbeddedShell()) return;
+    const cleanup = installShellBridge();
+    const t = setTimeout(() => setShellSessionTimeout(true), 4000);
+    return () => { cleanup(); clearTimeout(t); };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -70,14 +81,6 @@ function AuthenticatedLayout() {
     persistEmbeddedFlag();
     if (isEmbeddedShell()) signalShellReady();
   }, [hydrated]);
-
-  useEffect(() => {
-    if (!isEmbeddedShell()) return;
-    const cleanup = installShellBridge();
-    // If the shell never sends clar:session, fall back to /auth after 4s.
-    const t = setTimeout(() => setShellSessionTimeout(true), 4000);
-    return () => { cleanup(); clearTimeout(t); };
-  }, []);
 
   useEffect(() => {
     if (!hydrated || !isEmbeddedShell()) return;
@@ -120,24 +123,17 @@ function AuthenticatedLayout() {
   }, [hydrated, tokenChecked, userId, navigate]);
 
   useEffect(() => {
-    // Wait until the initial Supabase session check completes (authChecked) AND the URL
-    // token has been processed (tokenChecked). Without authChecked the redirect fires before
-    // supabase has read the persisted session from localStorage, logging the admin out on
-    // every page visit.
     if (!hydrated || !authChecked || !tokenChecked) return;
     if (!userId && !tokenConsumed) {
       if (isEmbeddedShell() && !shellSessionTimeout) {
-        // Embedded: wait for shell's clar:session postMessage (bridge installed above).
-        // signalNeedsSession() asks the shell to re-send its session.
-        // After 4s shellSessionTimeout → falls through to /auth.
         signalNeedsSession();
         return;
       }
+      setRedirectingToAuth(true);
       navigate({ to: "/auth", replace: true });
     }
   }, [hydrated, authChecked, tokenChecked, tokenConsumed, userId, navigate, shellSessionTimeout]);
 
-  // Teen = nur Familienmitglieder; Admin hat kein family_members-Eintrag als member_user_id
   const isTeen = isFamilyMember;
 
   useEffect(() => {
@@ -150,7 +146,11 @@ function AuthenticatedLayout() {
   // Block render until auth state is confirmed and URL token has been processed.
   if (!hydrated || !authChecked || !tokenChecked) return <LoadingScreen />;
 
+  // No session and no pending token — the auth-guard effect above will navigate
+  // to /auth. Don't block with an infinite LoadingScreen; render nothing so the
+  // router can complete the navigation.
   if (!userId) {
+    if (redirectingToAuth) return null;
     return <LoadingScreen />;
   }
 
