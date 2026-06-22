@@ -20,53 +20,47 @@ serve(async (req) => {
     const userId = userData.user.id;
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+    const cl = admin.schema("clar_log");
 
-    // Cancel active Stripe subscriptions before deleting the user
-    const STRIPE_KEY = Deno.env.get("STRIPE_SECRET_KEY");
-    if (STRIPE_KEY) {
-      try {
-        const { data: subscriber } = await admin
-          .from("subscribers")
-          .select("stripe_customer_id")
-          .eq("user_id", userId)
-          .maybeSingle();
+    // Delete ALL clar_log schema data for this user.
+    // Order matters: child tables before parents to avoid FK violations.
+    await Promise.all([
+      cl.from("observer_observations").delete().eq("owner_id", userId),
+      cl.from("observer_observations").delete().eq("observer_user_id", userId),
+      cl.from("word_reports").delete().eq("user_id", userId),
+      cl.from("daily_logs").delete().eq("user_id", userId),
+    ]);
 
-        if (subscriber?.stripe_customer_id) {
-          const subRes = await fetch(
-            `https://api.stripe.com/v1/customers/${subscriber.stripe_customer_id}/subscriptions?status=active`,
-            { headers: { Authorization: `Bearer ${STRIPE_KEY}` } },
-          );
-          const subData = await subRes.json();
+    await Promise.all([
+      cl.from("observer_links").delete().eq("owner_id", userId),
+      cl.from("teacher_links").delete().eq("owner_id", userId),
+      cl.from("doctor_links").delete().eq("owner_id", userId),
+      cl.from("teen_tokens").delete().eq("owner_id", userId),
+      cl.from("observers").delete().eq("owner_id", userId),
+      cl.from("observers").delete().eq("observer_user_id", userId),
+    ]);
 
-          for (const sub of subData.data ?? []) {
-            await fetch(`https://api.stripe.com/v1/subscriptions/${sub.id}`, {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${STRIPE_KEY}`,
-                "Content-Type": "application/x-www-form-urlencoded",
-              },
-              body: "cancel_at_period_end=true",
-            });
-          }
-        }
-      } catch (stripeErr) {
-        console.error("[delete-account] Stripe cancellation failed (continuing):", stripeErr);
-      }
-    }
+    await Promise.all([
+      cl.from("observation_periods").delete().eq("user_id", userId),
+      cl.from("tracker_logs").delete().eq("user_id", userId),
+      cl.from("tracker_settings").delete().eq("user_id", userId),
+      cl.from("family_members").delete().eq("admin_user_id", userId),
+      cl.from("family_members").delete().eq("member_user_id", userId),
+      cl.from("family_invites").delete().eq("admin_user_id", userId),
+      cl.from("user_consents").delete().eq("user_id", userId),
+    ]);
 
-    // Delete user data (CASCADE on auth.users FK handles most tables,
-    // but we explicitly clear these for safety)
-    await admin.schema("clar_log").from("tracker_logs").delete().eq("user_id", userId);
-    await admin.schema("clar_log").from("tracker_settings").delete().eq("user_id", userId);
+    // NOTE: Auth user is NOT deleted — it is shared across all clar apps.
+    // The user keeps access to clar·markt, clar·heim, clar·tag.
 
-    // Delete the auth user — triggers CASCADE on all clar_log.* FKs
-    const { error } = await admin.auth.admin.deleteUser(userId);
-    if (error) throw new Error(error.message);
-
-    return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(
+      JSON.stringify({ ok: true }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), {
-      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: (err as Error).message }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   }
 });

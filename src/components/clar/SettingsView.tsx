@@ -1074,8 +1074,8 @@ function LegalSection({ userId }: { userId: string | null }) {
             </p>
             <p className="text-[11px] text-muted-foreground leading-snug">
               Du kannst deine Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen.
-              Der Widerruf erfolgt durch Löschung deines Kontos (siehe unten) — dabei werden
-              alle deine Daten unwiderruflich gelöscht und dein Abonnement gekündigt.
+              Der Widerruf erfolgt durch Löschung deiner clar·log-Daten (siehe unten) — dabei
+              werden alle Einträge, Perioden und Beobachtungen unwiderruflich gelöscht.
             </p>
           </div>
         )}
@@ -1104,11 +1104,11 @@ function DeleteAccountSection({ userId }: { userId: string | null }) {
       const { deleteAccount } = await import("@/lib/account.functions");
       await deleteAccount({ accessToken });
 
-      await supabase.auth.signOut();
       if (typeof window !== "undefined") {
         localStorage.removeItem("clar.tracker.v1");
         localStorage.removeItem("clar.tracker.migrated.v1");
       }
+      // Don't sign out — auth user is shared across all clar apps
       window.location.href = "https://home.lautini.ch";
     } catch (e) {
       setError((e as Error).message || "Löschen fehlgeschlagen.");
@@ -1123,7 +1123,9 @@ function DeleteAccountSection({ userId }: { userId: string | null }) {
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-destructive">Gefahrenzone</p>
         <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-          Löscht dein Konto, alle Daten und kündigt dein Abonnement unwiderruflich. Dieser Vorgang kann nicht rückgängig gemacht werden.
+          Löscht alle deine clar·log-Daten (Perioden, Einträge, Beobachtungen, Einwilligung)
+          sofort und unwiderruflich. Dein clar-Konto und andere Apps (clar·markt, clar·heim,
+          clar·tag) bleiben bestehen.
         </p>
       </div>
 
@@ -1133,17 +1135,17 @@ function DeleteAccountSection({ userId }: { userId: string | null }) {
           onClick={() => setShowConfirm(true)}
           className="w-full rounded-xl border border-destructive/50 py-3 text-sm font-semibold text-destructive"
         >
-          Konto und alle Daten endgültig löschen
+          Alle clar·log-Daten endgültig löschen
         </button>
       ) : (
         <div className="space-y-3 rounded-xl border border-destructive/30 bg-background p-3">
           <p className="text-sm font-bold text-foreground">
-            Möchtest du wirklich dein Konto und ALLE Daten unwiderruflich löschen?
+            Möchtest du wirklich ALLE clar·log-Daten unwiderruflich löschen?
           </p>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Dies kann nicht rückgängig gemacht werden. Dein Abonnement wird zum Ende der aktuellen
-            Abrechnungsperiode gekündigt und nicht verlängert. Eine Rückerstattung für die laufende
-            Periode erfolgt nicht. Tippe <strong>LÖSCHEN</strong> zur Bestätigung.
+            Alle Perioden, Einträge, Beobachtungen und Einladungen werden sofort gelöscht.
+            Dies kann nicht rückgängig gemacht werden. Dein clar-Konto und andere Apps bleiben
+            bestehen. Tippe <strong>LÖSCHEN</strong> zur Bestätigung.
           </p>
           <input
             type="text"
