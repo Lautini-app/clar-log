@@ -20,8 +20,42 @@ serve(async (req) => {
     const userId = userData.user.id;
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
+
+    // Cancel active Stripe subscriptions before deleting the user
+    const STRIPE_KEY = Deno.env.get("STRIPE_SECRET_KEY");
+    if (STRIPE_KEY) {
+      try {
+        const { data: subscriber } = await admin
+          .from("subscribers")
+          .select("stripe_customer_id")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (subscriber?.stripe_customer_id) {
+          const subRes = await fetch(
+            `https://api.stripe.com/v1/customers/${subscriber.stripe_customer_id}/subscriptions?status=active`,
+            { headers: { Authorization: `Bearer ${STRIPE_KEY}` } },
+          );
+          const subData = await subRes.json();
+
+          for (const sub of subData.data ?? []) {
+            await fetch(`https://api.stripe.com/v1/subscriptions/${sub.id}`, {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${STRIPE_KEY}` },
+            });
+          }
+        }
+      } catch (stripeErr) {
+        console.error("[delete-account] Stripe cancellation failed (continuing):", stripeErr);
+      }
+    }
+
+    // Delete user data (CASCADE on auth.users FK handles most tables,
+    // but we explicitly clear these for safety)
     await admin.schema("clar_log").from("tracker_logs").delete().eq("user_id", userId);
     await admin.schema("clar_log").from("tracker_settings").delete().eq("user_id", userId);
+
+    // Delete the auth user — triggers CASCADE on all clar_log.* FKs
     const { error } = await admin.auth.admin.deleteUser(userId);
     if (error) throw new Error(error.message);
 

@@ -946,6 +946,7 @@ export function SettingsView({ settings, logs, onChange, onImport, userId }: Pro
       </SectionCard>
 
       <LegalSection userId={userId} />
+      <DeleteAccountSection userId={userId} />
 
       {pendingDeletePeriod && (
         <div
@@ -1072,12 +1073,106 @@ function LegalSection({ userId }: { userId: string | null }) {
               Einwilligung erteilt am {formattedDate}, Version {consentVersion ?? "v1.0"}
             </p>
             <p className="text-[11px] text-muted-foreground leading-snug">
-              Du kannst deine Einwilligung jederzeit widerrufen, indem du dein Konto und alle Daten löschst (Periode löschen) oder uns per E-Mail kontaktierst:{" "}
-              <a href="mailto:hallo@lautini.ch" className="text-primary">hallo@lautini.ch</a>
+              Du kannst deine Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen.
+              Der Widerruf erfolgt durch Löschung deines Kontos (siehe unten) — dabei werden
+              alle deine Daten unwiderruflich gelöscht und dein Abonnement gekündigt.
             </p>
           </div>
         )}
       </div>
     </SectionCard>
+  );
+}
+
+function DeleteAccountSection({ userId }: { userId: string | null }) {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const canDelete = confirmText === "LÖSCHEN";
+
+  async function handleDelete() {
+    if (!userId || !canDelete || deleting) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) throw new Error("Keine aktive Sitzung.");
+
+      const { deleteAccount } = await import("@/lib/account.functions");
+      await deleteAccount({ accessToken });
+
+      await supabase.auth.signOut();
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("clar.tracker.v1");
+        localStorage.removeItem("clar.tracker.migrated.v1");
+      }
+      window.location.href = "https://home.lautini.ch";
+    } catch (e) {
+      setError((e as Error).message || "Löschen fehlgeschlagen.");
+      setDeleting(false);
+    }
+  }
+
+  if (!userId) return null;
+
+  return (
+    <div id="delete-account-section" className="mt-6 rounded-2xl border border-destructive/30 bg-card p-4 space-y-3">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-destructive">Gefahrenzone</p>
+        <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+          Löscht dein Konto, alle Daten und kündigt dein Abonnement unwiderruflich. Dieser Vorgang kann nicht rückgängig gemacht werden.
+        </p>
+      </div>
+
+      {!showConfirm ? (
+        <button
+          type="button"
+          onClick={() => setShowConfirm(true)}
+          className="w-full rounded-xl border border-destructive/50 py-3 text-sm font-semibold text-destructive"
+        >
+          Konto und alle Daten endgültig löschen
+        </button>
+      ) : (
+        <div className="space-y-3 rounded-xl border border-destructive/30 bg-background p-3">
+          <p className="text-sm font-bold text-foreground">
+            Möchtest du wirklich dein Konto und ALLE Daten unwiderruflich löschen?
+          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Dies kann nicht rückgängig gemacht werden. Dein Abonnement wird ebenfalls gekündigt.
+            Tippe <strong>LÖSCHEN</strong> zur Bestätigung.
+          </p>
+          <input
+            type="text"
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder="LÖSCHEN"
+            className="w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-mono outline-none focus:border-destructive"
+            autoComplete="off"
+          />
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={!canDelete || deleting}
+              onClick={handleDelete}
+              className="flex-1 rounded-xl bg-destructive py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+            >
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Endgültig löschen"}
+            </button>
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={() => { setShowConfirm(false); setConfirmText(""); setError(null); }}
+              className="flex-1 rounded-xl border border-border py-2.5 text-sm font-semibold text-muted-foreground"
+            >
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
