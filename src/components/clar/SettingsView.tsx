@@ -1,6 +1,7 @@
 import { MedicationEditor } from "@/components/clar/TodayView";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import { Copy, Download, Loader2, Plus, Share2, Trash2 } from "lucide-react";
 
 import { SectionCard } from "./SectionCard";
@@ -944,6 +945,8 @@ export function SettingsView({ settings, logs, onChange, onImport, userId }: Pro
         </div>
       </SectionCard>
 
+      <LegalSection userId={userId} />
+
       {pendingDeletePeriod && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 px-4 pb-8"
@@ -1000,5 +1003,82 @@ export function SettingsView({ settings, logs, onChange, onImport, userId }: Pro
   );
 }
 
+function LegalSection({ userId }: { userId: string | null }) {
+  const [consentDate, setConsentDate] = useState<string | null>(null);
+  const [consentVersion, setConsentVersion] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    (async () => {
+      try {
+        const { data } = await (supabase as any)
+          .schema("clar_log")
+          .from("user_consents")
+          .select("consent_given_at, consent_version")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (active && data) {
+          setConsentDate(data.consent_given_at);
+          setConsentVersion(data.consent_version);
+        }
+      } catch { /* ignore */ }
+      if (active) setLoaded(true);
+    })();
+    return () => { active = false; };
+  }, [userId]);
 
+  const formattedDate = consentDate
+    ? new Date(consentDate).toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" })
+    : null;
+
+  return (
+    <SectionCard title="Rechtliches">
+      <div className="space-y-3">
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          clar·log ist kein Medizinprodukt und dient ausschliesslich der persönlichen Dokumentation.
+        </p>
+
+        <div className="space-y-1">
+          <a
+            href="https://blog.lautini.ch/datenschutz-clar-log.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-sm font-medium text-primary"
+          >
+            Datenschutzerklärung ↗
+          </a>
+          <a
+            href="https://blog.lautini.ch/agb-clar-log.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-sm font-medium text-primary"
+          >
+            AGB ↗
+          </a>
+          <a
+            href="https://lautini.ch/impressum"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-sm font-medium text-primary"
+          >
+            Impressum ↗
+          </a>
+        </div>
+
+        {loaded && formattedDate && (
+          <div className="mt-2 rounded-xl border border-border bg-background p-3 space-y-2">
+            <p className="text-xs text-muted-foreground">
+              Einwilligung erteilt am {formattedDate}, Version {consentVersion ?? "v1.0"}
+            </p>
+            <p className="text-[11px] text-muted-foreground leading-snug">
+              Du kannst deine Einwilligung jederzeit widerrufen, indem du dein Konto und alle Daten löschst (Periode löschen) oder uns per E-Mail kontaktierst:{" "}
+              <a href="mailto:hallo@lautini.ch" className="text-primary">hallo@lautini.ch</a>
+            </p>
+          </div>
+        )}
+      </div>
+    </SectionCard>
+  );
+}
