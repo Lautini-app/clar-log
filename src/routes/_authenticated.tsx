@@ -41,10 +41,7 @@ function AuthenticatedLayout() {
   const [tokenConsumed, setTokenConsumed] = useState(false);
   const [observerChecked, setObserverChecked] = useState(false);
   const [isObserver, setIsObserver] = useState(false);
-  const [isFamilyMember, setIsFamilyMember] = useState(false);
   const [shellSessionTimeout, setShellSessionTimeout] = useState(false);
-  // Tracks whether the auth-guard has already decided to redirect to /auth.
-  // Once true, we stop showing the loading screen and let the navigate() take effect.
   const [redirectingToAuth, setRedirectingToAuth] = useState(false);
 
   // Install the shell bridge FIRST, before consuming URL tokens, so that a
@@ -103,23 +100,20 @@ function AuthenticatedLayout() {
       setObserverChecked(true);
       return;
     }
-    Promise.all([
-      supabase.schema("clar_log").from("observers")
-        .select("owner_id, period_id")
-        .eq("observer_user_id", userId)
-        .maybeSingle(),
-      supabase.schema("clar_log").from("family_members")
-        .select("id")
-        .eq("member_user_id", userId)
-        .eq("status", "active")
-        .maybeSingle(),
-    ]).then(([{ data: obsData }, { data: memberData }]) => {
-      const isObs = !!obsData;
-      setIsObserver(isObs);
-      setIsFamilyMember(!!memberData);
-      setObserverChecked(true);
-      if (isObs) navigate({ to: "/beobachten", replace: true });
-    }).catch(() => setObserverChecked(true));
+    void (async () => {
+      try {
+        const { data: obsData } = await supabase.schema("clar_log").from("observers")
+          .select("owner_id, period_id")
+          .eq("observer_user_id", userId)
+          .maybeSingle();
+        const isObs = !!obsData;
+        setIsObserver(isObs);
+        setObserverChecked(true);
+        if (isObs) navigate({ to: "/beobachten", replace: true });
+      } catch {
+        setObserverChecked(true);
+      }
+    })();
   }, [hydrated, tokenChecked, userId, navigate]);
 
   useEffect(() => {
@@ -133,15 +127,6 @@ function AuthenticatedLayout() {
       navigate({ to: "/auth", replace: true });
     }
   }, [hydrated, authChecked, tokenChecked, tokenConsumed, userId, navigate, shellSessionTimeout]);
-
-  const isTeen = isFamilyMember;
-
-  useEffect(() => {
-    if (!isTeen || !hydrated) return;
-    if (pathname === "/einstellungen") {
-      void navigate({ to: "/heute", replace: true });
-    }
-  }, [isTeen, hydrated, pathname, navigate]);
 
   // Block render until auth state is confirmed and URL token has been processed.
   if (!hydrated || !authChecked || !tokenChecked) return <LoadingScreen />;
@@ -158,7 +143,7 @@ function AuthenticatedLayout() {
     return <LoadingScreen />;
   }
 
-  const allTabs: Array<{
+  const tabs: Array<{
     to: "/heute" | "/bericht" | "/einstellungen";
     label: string;
     Icon: typeof Calendar;
@@ -167,7 +152,6 @@ function AuthenticatedLayout() {
     { to: "/bericht", label: "Verlauf", Icon: BarChart3 },
     { to: "/einstellungen", label: "Konto", Icon: SettingsIcon },
   ];
-  const tabs = isTeen ? allTabs.slice(0, 2) : allTabs;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -187,7 +171,7 @@ function AuthenticatedLayout() {
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card/95 backdrop-blur-md">
-        <div className={`mx-auto grid max-w-md ${isTeen ? "grid-cols-2" : "grid-cols-3"}`}>
+        <div className="mx-auto grid max-w-md grid-cols-3">
           {tabs.map(({ to, label, Icon }) => {
             const active = pathname === to;
             return (

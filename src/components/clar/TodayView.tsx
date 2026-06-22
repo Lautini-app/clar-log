@@ -58,8 +58,6 @@ type Props = {
   onChange: (patch: Partial<DayLog>) => void;
   onSettingsChange: (patch: Partial<Settings>) => void;
   userId?: string;
-  adminMeds?: Medication[];
-  teenName?: string | null;
 };
 
 const CATEGORY_LABEL: Record<WellbeingItem["category"], string> = {
@@ -1381,17 +1379,14 @@ function ParentAdminObserverPanel({
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function TodayView({ log, settings, onChange, onSettingsChange, userId, adminMeds, teenName }: Props) {
+export function TodayView({ log, settings, onChange, onSettingsChange, userId }: Props) {
   const period = getActivePeriod(settings);
   const navigate = useNavigate();
   const [activeSlot, setActiveSlot] = useState<TimeSlot | null>(null);
   const [childPhase, setChildPhase] = useState(false);
   const items = useMemo(() => availableWellbeingItems(settings), [settings]);
   const isChildParent = period?.profile === "child_parent" || period?.profile === "child_both";
-  const isTeen = period?.profile === "teen_self";
-  const effectivePeriod = (isTeen && adminMeds && adminMeds.length > 0 && period)
-    ? { ...period, medications: adminMeds }
-    : period;
+  const effectivePeriod = period;
 
   useEffect(() => {
     if (!period) {

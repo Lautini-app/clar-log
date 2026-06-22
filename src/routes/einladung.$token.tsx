@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { acceptFamilyInvite, setupTeenSettings } from "@/lib/family.functions";
+import { acceptFamilyInvite } from "@/lib/family.functions";
 import { acceptObserverInvite } from "@/lib/clar-observers";
 
 export const Route = createFileRoute("/einladung/$token")({
@@ -53,12 +53,6 @@ await acceptFamilyInvite(token);
             .eq("observer_user_id", userId)
             .maybeSingle();
           isObserver = !!asObserver;
-
-          // Kein Beobachter → Familienmitglied: teen_self-Settings via SECURITY DEFINER RPC anlegen
-          // (kopiert Medikamente + Einstellungen vom Admin, RLS kann das nicht client-seitig)
-          if (!isObserver) {
-            await setupTeenSettings(token);
-          }
         }
       } catch (_e) {
         // Verknuepfung optional

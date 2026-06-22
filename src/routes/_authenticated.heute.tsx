@@ -1,11 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { TodayView } from "@/components/clar/TodayView";
 import { useStore, todayKey, emptyLog, getActivePeriod } from "@/lib/clar-storage";
-import type { Medication } from "@/lib/clar-storage";
-import { supabase } from "@/integrations/supabase/client";
-import { getAdminMedsForTeen } from "@/lib/family.functions";
 
 export const Route = createFileRoute("/_authenticated/heute")({
   head: () => ({
@@ -32,8 +29,6 @@ function HeuteRoute() {
   const today = todayKey();
   const activePeriod = getActivePeriod(store.settings);
   const [selectedDate, setSelectedDate] = useState(today);
-  const [adminMeds, setAdminMeds] = useState<Medication[] | null>(null);
-  const [teenName, setTeenName] = useState<string | null>(null);
 
   const isToday = selectedDate === today;
   const log = store.logs[selectedDate] ?? emptyLog(selectedDate, activePeriod?.id);
@@ -42,27 +37,6 @@ function HeuteRoute() {
     ? selectedDate > activePeriod.startDate
     : selectedDate > offsetDate(today, -30);
   const canGoForward = selectedDate < today;
-
-  const isTeen = activePeriod?.profile === "teen_self";
-
-  useEffect(() => {
-    if (!isTeen || !userId || !hydrated) return;
-    void getAdminMedsForTeen().then((meds) => {
-      if (meds.length > 0) setAdminMeds(meds);
-    }).catch(() => {});
-    void (async () => {
-      try {
-        const { data } = await supabase
-          .schema("clar_log")
-          .from("family_members")
-          .select("name")
-          .eq("member_user_id", userId)
-          .eq("status", "active")
-          .maybeSingle();
-        setTeenName((data as any)?.name ?? null);
-      } catch { /* optional */ }
-    })();
-  }, [isTeen, userId, hydrated]);
 
   if (!hydrated) return null;
 
@@ -125,8 +99,6 @@ function HeuteRoute() {
         onChange={(patch) => upsertLog(selectedDate, patch)}
         onSettingsChange={updateSettings}
         userId={userId ?? undefined}
-        adminMeds={adminMeds ?? undefined}
-        teenName={teenName}
       />
     </div>
   );
