@@ -1,6 +1,5 @@
 const ALLOWED_EMAILS = new Set([
   "rainer.boehm@lautini.ch",
-  "rainerboehm.slp@gmail.com",
   "t9gtc9ypxp@privaterelay.appleid.com",
   "j.boehm@me.com",
   "richardmboehm@icloud.com",
