@@ -20,11 +20,40 @@ import {
   signalSignedIn,
   signalSignedOut,
 } from "@/lib/embedded-shell";
+import { isClosedBetaAllowed } from "@/lib/closed-beta";
 
 function LoadingScreen() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
       <p className="text-sm text-muted-foreground">clar·log lädt…</p>
+    </div>
+  );
+}
+
+function ClosedBetaScreen() {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/auth";
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="max-w-sm text-center">
+        <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-primary/10">
+          <span className="text-xl">🔒</span>
+        </div>
+        <h1 className="text-lg font-semibold text-foreground">Geschlossene Beta</h1>
+        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+          clar·log befindet sich in der geschlossenen Beta. Der Zugang ist aktuell auf eingeladene Familien beschränkt.
+        </p>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="mt-6 inline-flex items-center justify-center rounded-xl bg-primary/10 px-4 py-2.5 text-sm font-medium text-primary"
+        >
+          Abmelden
+        </button>
+      </div>
     </div>
   );
 }
@@ -47,6 +76,8 @@ function AuthenticatedLayout() {
   const [consentChecked, setConsentChecked] = useState(false);
   const [hasConsent, setHasConsent] = useState(false);
   const [consentSaving, setConsentSaving] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [betaChecked, setBetaChecked] = useState(false);
 
   // Install the shell bridge FIRST, before consuming URL tokens, so that a
   // clar:session postMessage that arrives while consumeSessionTokenFromUrl()
@@ -95,6 +126,14 @@ function AuthenticatedLayout() {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!hydrated || !tokenChecked || !userId) return;
+    supabase.auth.getSession().then(({ data }) => {
+      setUserEmail(data.session?.user?.email ?? null);
+      setBetaChecked(true);
+    });
+  }, [hydrated, tokenChecked, userId]);
 
   // Consent prüfen
   useEffect(() => {
@@ -187,6 +226,11 @@ function AuthenticatedLayout() {
   if (!userId) {
     if (redirectingToAuth) return null;
     return <LoadingScreen />;
+  }
+
+  if (!betaChecked) return <LoadingScreen />;
+  if (!isClosedBetaAllowed(userEmail)) {
+    return <ClosedBetaScreen />;
   }
 
   if (pathname !== "/beobachten" && (!observerChecked || isObserver)) {

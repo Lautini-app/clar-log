@@ -33,6 +33,12 @@ export function AuthScreen({ onLogin }: { onLogin: () => void }) {
           </span>
         </div>
 
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 mb-4">
+          <p className="text-sm text-amber-800 leading-relaxed">
+            <strong>Geschlossene Beta</strong> — clar·log ist aktuell nur für eingeladene Familien verfügbar.
+          </p>
+        </div>
+
         <section className="rounded-3xl border border-border bg-card p-6 space-y-4">
           <div>
             <h1 className="text-xl font-semibold">Anmelden</h1>
