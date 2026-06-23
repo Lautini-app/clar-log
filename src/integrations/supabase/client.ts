@@ -11,8 +11,24 @@ export const SUPABASE_PUBLISHABLE_KEY =
  * Wichtig: in supabase-js wird `db.schema` für alle Queries gesetzt;
  * `auth` läuft weiter gegen `auth.users` im Standard-Pfad.
  */
+const inIframe = typeof window !== "undefined" && window.self !== window.top;
+
+const memoryStore: Record<string, string> = {};
+const iframeStorage = {
+  getItem: (key: string) => memoryStore[key] ?? null,
+  setItem: (key: string, value: string) => { memoryStore[key] = value; },
+  removeItem: (key: string) => { delete memoryStore[key]; },
+};
+
+function getStorage() {
+  if (typeof window === "undefined") return undefined;
+  if (inIframe) return iframeStorage;
+  return localStorage;
+}
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
+    storage: getStorage(),
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
