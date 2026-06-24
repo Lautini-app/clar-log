@@ -10,6 +10,8 @@ import type { TeenToken } from "@/lib/family.functions";
 import { deletePeriodData } from "@/lib/clar-sync";
 import { createObserverLink, listObserverLinks, deleteObserverLink, listTeacherLinks, deleteTeacherLink, createTeacherLink } from "@/lib/clar-observers";
 import { generateDoctorLink, getActiveDoctorLink } from "@/lib/doctor-links";
+import { getEmailConsent, type ConsentLevel } from "@/lib/email-consent";
+import { EmailConsentModal } from "@/components/clar/EmailConsentModal";
 import type {
   Medication,
   MedicationType,
@@ -946,6 +948,7 @@ export function SettingsView({ settings, logs, onChange, onImport, userId }: Pro
       </SectionCard>
 
       <LegalSection userId={userId} />
+      <EmailConsentSection userId={userId} />
       <DeleteAccountSection userId={userId} />
 
       {pendingDeletePeriod && (
@@ -1081,6 +1084,71 @@ function LegalSection({ userId }: { userId: string | null }) {
         )}
       </div>
     </SectionCard>
+  );
+}
+
+function EmailConsentSection({ userId }: { userId: string | null }) {
+  const [level, setLevel] = useState<ConsentLevel | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    (async () => {
+      const row = await getEmailConsent(userId);
+      if (!active) return;
+      setLevel(row?.consent_level ?? null);
+      setLoading(false);
+    })();
+    return () => { active = false; };
+  }, [userId]);
+
+  if (!userId) return null;
+
+  const labels: Record<ConsentLevel, string> = {
+    always: "Ja, dauerhaft",
+    subscription_only: "Ja, nur während Abo",
+    never: "Nein, keine Marketing-E-Mails",
+  };
+
+  return (
+    <div className="mt-6 rounded-2xl border border-border bg-card p-4 space-y-3">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          E-Mail-Einstellungen
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+          Marketing-E-Mails von clar by Lautini. Transaktionsmails (Login,
+          Rechnung, Account-Sicherheit) erhältst du immer.
+        </p>
+      </div>
+      <div className="rounded-xl border border-border bg-background p-3">
+        <p className="text-xs text-muted-foreground">Aktuelle Auswahl</p>
+        <p className="mt-1 text-sm font-medium text-foreground">
+          {loading ? "Lade…" : level ? labels[level] : "Keine Auswahl"}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="w-full rounded-xl border border-border bg-background py-2.5 text-sm font-semibold text-primary"
+      >
+        Ändern
+      </button>
+
+      {editing && (
+        <EmailConsentModal
+          userId={userId}
+          allowClose
+          onClose={() => setEditing(false)}
+          onDone={(newLevel) => {
+            setLevel(newLevel);
+            setEditing(false);
+          }}
+        />
+      )}
+    </div>
   );
 }
 

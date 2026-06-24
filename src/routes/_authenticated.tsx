@@ -21,6 +21,8 @@ import {
   signalSignedOut,
 } from "@/lib/embedded-shell";
 import { isClosedBetaAllowed } from "@/lib/closed-beta";
+import { getEmailConsent } from "@/lib/email-consent";
+import { EmailConsentModal } from "@/components/clar/EmailConsentModal";
 
 function LoadingScreen() {
   return (
@@ -78,6 +80,8 @@ function AuthenticatedLayout() {
   const [consentSaving, setConsentSaving] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [betaChecked, setBetaChecked] = useState(false);
+  const [emailConsentChecked, setEmailConsentChecked] = useState(false);
+  const [hasEmailConsent, setHasEmailConsent] = useState(false);
 
   // Install the shell bridge FIRST, before consuming URL tokens, so that a
   // clar:session postMessage that arrives while consumeSessionTokenFromUrl()
@@ -133,6 +137,19 @@ function AuthenticatedLayout() {
       setUserEmail(data.session?.user?.email ?? null);
       setBetaChecked(true);
     });
+  }, [hydrated, tokenChecked, userId]);
+
+  // Email-Consent prüfen (zentral in public.email_consent, gilt für alle clar-Apps).
+  useEffect(() => {
+    if (!hydrated || !tokenChecked || !userId) return;
+    let active = true;
+    (async () => {
+      const row = await getEmailConsent(userId);
+      if (!active) return;
+      setHasEmailConsent(!!row);
+      setEmailConsentChecked(true);
+    })();
+    return () => { active = false; };
   }, [hydrated, tokenChecked, userId]);
 
   // Consent prüfen
@@ -240,6 +257,16 @@ function AuthenticatedLayout() {
   if (!consentChecked) return <LoadingScreen />;
   if (!hasConsent) {
     return <ConsentScreen onAccept={acceptConsent} loading={consentSaving} />;
+  }
+
+  if (!emailConsentChecked) return <LoadingScreen />;
+  if (!hasEmailConsent) {
+    return (
+      <EmailConsentModal
+        userId={userId}
+        onDone={() => setHasEmailConsent(true)}
+      />
+    );
   }
 
   const tabs: Array<{
