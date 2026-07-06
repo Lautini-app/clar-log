@@ -223,7 +223,7 @@ function HilfePage() {
               >
                 home.lautini.ch
               </a>
-              . Während der Beta-Phase ist der Zugang auf eingeladene Familien beschränkt.
+              .
             </p>
           </FaqItem>
           <FaqItem question="Die App ersetzt also den Arzt nicht?">
@@ -237,25 +237,12 @@ function HilfePage() {
         </div>
       </section>
 
-      {/* Kontakt */}
+      {/* Rechtliches */}
       <section className="rounded-2xl border border-border bg-card p-5">
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          Kontakt
+          Rechtliches
         </h2>
-        <p className="text-[15px] leading-relaxed text-foreground">
-          Fragen, Feedback, Problem in der App?
-        </p>
-        <p className="mt-1 text-[15px] leading-relaxed text-foreground">
-          E-Mail:{" "}
-          <a
-            href="mailto:hallo@lautini.ch"
-            className="font-medium text-primary underline underline-offset-2"
-          >
-            hallo@lautini.ch
-          </a>
-        </p>
-        <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-          Rechtliches:{" "}
+        <p className="text-sm text-muted-foreground leading-relaxed">
           <a
             href="https://blog.lautini.ch/datenschutz"
             target="_blank"

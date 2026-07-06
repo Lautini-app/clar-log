@@ -58,15 +58,12 @@ In den Einstellungen unter «Gefahrenzone» → «Alle meine Daten löschen». D
 
 ### Was kostet clar·log?
 
-clar·log ist Teil des clar-Abos (einzeln oder im Bundle mit clar·markt, clar·heim und clar·tag, jeweils mit Familien-Sharing für bis zu 5 Personen). Aktuelle Preise und Abo-Verwaltung findest du auf [home.lautini.ch](https://home.lautini.ch). Während der Beta-Phase ist der Zugang auf eingeladene Familien beschränkt.
+clar·log ist Teil des clar-Abos (einzeln oder im Bundle mit clar·markt, clar·heim und clar·tag, jeweils mit Familien-Sharing für bis zu 5 Personen). Aktuelle Preise und Abo-Verwaltung findest du auf [home.lautini.ch](https://home.lautini.ch).
 
 ### Die App ersetzt also den Arzt nicht?
 
 Nein, bewusst nicht. clar·log macht eure Beobachtungen sichtbar und Arztgespräche fundierter — nicht mehr und nicht weniger. Bei Fragen zur Medikation, bei belastenden Nebenwirkungen oder in Krisensituationen wende dich immer direkt an das Behandlungsteam.
 
-## Kontakt
+## Rechtliches
 
-Fragen, Feedback, Problem in der App?
-E-Mail: [hallo@lautini.ch](mailto:hallo@lautini.ch)
-
-Rechtliches: [Datenschutzerklärung](https://blog.lautini.ch/datenschutz) · [AGB](https://blog.lautini.ch/agb) · [Impressum](https://blog.lautini.ch/impressum)
+[Datenschutzerklärung](https://blog.lautini.ch/datenschutz) · [AGB](https://blog.lautini.ch/agb) · [Impressum](https://blog.lautini.ch/impressum)
