@@ -26,3 +26,15 @@ export async function resolveDoctorToken(token: string): Promise<{ ownerId: stri
   if (error || !data || data.length === 0) return null;
   return { ownerId: String(data[0].owner_id), periodId: String(data[0].period_id) };
 }
+
+export type DoctorTeenLog = { teenName: string; date: string; log: import("./clar-storage").DayLog };
+
+export async function loadTeenLogsByDoctorToken(token: string): Promise<DoctorTeenLog[]> {
+  const { data, error } = await supabase.rpc("get_teen_logs_by_doctor_token", { input_token: token });
+  if (error || !data) return [];
+  return (data as any[]).map((row) => ({
+    teenName: String(row.teen_name),
+    date: String(row.date),
+    log: { ...(row.data as import("./clar-storage").DayLog), date: String(row.date) },
+  }));
+}

@@ -666,7 +666,21 @@ export function DossierView({ settings, logs, ownerId, teenLogGroups }: Props) {
 
   const days     = useMemo(() => getWeekDays(weekOffset), [weekOffset]);
   const weekLabel = `${new Date(days[0]).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })} – ${new Date(days[6]).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
-  const dayLogs  = useMemo(() => days.map(d => logs.find(l => l.date === d)), [days, logs]);
+  // Konto-Log priorisiert; wenn leer/fehlt, greifen Teen-Einträge (Arzt-Dossier
+  // muss alle Quellen berücksichtigen: Kontoinhaber, Jugendliche/r, Beobachter).
+  const isEmptyLog = (l: DayLog | undefined) =>
+    !l || Object.values(l.slots ?? {}).every((s: any) => !s || Object.keys(s.answers ?? {}).length === 0);
+  const dayLogs = useMemo(() => days.map(d => {
+    const own = logs.find(l => l.date === d);
+    if (!isEmptyLog(own)) return own;
+    if (teenLogGroups) {
+      for (const teenLogs of teenLogGroups.values()) {
+        const t = teenLogs.find(l => l.date === d);
+        if (!isEmptyLog(t)) return t;
+      }
+    }
+    return own;
+  }), [days, logs, teenLogGroups]);
 
   useEffect(() => {
     if (!ownerId || !period?.id) return;

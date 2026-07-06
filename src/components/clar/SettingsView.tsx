@@ -947,6 +947,7 @@ export function SettingsView({ settings, logs, onChange, onImport, userId }: Pro
         </div>
       </SectionCard>
 
+      <HelpLinkSection />
       <LegalSection userId={userId} />
       <EmailConsentSection userId={userId} />
       <DeleteAccountSection userId={userId} />
@@ -1004,6 +1005,24 @@ export function SettingsView({ settings, logs, onChange, onImport, userId }: Pro
         </div>
       )}
     </div>
+  );
+}
+
+function HelpLinkSection() {
+  const navigate = useNavigate();
+  return (
+    <SectionCard title="Hilfe & Anleitung">
+      <button
+        type="button"
+        onClick={() => void navigate({ to: "/hilfe" })}
+        className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:bg-primary/5"
+      >
+        <span className="text-sm font-semibold text-foreground">
+          Erste Schritte & häufige Fragen
+        </span>
+        <span aria-hidden className="text-primary">→</span>
+      </button>
+    </SectionCard>
   );
 }
 

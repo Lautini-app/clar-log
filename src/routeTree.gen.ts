@@ -19,6 +19,7 @@ import { Route as EinladungTokenRouteImport } from './routes/einladung.$token'
 import { Route as DossierTokenRouteImport } from './routes/dossier.$token'
 import { Route as BeobachtungTokenRouteImport } from './routes/beobachtung.$token'
 import { Route as AuthenticatedPeriodenRouteImport } from './routes/_authenticated.perioden'
+import { Route as AuthenticatedHilfeRouteImport } from './routes/_authenticated.hilfe'
 import { Route as AuthenticatedHeuteRouteImport } from './routes/_authenticated.heute'
 import { Route as AuthenticatedEinstellungenRouteImport } from './routes/_authenticated.einstellungen'
 import { Route as AuthenticatedBerichtRouteImport } from './routes/_authenticated.bericht'
@@ -73,6 +74,11 @@ const AuthenticatedPeriodenRoute = AuthenticatedPeriodenRouteImport.update({
   path: '/perioden',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedHilfeRoute = AuthenticatedHilfeRouteImport.update({
+  id: '/hilfe',
+  path: '/hilfe',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedHeuteRoute = AuthenticatedHeuteRouteImport.update({
   id: '/heute',
   path: '/heute',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/bericht': typeof AuthenticatedBerichtRoute
   '/einstellungen': typeof AuthenticatedEinstellungenRoute
   '/heute': typeof AuthenticatedHeuteRoute
+  '/hilfe': typeof AuthenticatedHilfeRoute
   '/perioden': typeof AuthenticatedPeriodenRoute
   '/beobachtung/$token': typeof BeobachtungTokenRoute
   '/dossier/$token': typeof DossierTokenRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/bericht': typeof AuthenticatedBerichtRoute
   '/einstellungen': typeof AuthenticatedEinstellungenRoute
   '/heute': typeof AuthenticatedHeuteRoute
+  '/hilfe': typeof AuthenticatedHilfeRoute
   '/perioden': typeof AuthenticatedPeriodenRoute
   '/beobachtung/$token': typeof BeobachtungTokenRoute
   '/dossier/$token': typeof DossierTokenRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/_authenticated/bericht': typeof AuthenticatedBerichtRoute
   '/_authenticated/einstellungen': typeof AuthenticatedEinstellungenRoute
   '/_authenticated/heute': typeof AuthenticatedHeuteRoute
+  '/_authenticated/hilfe': typeof AuthenticatedHilfeRoute
   '/_authenticated/perioden': typeof AuthenticatedPeriodenRoute
   '/beobachtung/$token': typeof BeobachtungTokenRoute
   '/dossier/$token': typeof DossierTokenRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/bericht'
     | '/einstellungen'
     | '/heute'
+    | '/hilfe'
     | '/perioden'
     | '/beobachtung/$token'
     | '/dossier/$token'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/bericht'
     | '/einstellungen'
     | '/heute'
+    | '/hilfe'
     | '/perioden'
     | '/beobachtung/$token'
     | '/dossier/$token'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bericht'
     | '/_authenticated/einstellungen'
     | '/_authenticated/heute'
+    | '/_authenticated/hilfe'
     | '/_authenticated/perioden'
     | '/beobachtung/$token'
     | '/dossier/$token'
@@ -275,6 +287,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPeriodenRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/hilfe': {
+      id: '/_authenticated/hilfe'
+      path: '/hilfe'
+      fullPath: '/hilfe'
+      preLoaderRoute: typeof AuthenticatedHilfeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/heute': {
       id: '/_authenticated/heute'
       path: '/heute'
@@ -311,6 +330,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedBerichtRoute: typeof AuthenticatedBerichtRoute
   AuthenticatedEinstellungenRoute: typeof AuthenticatedEinstellungenRoute
   AuthenticatedHeuteRoute: typeof AuthenticatedHeuteRoute
+  AuthenticatedHilfeRoute: typeof AuthenticatedHilfeRoute
   AuthenticatedPeriodenRoute: typeof AuthenticatedPeriodenRoute
 }
 
@@ -319,6 +339,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBerichtRoute: AuthenticatedBerichtRoute,
   AuthenticatedEinstellungenRoute: AuthenticatedEinstellungenRoute,
   AuthenticatedHeuteRoute: AuthenticatedHeuteRoute,
+  AuthenticatedHilfeRoute: AuthenticatedHilfeRoute,
   AuthenticatedPeriodenRoute: AuthenticatedPeriodenRoute,
 }
 
@@ -340,3 +361,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
