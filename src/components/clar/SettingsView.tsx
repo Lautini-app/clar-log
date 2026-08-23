@@ -97,6 +97,14 @@ function LinkRow({
               <Share2 className="h-3.5 w-3.5" /> Teilen
             </button>
           </div>
+          <button type="button"
+            onClick={() => {
+              const webcal = `${urlBase.replace(/^https?/, "webcal")}/api/calendar/beobachtung/${link.token}.ics`;
+              window.open(webcal, "_blank");
+            }}
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
+            📅 Erinnerungen in den Kalender (Abo)
+          </button>
         </>
       )}
     </div>
@@ -403,6 +411,14 @@ function TeenTokenRow({
               <Share2 className="h-3.5 w-3.5" /> Teilen
             </button>
           </div>
+          <button type="button"
+            onClick={() => {
+              const webcal = `${urlBase.replace(/^https?/, "webcal")}/api/calendar/tagebuch/${link.token}.ics`;
+              window.open(webcal, "_blank");
+            }}
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
+            📅 Erinnerungen in den Kalender (Abo)
+          </button>
         </>
       )}
     </div>
