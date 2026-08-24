@@ -35,6 +35,13 @@ export default async function handler(_req: any, res: any) {
   const withDate = await db.from("tracker_logs").select("date").limit(1);
   out["tracker_logs.select_date"] = withDate.error ? "err:" + withDate.error.message : "ok";
 
+  // Sind die letzten Tage synchronisiert? (nur Datumswerte, keine Inhalte)
+  const dates = await db.from("tracker_logs").select("date").order("date", { ascending: false }).limit(12);
+  const ds = (dates.data ?? []).map((r: any) => String(r.date).slice(0, 10));
+  out["tracker_logs.neueste_daten"] = ds.join(",");
+  const heute = new Date().toISOString().slice(0, 10);
+  out["tracker_logs.heute_vorhanden"] = ds.includes(heute) ? "ja" : "nein (heute=" + heute + ")";
+
   res.setHeader("Cache-Control", "no-store");
   res.status(200).json(out);
 }
