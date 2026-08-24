@@ -28,15 +28,23 @@ function DossierRoute() {
         if (!ctx) { setState("error"); return; }
         setOwnerId(ctx.ownerId);
 
-        const [settingsRes, logsRes, teenRes] = await Promise.all([
+        // Der Arzt ist nicht eingeloggt: direkte Selects liefern wegen RLS nichts.
+        // Deshalb über die Server-Function lesen; die Direkt-Selects bleiben als
+        // Fallback (z.B. wenn die Besitzerin das Dossier selbst öffnet).
+        const [apiRes, settingsRes, logsRes, teenRes] = await Promise.all([
+          fetch(`/api/dossier/${token}`, { cache: "no-store" })
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null),
           supabase.schema("clar_log").from("tracker_settings").select("data").eq("user_id", ctx.ownerId).maybeSingle(),
           supabase.schema("clar_log").from("tracker_logs").select("*").eq("user_id", ctx.ownerId).order("date", { ascending: false }).limit(90),
           loadTeenLogsByDoctorToken(token),
         ]);
 
-        const raw = settingsRes.data?.data ?? {};
+        const raw = apiRes?.settings ?? settingsRes.data?.data ?? {};
         setSettings(normalizeSettings(raw));
-        setLogs((logsRes.data ?? []).map((r: any) => r.data ?? r));
+        const apiLogs = Array.isArray(apiRes?.logs) ? apiRes.logs : [];
+        const directLogs = (logsRes.data ?? []).map((r: any) => r.data ?? r);
+        setLogs(apiLogs.length > 0 ? apiLogs : directLogs);
         setTeenEntries(teenRes);
         setState("ok");
       } catch {
