@@ -174,47 +174,63 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  // 1) Periode direkt aus observation_periods
+  // Periode suchen — je nach Sync-Stand liegt sie in observation_periods
+  // oder in tracker_settings.data.periods, und je nach Projektstand im
+  // Schema clar_log oder public. Wir probieren alle Kombinationen.
+  const diag: string[] = [];
   let period: PeriodData | null = null;
-  const { data: periodRow } = await supabase
-    .from("observation_periods")
-    .select("id, data")
-    .eq("id", link.period_id)
-    .maybeSingle();
-  if (periodRow?.data) period = periodRow.data as PeriodData;
 
-  // 2) Fallback: Perioden liegen (je nach Sync-Stand) in tracker_settings.data.periods
-  if (!period && link.owner_id) {
-    const { data: settingsRow } = await supabase
-      .from("tracker_settings")
-      .select("data")
-      .eq("user_id", link.owner_id)
-      .maybeSingle();
-    const settings = (settingsRow?.data ?? null) as
-      | { periods?: PeriodData[]; activePeriodId?: string }
-      | null;
-    const periods = settings?.periods ?? [];
-    period =
-      periods.find((p) => p?.id === link.period_id) ??
-      periods.find((p) => p?.id === settings?.activePeriodId) ??
-      periods[0] ??
-      null;
-  }
+  for (const schema of ["clar_log", "public"]) {
+    const db = createClient(url, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      db: { schema },
+    });
 
-  // 3) Fallback: irgendeine Periode dieses Owners
-  if (!period && link.owner_id) {
-    const { data: anyRow } = await supabase
+    const byId = await db
       .from("observation_periods")
-      .select("data, updated_at")
-      .eq("user_id", link.owner_id)
-      .order("updated_at", { ascending: false })
-      .limit(1)
+      .select("id, data")
+      .eq("id", link.period_id)
       .maybeSingle();
-    if (anyRow?.data) period = anyRow.data as PeriodData;
+    diag.push(`${schema}.observation_periods#id: ${byId.error ? "err:" + byId.error.code : (byId.data ? "hit" : "miss")}`);
+    if (byId.data?.data) { period = byId.data.data as PeriodData; break; }
+
+    if (link.owner_id) {
+      const settingsRow = await db
+        .from("tracker_settings")
+        .select("data")
+        .eq("user_id", link.owner_id)
+        .maybeSingle();
+      diag.push(`${schema}.tracker_settings: ${settingsRow.error ? "err:" + settingsRow.error.code : (settingsRow.data ? "hit" : "miss")}`);
+      const settings = (settingsRow.data?.data ?? null) as
+        | { periods?: PeriodData[]; activePeriodId?: string }
+        | null;
+      const periods = settings?.periods ?? [];
+      diag.push(`${schema}.periods: ${periods.length}`);
+      const found =
+        periods.find((p) => p?.id === link.period_id) ??
+        periods.find((p) => p?.id === settings?.activePeriodId) ??
+        periods[0] ??
+        null;
+      if (found) { period = found; break; }
+
+      const anyRow = await db
+        .from("observation_periods")
+        .select("data, updated_at")
+        .eq("user_id", link.owner_id)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      const first = Array.isArray(anyRow.data) ? anyRow.data[0] : null;
+      diag.push(`${schema}.observation_periods#owner: ${anyRow.error ? "err:" + anyRow.error.code : (first ? "hit" : "miss")}`);
+      if (first?.data) { period = first.data as PeriodData; break; }
+    } else {
+      diag.push(`${schema}: kein owner_id am Link`);
+    }
   }
 
   if (!period || !period.startDate || !period.endDate) {
-    res.status(404).send("Beobachtungsperiode nicht gefunden");
+    res
+      .status(404)
+      .send("Beobachtungsperiode nicht gefunden\n" + diag.join("\n"));
     return;
   }
   const entryUrl = `https://clar.log.lautini.ch/beobachtung/${token}`;
