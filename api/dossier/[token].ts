@@ -93,6 +93,37 @@ export default async function handler(req: any, res: any) {
     .order("date", { ascending: false })
     .limit(400);
   diag["teen_logs"] = teenRes.error ? "err: " + teenRes.error.message : String((teenRes.data ?? []).length);
+
+  // Rueckmeldungen der Beobachter:innen (Eltern, Lehrpersonen) — fuer den
+  // nicht eingeloggten Arzt sonst ebenfalls nicht lesbar.
+  const obsRes = await db
+    .from("observer_observations")
+    .select("*")
+    .eq("owner_id", ownerId)
+    .order("date", { ascending: false })
+    .limit(500);
+  diag["observer_observations"] = obsRes.error ? "err: " + obsRes.error.message : String((obsRes.data ?? []).length);
+  const observations = ((obsRes.data ?? []) as any[]).map((row) => ({
+    id: String(row.id),
+    ownerId: String(row.owner_id),
+    periodId: row.period_id ? String(row.period_id) : undefined,
+    date: String(row.date).slice(0, 10),
+    observerUserId: row.observer_user_id ? String(row.observer_user_id) : undefined,
+    observerName: row.observer_name ? String(row.observer_name) : undefined,
+    mood: row.mood ?? undefined,
+    behavior: row.behavior ?? undefined,
+    concentration: row.concentration ?? undefined,
+    note: row.note ?? undefined,
+    answers: row.answers ?? undefined,
+    // Direkte home_* Spalten mitnehmen, der View erkennt beide Formen.
+    home_mood: row.home_mood ?? undefined,
+    home_cooperation: row.home_cooperation ?? undefined,
+    home_emotional_regulation: row.home_emotional_regulation ?? undefined,
+    home_focus_homework: row.home_focus_homework ?? undefined,
+    home_bedtime_routine: row.home_bedtime_routine ?? undefined,
+    home_rebound_observed: row.home_rebound_observed ?? undefined,
+    createdAt: row.created_at ? String(row.created_at) : undefined,
+  }));
   const teenLogs = ((teenRes.data ?? []) as any[]).map((row) => ({
     teenName: String(row.teen_name ?? "Tagebuch"),
     date: String(row.date).slice(0, 10),
@@ -106,6 +137,7 @@ export default async function handler(req: any, res: any) {
     settings: settingsRes.data?.data ?? null,
     logs,
     teenLogs,
+    observations,
     diag,
   });
 }

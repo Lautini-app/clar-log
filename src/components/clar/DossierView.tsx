@@ -684,7 +684,9 @@ export function DossierView({ settings, logs, ownerId, teenLogGroups }: Props) {
 
   useEffect(() => {
     if (!ownerId || !period?.id) return;
-    listObserverObservations(ownerId, period.id).then(setObservations).catch(() => {});
+    listObserverObservations(ownerId, period.id)
+      .then((rows) => { if (rows && rows.length > 0) setObservations(rows); })
+      .catch(() => {});
     const tr = (logs as any[]).filter(l => l.__teacherReport);
     if (tr.length) setTeacherReports(tr);
   }, [ownerId, period?.id, logs]);

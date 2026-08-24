@@ -41,7 +41,15 @@ function DossierRoute() {
         ]);
 
         const raw = apiRes?.settings ?? settingsRes.data?.data ?? {};
-        setSettings(normalizeSettings(raw));
+        const normalized: any = normalizeSettings(raw);
+        // Beobachter-Rueckmeldungen kommen vom Server (RLS blockt den Arzt).
+        if (Array.isArray(apiRes?.observations) && apiRes.observations.length > 0) {
+          normalized._imported = {
+            ...(normalized._imported ?? {}),
+            observer_observations: apiRes.observations,
+          };
+        }
+        setSettings(normalized);
         const apiLogs = Array.isArray(apiRes?.logs) ? apiRes.logs : [];
         const directLogs = (logsRes.data ?? []).map((r: any) => r.data ?? r);
         setLogs(apiLogs.length > 0 ? apiLogs : directLogs);
