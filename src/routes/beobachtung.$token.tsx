@@ -8,6 +8,7 @@ import {
   submitTeacherObservation,
 } from "@/lib/clar-observers";
 import { todayKey } from "@/lib/clar-storage";
+import { CalendarSubscribeCard } from "@/components/clar/CalendarSubscribeCard";
 
 export const Route = createFileRoute("/beobachtung/$token")({
   ssr: false,
@@ -311,8 +312,8 @@ function BeobachtungRoute() {
   );
 
   if (status === "done") return (
-    <div className="flex min-h-screen items-center justify-center px-4 text-center">
-      <div className="space-y-2">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-5 px-4 py-8">
+      <div className="space-y-2 text-center">
         <p className="text-lg font-semibold">Danke!</p>
         <p className="text-sm text-muted-foreground">
           {tokenType === "teacher"
@@ -320,6 +321,11 @@ function BeobachtungRoute() {
             : "Die Beobachtung wurde übermittelt."}
         </p>
       </div>
+      {tokenType === "observer" && (
+        <div className="w-full">
+          <CalendarSubscribeCard token={token} kind="beobachtung" />
+        </div>
+      )}
     </div>
   );
 
@@ -366,6 +372,8 @@ function BeobachtungRoute() {
         >
           {submitting ? "Wird gesendet…" : "Absenden"}
         </button>
+
+        <CalendarSubscribeCard token={token} kind="beobachtung" />
       </div>
     );
   }

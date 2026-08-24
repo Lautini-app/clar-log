@@ -16,6 +16,7 @@ import type {
   ObservationPeriod,
   WellbeingItem,
 } from "@/lib/clar-storage";
+import { CalendarSubscribeCard } from "@/components/clar/CalendarSubscribeCard";
 
 export const Route = createFileRoute("/tagebuch/$token")({
   ssr: false,
@@ -210,6 +211,8 @@ function TagebuchRoute() {
         items={resolved.items}
         onChange={handleChange}
       />
+
+      <CalendarSubscribeCard token={token} kind="tagebuch" />
 
       <p style={{ fontSize: 11, color: "#9CA3AF", textAlign: "center", marginTop: 14 }}>
         Kein Login nötig · clar·log von Lautini
