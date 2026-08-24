@@ -161,7 +161,7 @@ export default async function handler(req: any, res: any) {
 
   const { data: link, error } = await supabase
     .from("teen_tokens")
-    .select("id, period_id, name, active, expires_at")
+    .select("id, owner_id, period_id, name, active, expires_at")
     .eq("token", token)
     .maybeSingle();
 
@@ -174,18 +174,49 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const { data: periodRow, error: pErr } = await supabase
+  // 1) Periode direkt aus observation_periods
+  let period: PeriodData | null = null;
+  const { data: periodRow } = await supabase
     .from("observation_periods")
     .select("id, data")
     .eq("id", link.period_id)
     .maybeSingle();
+  if (periodRow?.data) period = periodRow.data as PeriodData;
 
-  if (pErr || !periodRow?.data) {
+  // 2) Fallback: Perioden liegen (je nach Sync-Stand) in tracker_settings.data.periods
+  if (!period && link.owner_id) {
+    const { data: settingsRow } = await supabase
+      .from("tracker_settings")
+      .select("data")
+      .eq("user_id", link.owner_id)
+      .maybeSingle();
+    const settings = (settingsRow?.data ?? null) as
+      | { periods?: PeriodData[]; activePeriodId?: string }
+      | null;
+    const periods = settings?.periods ?? [];
+    period =
+      periods.find((p) => p?.id === link.period_id) ??
+      periods.find((p) => p?.id === settings?.activePeriodId) ??
+      periods[0] ??
+      null;
+  }
+
+  // 3) Fallback: irgendeine Periode dieses Owners
+  if (!period && link.owner_id) {
+    const { data: anyRow } = await supabase
+      .from("observation_periods")
+      .select("data, updated_at")
+      .eq("user_id", link.owner_id)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (anyRow?.data) period = anyRow.data as PeriodData;
+  }
+
+  if (!period || !period.startDate || !period.endDate) {
     res.status(404).send("Beobachtungsperiode nicht gefunden");
     return;
   }
-
-  const period = periodRow.data as PeriodData;
   const entryUrl = `https://clar.log.lautini.ch/tagebuch/${token}`;
   const ics = buildPeriodICal({
     period,
