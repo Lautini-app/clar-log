@@ -45,7 +45,8 @@ function DossierRoute() {
         const apiLogs = Array.isArray(apiRes?.logs) ? apiRes.logs : [];
         const directLogs = (logsRes.data ?? []).map((r: any) => r.data ?? r);
         setLogs(apiLogs.length > 0 ? apiLogs : directLogs);
-        setTeenEntries(teenRes);
+        const apiTeen = Array.isArray(apiRes?.teenLogs) ? apiRes.teenLogs : [];
+        setTeenEntries(teenRes.length > 0 ? teenRes : apiTeen);
         setState("ok");
       } catch {
         setState("error");

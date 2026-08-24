@@ -84,12 +84,28 @@ export default async function handler(req: any, res: any) {
   const logs = [...byDate.values()].sort((a, b) => String(b.date).localeCompare(String(a.date)));
   diag["logs_normalisiert"] = String(logs.length);
 
+  // Eintraege der Jugendlichen (Tagebuch-Link) liegen in teen_logs und sind
+  // fuer den nicht eingeloggten Arzt sonst nicht lesbar.
+  const teenRes = await db
+    .from("teen_logs")
+    .select("teen_name, date, data")
+    .eq("owner_id", ownerId)
+    .order("date", { ascending: false })
+    .limit(400);
+  diag["teen_logs"] = teenRes.error ? "err: " + teenRes.error.message : String((teenRes.data ?? []).length);
+  const teenLogs = ((teenRes.data ?? []) as any[]).map((row) => ({
+    teenName: String(row.teen_name ?? "Tagebuch"),
+    date: String(row.date).slice(0, 10),
+    log: { ...(row.data ?? {}), date: String(row.date).slice(0, 10) },
+  }));
+
   res.setHeader("Cache-Control", "no-store");
   res.status(200).json({
     ownerId,
     periodId: link.period_id ?? null,
     settings: settingsRes.data?.data ?? null,
     logs,
+    teenLogs,
     diag,
   });
 }

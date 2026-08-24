@@ -15,7 +15,7 @@ export default async function handler(_req: any, res: any) {
       auth: { persistSession: false, autoRefreshToken: false },
       db: { schema },
     });
-    for (const t of ["tracker_logs", "daily_logs", "tracker_settings", "observation_periods", "observer_links", "teen_tokens", "doctor_links"]) {
+    for (const t of ["tracker_logs", "daily_logs", "tracker_settings", "observation_periods", "observer_links", "teen_tokens", "teen_logs", "observer_observations", "doctor_links"]) {
       const r = await db.from(t).select("*", { count: "exact", head: true });
       out[`${schema}.${t}`] = r.error ? "err:" + (r.error.code || r.error.message) : String(r.count ?? 0);
     }
@@ -41,6 +41,11 @@ export default async function handler(_req: any, res: any) {
   out["tracker_logs.neueste_daten"] = ds.join(",");
   const heute = new Date().toISOString().slice(0, 10);
   out["tracker_logs.heute_vorhanden"] = ds.includes(heute) ? "ja" : "nein (heute=" + heute + ")";
+
+  const tl = await db.from("teen_logs").select("date").order("date", { ascending: false }).limit(12);
+  const tds = (tl.data ?? []).map((r: any) => String(r.date).slice(0, 10));
+  out["teen_logs.neueste_daten"] = tl.error ? "err:" + tl.error.message : tds.join(",");
+  out["teen_logs.heute_vorhanden"] = tds.includes(heute) ? "ja" : "nein";
 
   res.setHeader("Cache-Control", "no-store");
   res.status(200).json(out);
