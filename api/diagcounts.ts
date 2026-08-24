@@ -20,6 +20,21 @@ export default async function handler(_req: any, res: any) {
       out[`${schema}.${t}`] = r.error ? "err:" + (r.error.code || r.error.message) : String(r.count ?? 0);
     }
   }
+  // Spaltennamen von tracker_logs (nur Feldnamen, keine Werte)
+  const db = createClient(url, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    db: { schema: "clar_log" },
+  });
+  const probe = await db.from("tracker_logs").select("*").limit(1);
+  const row: any = (probe.data ?? [])[0] ?? null;
+  out["tracker_logs.spalten"] = row ? Object.keys(row).join(",") : "keine Zeile";
+  out["tracker_logs.data_keys"] = row && row.data && typeof row.data === "object"
+    ? Object.keys(row.data).join(",")
+    : "kein data-Objekt";
+
+  const withDate = await db.from("tracker_logs").select("date").limit(1);
+  out["tracker_logs.select_date"] = withDate.error ? "err:" + withDate.error.message : "ok";
+
   res.setHeader("Cache-Control", "no-store");
   res.status(200).json(out);
 }
