@@ -41,25 +41,48 @@ export default async function handler(req: any, res: any) {
 
   const ownerId = String(link.owner_id);
 
-  // Tageseinträge: je nach Sync-Stand in tracker_logs oder daily_logs.
-  const [trackerRes, dailyRes, settingsRes] = await Promise.all([
-    db.from("tracker_logs").select("date, data").eq("user_id", ownerId).order("date", { ascending: false }).limit(120),
-    db.from("daily_logs").select("date, data").eq("user_id", ownerId).order("date", { ascending: false }).limit(120),
+  // Tageseinträge: je nach Sync-Stand in tracker_logs oder daily_logs,
+  // Spaltennamen unterscheiden sich historisch — deshalb select("*") und
+  // das Datum flexibel bestimmen.
+  const diag: Record<string, string> = {};
+
+  async function readLogs(table: string) {
+    const r = await db.from(table).select("*").eq("user_id", ownerId).limit(400);
+    if (r.error) {
+      diag[table] = "err: " + r.error.message;
+      return [] as any[];
+    }
+    const rows = (r.data ?? []) as any[];
+    diag[table] = String(rows.length);
+    return rows;
+  }
+
+  const [trackerRows, dailyRows, settingsRes] = await Promise.all([
+    readLogs("tracker_logs"),
+    readLogs("daily_logs"),
     db.from("tracker_settings").select("data").eq("user_id", ownerId).maybeSingle(),
   ]);
+  diag["tracker_settings"] = settingsRes.error ? "err: " + settingsRes.error.message : (settingsRes.data ? "hit" : "miss");
+
+  function normalize(rows: any[]) {
+    const out: any[] = [];
+    for (const row of rows) {
+      const payload = row?.data && typeof row.data === "object" ? row.data : row;
+      const date =
+        row?.date ?? payload?.date ?? row?.day ?? row?.log_date ?? row?.entry_date ?? null;
+      if (!date) continue;
+      out.push({ ...payload, date: String(date).slice(0, 10) });
+    }
+    return out;
+  }
 
   const byDate = new Map<string, any>();
-  for (const row of (dailyRes.data ?? []) as any[]) {
-    const d = String(row.date);
-    byDate.set(d, { ...(row.data ?? {}), date: d });
-  }
+  for (const l of normalize(dailyRows)) byDate.set(l.date, l);
   // tracker_logs gewinnt: dort schreibt die App die laufenden Einträge.
-  for (const row of (trackerRes.data ?? []) as any[]) {
-    const d = String(row.date);
-    byDate.set(d, { ...(row.data ?? {}), date: d });
-  }
+  for (const l of normalize(trackerRows)) byDate.set(l.date, l);
 
   const logs = [...byDate.values()].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  diag["logs_normalisiert"] = String(logs.length);
 
   res.setHeader("Cache-Control", "no-store");
   res.status(200).json({
@@ -67,5 +90,6 @@ export default async function handler(req: any, res: any) {
     periodId: link.period_id ?? null,
     settings: settingsRes.data?.data ?? null,
     logs,
+    diag,
   });
 }
