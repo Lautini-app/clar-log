@@ -99,7 +99,7 @@ function LinkRow({
           </div>
           <button type="button"
             onClick={() => {
-              const webcal = `${urlBase.replace(/^https?/, "webcals")}/api/calendar/beobachtung/${link.token}.ics`;
+              const webcal = `${urlBase.replace(/^https?/, "webcal")}/api/calendar/beobachtung/${link.token}.ics`;
               window.open(webcal, "_blank");
             }}
             className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">
@@ -413,7 +413,7 @@ function TeenTokenRow({
           </div>
           <button type="button"
             onClick={() => {
-              const webcal = `${urlBase.replace(/^https?/, "webcals")}/api/calendar/tagebuch/${link.token}.ics`;
+              const webcal = `${urlBase.replace(/^https?/, "webcal")}/api/calendar/tagebuch/${link.token}.ics`;
               window.open(webcal, "_blank");
             }}
             className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-card py-1.5 text-xs font-semibold text-primary">

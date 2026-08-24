@@ -30,11 +30,11 @@ Beim Anlegen der Periode wählst du «Eltern erfassen für Kind». Du beantworte
 
 ### Mein Teenager will selbst ausfüllen — geht das?
 
-Ja. Für Jugendliche (ab 12, mit deiner Zustimmung als erziehungsberechtigte Person) erstellst du im Konto-Tab eine Einladung. Dein Kind erhält einen persönlichen Link und füllt die komplette Tagesabfrage selbst aus — ohne eigenes Konto und ohne Zugriff auf deine anderen Daten. Die Einträge fliessen in denselben Verlauf und in die Arzt-Auswertung.
+Ja. Für Jugendliche (ab 12, mit deiner Zustimmung als erziehungsberechtigte Person) erstellst du im Konto-Tab eine Einladung. Dein Kind erhält einen persönlichen Link und füllt die komplette Tagesabfrage selbst aus — ohne eigenes Konto und ohne Zugriff auf deine anderen Daten. Der Link bleibt für die gesamte Beobachtungsperiode gültig: täglich einfach denselben Link öffnen. Die Einträge fliessen in denselben Verlauf und in die Arzt-Auswertung.
 
 ### Was sehen eingeladene Beobachter, z. B. die Lehrperson?
 
-Beobachter erhalten einen zeitlich begrenzten Link ohne eigenes Konto. Sie sehen nur, was du explizit freigibst, und können strukturierte Rückmeldungen geben (z. B. zum Verhalten in der Schule). Diese Rückmeldungen erscheinen im Verlauf und ergänzen das Bild für den Arzttermin. Du kannst jeden Link jederzeit widerrufen.
+Beobachter erhalten einen persönlichen Link ohne eigenes Konto — für die tägliche Rückmeldung wird immer derselbe Link verwendet. Aus Sicherheitsgründen ist er jeweils 7 Tage gültig; danach verlängerst du ihn in der App und teilst ihn erneut. Sie sehen nur, was du explizit freigibst, und können strukturierte Rückmeldungen geben (z. B. zum Verhalten in der Schule). Diese Rückmeldungen erscheinen im Verlauf und ergänzen das Bild für den Arzttermin. Du kannst jeden Link jederzeit widerrufen.
 
 ### Was sieht die Ärztin / der Arzt genau?
 

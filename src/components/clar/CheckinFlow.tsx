@@ -63,9 +63,62 @@ const SCALE_LABELS: Record<string, { lo: string; hi: string; positive: boolean }
 const SCALE_STEPS = [
   { val: 1, label: "gar nicht" },
   { val: 2, label: "etwas" },
-  { val: 3, label: "mittel" },
-  { val: 4, label: "sehr/viel" },
+  { val: 3, label: "ziemlich" },
+  { val: 4, label: "sehr stark" },
 ];
+
+// ─── Antwortoptionen je Frage ────────────────────────────────────────────────
+// Vier konkrete, inhaltlich passende Antworten pro Skalenfrage (statt Smileys).
+// Reihenfolge immer 1 → 4 entlang der Frage-Logik.
+const SCALE_OPTIONS: Record<string, string[]> = {
+  // Schlaf
+  sleep_recovery:        ["gar nicht erholt", "wenig erholt", "ziemlich erholt", "völlig erholt"],
+  sleep_quality:         ["sehr schlecht", "eher schlecht", "eher gut", "sehr gut"],
+
+  // Konzentration & Kognition
+  focus:                 ["gar nicht", "nur kurz", "meistens", "durchgehend"],
+  distractibility:       ["gar nicht abgelenkt", "selten abgelenkt", "oft abgelenkt", "ständig abgelenkt"],
+  impulsivity:           ["nie", "einmal", "mehrmals", "ständig"],
+  thought_racing:        ["ruhig und klar", "leichtes Kreisen", "deutliches Rasen", "sehr starkes Rasen"],
+  tasks_done:            ["keine", "wenige", "die meisten", "alle"],
+
+  // Stimmung & Antrieb
+  drive:                 ["kein Antrieb", "wenig Antrieb", "genug Antrieb", "voll motiviert"],
+  base_mood:             ["sehr schlecht", "eher schlecht", "eher gut", "sehr gut"],
+  wellbeing:             ["sehr schlecht", "eher schlecht", "eher gut", "sehr gut"],
+  inner_tension:         ["ganz ruhig", "leicht unruhig", "deutlich unruhig", "sehr angespannt"],
+  irritability:          ["ausgeglichen", "leicht gereizt", "schnell gereizt", "sehr gereizt"],
+  frustration_tolerance: ["sofort genervt", "schnell genervt", "meistens geduldig", "sehr geduldig"],
+
+  // Essen
+  hunger:                ["kein Hunger", "wenig Hunger", "normaler Hunger", "grosser Hunger"],
+  meal_hunger:           ["kein Hunger", "wenig Hunger", "normaler Hunger", "grosser Hunger"],
+  appetite:              ["keine Lust zu essen", "wenig Lust", "normale Lust", "grosse Lust"],
+  meal_appetite:         ["keine Lust zu essen", "wenig Lust", "normale Lust", "grosse Lust"],
+  meal_amount:           ["nichts", "ein paar Bissen", "normale Portion", "grosse Portion"],
+  meals_today:           ["keine", "eine", "zwei", "drei oder mehr"],
+
+  // Rebound
+  rebound_intensity:     ["kaum spürbar", "leicht", "deutlich", "sehr stark"],
+  rebound_duration:      ["unter 30 Min.", "30–60 Min.", "1–2 Std.", "über 2 Std."],
+
+  // Soziales, Schule, Stress
+  stress_level:          ["kein Stress", "wenig Stress", "spürbarer Stress", "sehr viel Stress"],
+  social_interactions:   ["sehr schwierig", "eher schwierig", "gut", "sehr gut"],
+  special_events:        ["nichts Besonderes", "Kleinigkeit", "etwas Grösseres", "sehr einschneidend"],
+  school_performance:    ["nichts geschafft", "wenig geschafft", "gut geschafft", "sehr gut geschafft"],
+  school_social:         ["sehr schwierig", "eher schwierig", "gut", "sehr gut"],
+
+  // Körper (falls als Skala genutzt)
+  heart_racing:          ["gar nicht", "leicht", "deutlich", "sehr stark"],
+  chest_tightness:       ["gar nicht", "leicht", "deutlich", "sehr stark"],
+  headache:              ["gar nicht", "leicht", "deutlich", "sehr stark"],
+  stomachache:           ["gar nicht", "leicht", "deutlich", "sehr stark"],
+  dry_mouth:             ["gar nicht", "leicht", "deutlich", "sehr stark"],
+
+  // Zyklus
+  cycle_mood:            ["kein Einfluss", "leichter Einfluss", "deutlicher Einfluss", "sehr starker Einfluss"],
+};
 
 // Items die für Kinder unter 12 (child_parent) nicht angezeigt werden.
 const CHILD_EXCLUDED_ITEMS = new Set([
@@ -159,13 +212,6 @@ const CATEGORY_ICONS: Record<WellbeingItem["category"], typeof Pill> = {
   reflection: Sparkles,
 };
 
-const CHILD_FACES = [
-  { value: 1, emoji: "🙁", color: "bg-orange-100 border-orange-300 text-orange-600" },
-  { value: 2, emoji: "😐", color: "bg-yellow-100 border-yellow-300 text-yellow-700" },
-  { value: 3, emoji: "🙂", color: "bg-lime-100 border-lime-300 text-lime-700" },
-  { value: 4, emoji: "😄", color: "bg-green-100 border-green-300 text-green-700" },
-];
-
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function statusLabel(status: string) {
@@ -233,46 +279,35 @@ function QuestionIcon({ category }: { category: WellbeingItem["category"] }) {
 function ScaleInput({ value, onChange, itemId }: { value?: number; onChange: (value: number) => void; itemId?: string }) {
   const meta = itemId ? SCALE_LABELS[itemId] : undefined;
   const positive = meta?.positive ?? true;
+  const options = itemId ? SCALE_OPTIONS[itemId] : undefined;
+  const steps = options
+    ? options.map((label, i) => ({ val: i + 1, label }))
+    : SCALE_STEPS;
   return (
     <div className="space-y-2">
-      {meta && (
+      {!options && meta && (
         <div className="flex justify-between text-[10px] text-muted-foreground px-1">
           <span>{meta.lo}</span>
           <span>{meta.hi}</span>
         </div>
       )}
-      <div className="grid grid-cols-4 gap-2">
-        {SCALE_STEPS.map((step) => (
+      <div className={options ? "grid grid-cols-2 gap-2" : "grid grid-cols-4 gap-2"}>
+        {steps.map((step) => (
           <button
             key={step.val}
             type="button"
             onClick={() => onChange(step.val)}
             style={scaleStyle(step.val, positive, value === step.val)}
-            className="rounded-2xl border py-4 text-xs font-semibold transition-all"
+            className={
+              options
+                ? "min-h-[56px] rounded-2xl border px-3 py-3 text-[13px] font-semibold leading-tight transition-all"
+                : "rounded-2xl border py-4 text-xs font-semibold transition-all"
+            }
           >
             {step.label}
           </button>
         ))}
       </div>
-    </div>
-  );
-}
-
-function ChildScaleInput({ value, onChange }: { value?: number; onChange: (value: number) => void }) {
-  return (
-    <div className="grid grid-cols-4 gap-2">
-      {CHILD_FACES.map((face) => (
-        <button
-          key={face.value}
-          type="button"
-          onClick={() => onChange(face.value)}
-          className={`flex flex-col items-center justify-center rounded-2xl border-2 py-3 text-2xl ${
-            value === face.value ? `${face.color} ring-2 ring-offset-1` : "border-border bg-card"
-          }`}
-        >
-          {face.emoji}
-        </button>
-      ))}
     </div>
   );
 }
@@ -491,9 +526,7 @@ function WizardInput({
       </div>
     );
   }
-  if (childMode) {
-    return <ChildScaleInput value={answer?.value as number | undefined} onChange={setValue} />;
-  }
+  // Keine Smiley-Skala mehr: jede Frage bekommt ihre eigenen, logischen Antworten.
   return <ScaleInput value={answer?.value as number | undefined} onChange={setValue} itemId={item.id} />;
 }
 
