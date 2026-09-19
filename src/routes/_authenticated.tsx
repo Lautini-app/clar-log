@@ -1,3 +1,4 @@
+import { ClarBrand } from "@/components/ClarBrand";
 import {
   createFileRoute,
   Outlet,
@@ -282,14 +283,7 @@ function AuthenticatedLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-md px-4 pt-4 pb-24">
-        <div className="mb-3 flex items-center gap-2">
-          <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary/20 text-primary">
-            <span className="text-sm font-bold">c.</span>
-          </div>
-          <span className="text-sm font-medium tracking-tight text-foreground">
-            clar.<span className="text-muted-foreground">log</span>
-          </span>
-        </div>
+        <div className="clar-brand-header"><ClarBrand app="log" /></div>
 
         <main className="mt-3">
           <Outlet />
