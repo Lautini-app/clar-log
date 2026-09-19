@@ -1,0 +1,60 @@
+name: clar UI gestalten und prüfen
+on:
+  push:
+    branches: [design/clar-ui-modernisation]
+    paths: [.github/workflows/clar-ui-refresh.yml]
+permissions:
+  contents: write
+concurrency:
+  group: clar-ui-modernisation
+  cancel-in-progress: false
+jobs:
+  design:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: design/clar-ui-modernisation
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: oven-sh/setup-bun@v2
+      - name: Eng begrenzten Gestaltungs-Patch anwenden
+        run: |
+          curl --fail --location --silent --show-error https://raw.githubusercontent.com/Lautini-app/clar-tag/fc4c39b13849aeecb882bd595c6f8f492c3756b6/scripts/clar-ui-modernise.py -o /tmp/clar-ui-modernise.py
+          python /tmp/clar-ui-modernise.py
+          git diff --check
+      - name: Bestehende Abhängigkeiten installieren
+        run: bun install --frozen-lockfile
+      - name: Produktions-Build prüfen
+        run: bun run build
+      - name: Prüfunterlagen sammeln
+        if: always()
+        run: |
+          mkdir -p ui-check
+          cp ui-refresh-report.json ui-check/ 2>/dev/null || true
+          cp src/clar-ui.css ui-check/ 2>/dev/null || true
+          cp src/components/ClarBrand.tsx ui-check/ 2>/dev/null || true
+          git diff -- src > ui-check/source.diff
+          find dist .output .vercel/output -type f -name '*.css' -exec cp {} ui-check/ \; 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: clar-ui-pruefung
+          path: ui-check/
+          retention-days: 14
+      - name: Ausschliesslich Design-Branch aktualisieren
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          r = json.load(open('ui-refresh-report.json'))
+          subprocess.run(['git','add','--',*r['changed_source_files']],check=True)
+          PY
+          git rm -- .github/workflows/clar-ui-refresh.yml
+          if git ls-files --error-unmatch scripts/clar-ui-modernise.py >/dev/null 2>&1; then git rm -- scripts/clar-ui-modernise.py; fi
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Gestaltung: clar-Oberfläche vereinheitlichen, Funktionen beibehalten'
+          git push origin HEAD:design/clar-ui-modernisation
