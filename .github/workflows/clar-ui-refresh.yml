@@ -19,16 +19,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: oven-sh/setup-bun@v2
       - name: Eng begrenzten Gestaltungs-Patch anwenden
         run: |
           curl --fail --location --silent --show-error https://raw.githubusercontent.com/Lautini-app/clar-tag/fc4c39b13849aeecb882bd595c6f8f492c3756b6/scripts/clar-ui-modernise.py -o /tmp/clar-ui-modernise.py
           python /tmp/clar-ui-modernise.py
           git diff --check
-      - name: Bestehende Abhängigkeiten installieren
-        run: bun install --frozen-lockfile
+      - name: Bestehende Abhängigkeiten mit npm-Lockfile installieren
+        run: npm ci --no-audit --no-fund
       - name: Produktions-Build prüfen
-        run: bun run build
+        run: npm run build
       - name: Prüfunterlagen sammeln
         if: always()
         run: |
@@ -52,7 +51,6 @@ jobs:
           subprocess.run(['git','add','--',*r['changed_source_files']],check=True)
           PY
           git rm -- .github/workflows/clar-ui-refresh.yml
-          if git ls-files --error-unmatch scripts/clar-ui-modernise.py >/dev/null 2>&1; then git rm -- scripts/clar-ui-modernise.py; fi
           git diff --cached --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
