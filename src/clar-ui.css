@@ -1,0 +1,76 @@
+/* clar: gemeinsame visuelle Ebene. Keine Elemente verstecken oder umsortieren.
+   Status-, Countdown-, Händler-, Kategorien- und Diagrammfarben bleiben erhalten.
+   Kräftigere Interaktionsfarben sichern die Lesbarkeit auf weissen Flächen. */
+:root:root, .dark.dark {
+  --clar-app: #3D8BD4;
+  --clar-font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --background: #F7F3EC;
+  --foreground: #1B2A4A;
+  --card: #FFFFFF;
+  --card-foreground: #1B2A4A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1B2A4A;
+  --primary: #276FAB;
+  --primary-foreground: #FFFFFF;
+  --primary-soft: #E7F1FC;
+  --primary-deep: #215F92;
+  --secondary: #E7F1FC;
+  --secondary-foreground: #215F92;
+  --muted: #F0ECE5;
+  --muted-foreground: #626C7E;
+  --accent: #E7F1FC;
+  --accent-foreground: #215F92;
+  --border: #E5E0D8;
+  --input: #BAC2CE;
+  --ring: #276FAB;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1B2A4A;
+  --sidebar-primary: #276FAB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E7F1FC;
+  --sidebar-accent-foreground: #215F92;
+  --sidebar-border: #E5E0D8;
+  --sidebar-ring: #276FAB;
+  --clar-card-shadow: 0 2px 5px rgb(27 42 74 / 3%), 0 10px 26px rgb(27 42 74 / 5%);
+}
+
+body { font-family: var(--clar-font); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, h4, .font-display, .font-serif {
+  font-family: var(--clar-font);
+  letter-spacing: -0.025em;
+}
+:where(h1, h2, h3) { text-wrap: pretty; }
+:where(button, input, select, textarea) { font-family: inherit; }
+/* Bestehende Kartengeometrie und Bedienelemente bleiben erhalten. */
+.bg-card[class*="rounded-"], [data-slot="card"], .clar-surface {
+  box-shadow: var(--clar-card-shadow);
+}
+:where(input[type="checkbox"], input[type="radio"], input[type="range"]) { accent-color: var(--primary); }
+:where(button, a, input, textarea, select, [role="slider"], [role="checkbox"]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+:where(nav) a.text-primary, :where(nav) button.text-primary {
+  background-color: var(--primary-soft);
+  border-radius: 0.85rem;
+}
+:where(svg.lucide) { stroke-width: 1.8; }
+.clar-brand {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.7rem;
+  max-width: 100%;
+  color: var(--foreground);
+  font-family: var(--clar-font);
+  vertical-align: middle;
+}
+.clar-brand-main { display: inline-flex; align-items: center; gap: 0.5rem; }
+.clar-wordmark { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.055em; line-height: 1.15; white-space: nowrap; }
+.clar-brand-separator { color: var(--clar-app); }
+.clar-brand-dots { width: 19px; height: 19px; flex: 0 0 19px; }
+.clar-brand-byline { font-size: 0.75rem; font-weight: 400; color: var(--muted-foreground); letter-spacing: 0; line-height: 1.4; white-space: nowrap; }
+.clar-brand-header { margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+@media (forced-colors: active) {
+  :where(button, a, input, textarea, select):focus-visible { outline-color: Highlight; }
+}
