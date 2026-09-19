@@ -24,14 +24,17 @@ jobs:
           curl --fail --location --silent --show-error https://raw.githubusercontent.com/Lautini-app/clar-tag/fc4c39b13849aeecb882bd595c6f8f492c3756b6/scripts/clar-ui-modernise.py -o /tmp/clar-ui-modernise.py
           python /tmp/clar-ui-modernise.py
           git diff --check
-      - name: Bestehende Abhängigkeiten mit npm-Lockfile installieren
-        run: npm ci --no-audit --no-fund
+      - name: Abhängigkeiten nur im isolierten Prüflauf installieren
+        run: |
+          npm install --no-save --package-lock=false --no-audit --no-fund
+          git diff --exit-code -- package.json package-lock.json bun.lock
       - name: Produktions-Build prüfen
         run: npm run build
       - name: Prüfunterlagen sammeln
         if: always()
         run: |
           mkdir -p ui-check
+          echo 'Vorhandene Lockfiles sind nicht synchron. Installation nur im Prüflauf; keine Änderung von Manifest oder Lockfiles committet.' > ui-check/install-note.txt
           cp ui-refresh-report.json ui-check/ 2>/dev/null || true
           cp src/clar-ui.css ui-check/ 2>/dev/null || true
           cp src/components/ClarBrand.tsx ui-check/ 2>/dev/null || true
