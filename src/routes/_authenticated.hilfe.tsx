@@ -197,7 +197,7 @@ function HilfePage() {
           <FaqItem question="Warum fragt die App nach einer Einwilligung?">
             <p>
               Die Einträge sind gesundheitsbezogene Daten und damit besonders geschützt
-              (DSG/DSGVO). Deshalb holen wir vor der ersten Nutzung deine ausdrückliche
+              (Schweizer Datenschutzgesetz, revDSG). Deshalb holen wir vor der ersten Nutzung deine ausdrückliche
               Einwilligung ein. Du kannst sie jederzeit widerrufen — per E-Mail oder indem
               du deine Daten löschst.
             </p>

@@ -405,7 +405,7 @@ export function Onboarding({ settings, onSettingsChange, userId, onDone }: Pick<
             <p>✓ Berichte jederzeit im Dossier abrufbar</p>
             <p>✓ PDF-Download oder Versand — du entscheidest</p>
             <p>✓ Daten werden anonymisiert verarbeitet</p>
-            <p>✓ Kein Medizinprodukt — Wellness-Tool gemäss DSGVO</p>
+            <p>✓ Kein Medizinprodukt — Datenschutz nach Schweizer Recht (revDSG)</p>
           </div>
         </div>
       ),
