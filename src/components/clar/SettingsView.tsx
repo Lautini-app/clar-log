@@ -946,8 +946,20 @@ export function SettingsView({ settings, logs, onChange, onImport, userId }: Pro
           </label>
           <button
             type="button"
-            onClick={() => {
-              const data = JSON.stringify({ settings, logs: logs ?? {}, exportedAt: new Date().toISOString() }, null, 2);
+            onClick={async () => {
+              // Vollständiger Export (Recht auf Datenherausgabe, revDSG): eigene Einträge,
+              // Rückmeldungen von Beobachtern und Lehrpersonen, Tagebuch der Jugendlichen.
+              let observer_observations: unknown[] = [];
+              let teen_logs: unknown[] = [];
+              if (userId) {
+                const [obs, teen] = await Promise.all([
+                  supabase.schema("clar_log").from("observer_observations").select("*").eq("owner_id", userId),
+                  supabase.schema("clar_log").from("teen_logs").select("teen_name, date, period_id, data, updated_at").eq("owner_id", userId),
+                ]);
+                observer_observations = obs.data ?? [];
+                teen_logs = teen.data ?? [];
+              }
+              const data = JSON.stringify({ settings, logs: logs ?? {}, observer_observations, teen_logs, exportedAt: new Date().toISOString() }, null, 2);
               const blob = new Blob([data], { type: "application/json" });
               const url = URL.createObjectURL(blob);
               const a = document.createElement("a");

@@ -102,13 +102,16 @@ function BigYesNo({ question, value, onChange }: { question: string; value?: boo
 export function ChildWizard({ period, log, onDone }: Props) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<ChildAnswers>({});
-  const childName = period.initialen || period.name || "du";
+  // Nur einen echten Vornamen verwenden. Der Standardname einer Periode
+  // («Beobachtungsperiode») oder ein langer Titel wirkt als Anrede falsch.
+  const rawName = (period.initialen || period.name || "").trim();
+  const childName = rawName && !/periode|beobachtung/i.test(rawName) && rawName.length <= 20 ? rawName : "";
 
   const patch = (p: Partial<ChildAnswers>) => setAnswers((a) => ({ ...a, ...p }));
 
   const steps = [
     {
-      question: `Wie fühlst du dich gerade, ${childName}?`,
+      question: childName ? `Wie fühlst du dich gerade, ${childName}?` : "Wie fühlst du dich gerade?",
       hint: "Wähle das Gefühl das am besten passt.",
       content: (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
