@@ -61,7 +61,7 @@ export function ConsentScreen({ onAccept, loading }: Props) {
               <span className="text-sm text-[#1a1a1a]/80 leading-snug">
                 Ich habe die{" "}
                 <a
-                  href="https://blog.lautini.ch/datenschutz-clar-log.html"
+                  href="https://clar-adhs.ch/datenschutz"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-[#085041] underline"
@@ -71,7 +71,7 @@ export function ConsentScreen({ onAccept, loading }: Props) {
                 </a>{" "}
                 und die{" "}
                 <a
-                  href="https://blog.lautini.ch/agb-clar-log.html"
+                  href="https://clar-adhs.ch/agb"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-[#085041] underline"

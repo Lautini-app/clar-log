@@ -199,7 +199,7 @@ function HilfePage() {
               deine Daten werden weder verkauft noch für KI-Training verwendet. Details in
               der{" "}
               <a
-                href="https://blog.lautini.ch/datenschutz"
+                href="https://clar-adhs.ch/datenschutz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-primary underline underline-offset-2"
@@ -262,7 +262,7 @@ function HilfePage() {
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           <a
-            href="https://blog.lautini.ch/datenschutz"
+            href="https://clar-adhs.ch/datenschutz"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium text-primary underline underline-offset-2"
@@ -271,7 +271,7 @@ function HilfePage() {
           </a>{" "}
           ·{" "}
           <a
-            href="https://blog.lautini.ch/agb"
+            href="https://clar-adhs.ch/agb"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium text-primary underline underline-offset-2"
@@ -280,7 +280,7 @@ function HilfePage() {
           </a>{" "}
           ·{" "}
           <a
-            href="https://blog.lautini.ch/impressum"
+            href="https://clar-adhs.ch/impressum"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium text-primary underline underline-offset-2"

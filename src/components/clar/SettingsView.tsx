@@ -1092,7 +1092,7 @@ function LegalSection({ userId }: { userId: string | null }) {
 
         <div className="space-y-1">
           <a
-            href="https://blog.lautini.ch/datenschutz-clar-log.html"
+            href="https://clar-adhs.ch/datenschutz"
             target="_blank"
             rel="noopener noreferrer"
             className="block text-sm font-medium text-primary"
@@ -1100,7 +1100,7 @@ function LegalSection({ userId }: { userId: string | null }) {
             Datenschutzerklärung ↗
           </a>
           <a
-            href="https://blog.lautini.ch/agb-clar-log.html"
+            href="https://clar-adhs.ch/agb"
             target="_blank"
             rel="noopener noreferrer"
             className="block text-sm font-medium text-primary"
