@@ -11,7 +11,7 @@ const CHILD_FEELINGS = [
   { id: "sad",      label: "Traurig",              color: "#85B7EB", textColor: "#0C447C" },
   { id: "scared",   label: "Ängstlich",             color: "#F0997B", textColor: "#712B13" },
   { id: "angry",    label: "Wütend",                color: "#E24B4A", textColor: "#501313" },
-  { id: "numb",     label: "Ich fühle gar nichts",  color: "#B4B2A9", textColor: "#444441" },
+  { id: "numb",     label: "Leer – ich spüre wenig",  color: "#B4B2A9", textColor: "#444441" },
   { id: "calm",     label: "Ruhig und okay",         color: "#9FE1CB", textColor: "#085041" },
   { id: "happy",    label: "Froh / glücklich",       color: "#C0DD97", textColor: "#27500A" },
   { id: "excited",  label: "Aufgeregt",              color: "#FAC775", textColor: "#633806" },
