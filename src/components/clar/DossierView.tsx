@@ -122,6 +122,104 @@ function obsAvg(o: any): number | undefined {
   return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length * 10) / 10 : undefined;
 }
 
+// ─── Wochenbericht der Lehrperson ────────────────────────────────────────────
+// Das Formular /beobachtung/$token speichert den Wochenbericht als JSON im Feld
+// «note». Werte 1 (ungünstig) bis 5 (günstig); die Worte hängen von der Frage ab
+// und entsprechen genau den Knöpfen im Formular.
+
+const TR_GUT     = ["sehr schwach", "schwach", "mittel", "gut", "sehr gut"];
+const TR_STAERKE = ["sehr stark", "stark", "mittel", "wenig", "keine"];
+const TR_OFT_NEG = ["sehr oft", "oft", "manchmal", "selten", "nie"];
+const TR_OFT_POS = ["nie", "selten", "manchmal", "meistens", "immer"];
+const TR_SCHWER  = ["sehr schwierig", "schwierig", "mittel", "gut", "sehr gut"];
+const TR_TIEF    = ["sehr tief", "tief", "mittel", "hoch", "sehr hoch"];
+
+const TEACHER_REPORT_ROWS: { section: string; rows: { key: string; label: string; words: string[] }[] }[] = [
+  { section: "am", rows: [
+    { key: "attention",      label: "Aufmerksamkeit im Unterricht",      words: TR_GUT },
+    { key: "instructions",   label: "Instruktionen befolgen",            words: TR_OFT_POS },
+    { key: "taskCompletion", label: "Aufgaben beginnen und abschliessen", words: TR_GUT },
+    { key: "motorUnrest",    label: "Motorische Unruhe",                 words: TR_STAERKE },
+    { key: "impulsivity",    label: "Impulsives Reinrufen",              words: TR_OFT_NEG },
+  ]},
+  { section: "pm", rows: [
+    { key: "attention",      label: "Aufmerksamkeit",        words: TR_GUT },
+    { key: "taskCompletion", label: "Aufgaben abschliessen", words: TR_GUT },
+    { key: "motorUnrest",    label: "Motorische Unruhe",     words: TR_STAERKE },
+    { key: "impulsivity",    label: "Impulsivität",          words: TR_STAERKE },
+  ]},
+  { section: "social", rows: [
+    { key: "peers",       label: "Interaktion mit Gleichaltrigen", words: TR_SCHWER },
+    { key: "emotionReg",  label: "Emotionale Regulation",          words: TR_GUT },
+    { key: "frustration", label: "Frustrationstoleranz",           words: TR_TIEF },
+  ]},
+  { section: "org", rows: [
+    { key: "workspace",   label: "Arbeitsplatz ordentlich",        words: TR_OFT_POS },
+    { key: "materials",   label: "Material dabei",                 words: TR_OFT_POS },
+    { key: "transitions", label: "Übergänge zwischen Aktivitäten", words: TR_SCHWER },
+  ]},
+  { section: "overall", rows: [
+    { key: "rating", label: "Gesamtbeurteilung der Woche", words: TR_GUT },
+  ]},
+];
+const TEACHER_SECTION_TITLES: Record<string, string> = {
+  am: "Vormittag", pm: "Nachmittag", social: "Soziales & Emotionales", org: "Organisation", overall: "Gesamteindruck",
+};
+
+function parseTeacherReport(note: unknown): Record<string, any> | null {
+  if (typeof note !== "string" || !note.trim().startsWith("{")) return null;
+  try {
+    const obj = JSON.parse(note);
+    return obj && typeof obj === "object" && (obj.am || obj.pm || obj.overall) ? obj : null;
+  } catch {
+    return null;
+  }
+}
+
+function TeacherReportView({ report }: { report: Record<string, any> }) {
+  const textRows: { label: string; text?: string }[] = [
+    { label: "Unterschied Nachmittag", text: report.pm?.different ? (report.pm?.differentNote || "ja") : undefined },
+    { label: "Konflikte auf dem Pausenplatz", text: report.social?.conflicts ? (report.social?.conflictsNote || "ja") : undefined },
+    { label: "Positives", text: report.overall?.positive },
+    { label: "Herausforderungen", text: report.overall?.challenges },
+    { label: "Weitere Beobachtungen", text: report.overall?.notes },
+  ];
+  return (
+    <div style={{ marginTop: 10 }}>
+      {report.meta?.kw && (
+        <div style={{ fontSize: 11, color: "#6B7280", marginBottom: 6 }}>Wochenbericht KW {report.meta.kw}</div>
+      )}
+      {TEACHER_REPORT_ROWS.map(({ section, rows }) => {
+        const data = report[section] ?? {};
+        const shown = rows.filter((r) => typeof data[r.key] === "number");
+        if (!shown.length) return null;
+        return (
+          <div key={section} style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: ".04em", textTransform: "uppercase", color: "#6B7280", marginBottom: 4 }}>
+              {TEACHER_SECTION_TITLES[section]}
+            </div>
+            {shown.map((r) => {
+              const v = data[r.key] as number;
+              const word = r.words[v - 1] ?? String(v);
+              return (
+                <div key={r.key} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "3px 0", fontSize: 13 }}>
+                  <span style={{ color: "#374151" }}>{r.label}</span>
+                  <span style={{ fontWeight: 600, color: heatColor(v), background: heatBg(v), borderRadius: 4, padding: "1px 6px", whiteSpace: "nowrap" }}>{word}</span>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+      {textRows.filter((t) => t.text && String(t.text).trim()).map((t) => (
+        <p key={t.label} style={{ fontSize: 13, color: "#374151", lineHeight: 1.5, marginTop: 6 }}>
+          <strong>{t.label}:</strong> {t.text}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 // ─── shared UI atoms ─────────────────────────────────────────────────────────
 
 function CellBtn({ val, invert = false, label, onClick }: { val?: number; invert?: boolean; label?: string; onClick?: () => void }) {
@@ -636,14 +734,18 @@ function DetailView({ panel, onClose }: { panel: DetailPanel; onClose: () => voi
                     {dateStr ? ` · ${new Date(dateStr).toLocaleDateString("de-DE", { weekday: "long", day: "2-digit", month: "2-digit" })}` : ""}
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {mood         !== undefined && <Bdg label={`${mood}/5`}         sub="Stimmung"     bg={heatBg(mood)}         color={heatColor(mood)} />}
+                    {mood         !== undefined && <Bdg label={`${mood}/5`}         sub={parseTeacherReport(note) ? "Gesamteindruck" : "Stimmung"} bg={heatBg(mood)}         color={heatColor(mood)} />}
                     {behavior     !== undefined && <Bdg label={`${behavior}/5`}     sub="Verhalten"    bg={heatBg(behavior)}     color={heatColor(behavior)} />}
                     {concentration !== undefined && <Bdg label={`${concentration}/5`} sub="Konzentration" bg={heatBg(concentration)} color={heatColor(concentration)} />}
                     {r.focus_morning   && <Bdg label={`${r.focus_morning}/4`}   sub="Fokus Vm."  bg={heatBg(r.focus_morning * 1.25)}   color={heatColor(r.focus_morning * 1.25)} />}
                     {r.focus_afternoon && <Bdg label={`${r.focus_afternoon}/4`} sub="Fokus Nm."  bg={heatBg(r.focus_afternoon * 1.25)} color={heatColor(r.focus_afternoon * 1.25)} />}
                     {r.social          && <Bdg label={`${r.social}/4`}          sub="Soziales"   bg={heatBg(r.social * 1.25)}          color={heatColor(r.social * 1.25)} />}
                   </div>
-                  {note && <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.5, marginTop: 8 }}>{note}</p>}
+                  {note && (() => {
+                    const report = parseTeacherReport(note);
+                    if (!report) return <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.5, marginTop: 8 }}>{note}</p>;
+                    return <TeacherReportView report={report} />;
+                  })()}
                 </div>
               );
             })}
@@ -785,8 +887,8 @@ export function DossierView({ settings, logs, ownerId, teenLogGroups }: Props) {
       {/* KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: "1.25rem" }}>
         {[
-          { val: avg(focusVals),  label: "Fokus (Ø)",       suf: "/5", col: (avg(focusVals) ?? 0) >= 3 ? "#0F6E56" : "#854F0B" },
-          { val: avg(moodVals),   label: "Stimmung (Ø)",    suf: "/5", col: (avg(moodVals)  ?? 0) >= 3 ? "#0F6E56" : "#854F0B" },
+          { val: avg(focusVals),  label: "Fokus (Ø)",       suf: "/4", col: (avg(focusVals) ?? 0) >= 3 ? "#0F6E56" : "#854F0B" },
+          { val: avg(moodVals),   label: "Stimmung (Ø)",    suf: "/4", col: (avg(moodVals)  ?? 0) >= 3 ? "#0F6E56" : "#854F0B" },
           { val: reboundCount,    label: "Rebound (Woche)", suf: "×",  col: reboundCount === 0 ? "#0F6E56" : reboundCount <= 2 ? "#854F0B" : "#A32D2D" },
           { val: avg(sleepVals),  label: "Schlaf (Ø)",      suf: "h",  col: (avg(sleepVals) ?? 0) >= 7 ? "#0F6E56" : "#854F0B" },
         ].map(({ val, label, suf, col }) => (

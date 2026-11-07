@@ -78,6 +78,9 @@ type WeeklyAnswers = {
 
 // ─── Shared UI components ─────────────────────────────────────────────────────
 
+// Antworten von 1 (ungünstig) bis 5 (günstig). Die Richtung bleibt bei allen
+// Fragen gleich, damit Durchschnitte und gespeicherte Werte vergleichbar sind –
+// nur die Worte passen sich der Frage an.
 const SCALE_LABELS: Record<number, string> = {
   1: "sehr\nschwach",
   2: "schwach",
@@ -85,12 +88,61 @@ const SCALE_LABELS: Record<number, string> = {
   4: "gut",
   5: "sehr\ngut",
 };
+/** Für unerwünschtes Verhalten (Unruhe, Impulsivität): links stark, rechts keine. */
+const STAERKE_LABELS: Record<number, string> = {
+  1: "sehr\nstark",
+  2: "stark",
+  3: "mittel",
+  4: "wenig",
+  5: "keine",
+};
+/** Für unerwünschtes Verhalten, das man zählt (Reinrufen): links sehr oft, rechts nie. */
+const HAEUFIG_NEG_LABELS: Record<number, string> = {
+  1: "sehr\noft",
+  2: "oft",
+  3: "manch-\nmal",
+  4: "selten",
+  5: "nie",
+};
+/** Für erwünschtes Verhalten, das man zählt (Material dabei): links nie, rechts immer. */
+const HAEUFIG_POS_LABELS: Record<number, string> = {
+  1: "nie",
+  2: "selten",
+  3: "manch-\nmal",
+  4: "meistens",
+  5: "immer",
+};
+/** Für Dinge, die leicht oder schwer gehen (Kontakt, Übergänge, Zubettgehen). */
+const SCHWIERIG_LABELS: Record<number, string> = {
+  1: "sehr\nschwierig",
+  2: "schwierig",
+  3: "mittel",
+  4: "gut",
+  5: "sehr\ngut",
+};
+/** Für Frustrationstoleranz. */
+const TIEF_HOCH_LABELS: Record<number, string> = {
+  1: "sehr\ntief",
+  2: "tief",
+  3: "mittel",
+  4: "hoch",
+  5: "sehr\nhoch",
+};
+/** Für Stimmung. */
+const STIMMUNG_LABELS: Record<number, string> = {
+  1: "sehr\nschlecht",
+  2: "schlecht",
+  3: "mittel",
+  4: "gut",
+  5: "sehr\ngut",
+};
 
 function ScaleInput({
-  label, hint, value, onChange,
+  label, hint, value, onChange, labels = SCALE_LABELS,
 }: {
   label: string; hint?: string;
   value?: number; onChange: (v: number) => void;
+  labels?: Record<number, string>;
 }) {
   return (
     <div className="space-y-2">
@@ -108,7 +160,7 @@ function ScaleInput({
                 : "border-border bg-card text-muted-foreground"
             }`}
           >
-            {SCALE_LABELS[v]}
+            {labels[v]}
           </button>
         ))}
       </div>
@@ -344,11 +396,11 @@ function BeobachtungRoute() {
           <p className="mt-1 text-sm text-muted-foreground">Kein Login nötig — Angaben gehen direkt an die Familie.</p>
         </header>
 
-        <ScaleInput label="Stimmung zu Hause" value={homeMood} onChange={setHomeMood} />
+        <ScaleInput label="Stimmung zu Hause" value={homeMood} onChange={setHomeMood} labels={STIMMUNG_LABELS} />
         <ScaleInput label="Mitarbeit / Kooperation" hint="Anweisungen folgen, Hausaufgaben" value={homeCooperation} onChange={setHomeCooperation} />
         <ScaleInput label="Emotionsregulation" hint="Frustration, Wutausbrüche, Flexibilität" value={homeEmotionReg} onChange={setHomeEmotionReg} />
         <ScaleInput label="Fokus / Hausaufgaben" hint="Konzentration bei Aufgaben zu Hause" value={homeFocus} onChange={setHomeFocus} />
-        <ScaleInput label="Zubettgeh-Routine" hint="Einschlafen, Beruhigung am Abend" value={homeBedtime} onChange={setHomeBedtime} />
+        <ScaleInput label="Zubettgeh-Routine" hint="Einschlafen, Beruhigung am Abend" value={homeBedtime} onChange={setHomeBedtime} labels={SCHWIERIG_LABELS} />
         <YesNo label="Rebound beobachtet?" hint="Stimmungsabfall oder Reizbarkeit am Abend" value={homeRebound} onChange={setHomeRebound} />
 
         <div className="space-y-2">
@@ -403,7 +455,7 @@ function BeobachtungRoute() {
         />
         <ScaleInput
           label="Instruktionen befolgen"
-          value={wa.amInstructions} onChange={(v) => patch({ amInstructions: v })}
+          value={wa.amInstructions} onChange={(v) => patch({ amInstructions: v })} labels={HAEUFIG_POS_LABELS}
         />
         <ScaleInput
           label="Aufgaben beginnen und abschliessen"
@@ -411,11 +463,11 @@ function BeobachtungRoute() {
         />
         <ScaleInput
           label="Motorische Unruhe"
-          value={wa.amMotorUnrest} onChange={(v) => patch({ amMotorUnrest: v })}
+          value={wa.amMotorUnrest} onChange={(v) => patch({ amMotorUnrest: v })} labels={STAERKE_LABELS}
         />
         <ScaleInput
           label="Impulsives Reinrufen"
-          value={wa.amImpulsivity} onChange={(v) => patch({ amImpulsivity: v })}
+          value={wa.amImpulsivity} onChange={(v) => patch({ amImpulsivity: v })} labels={HAEUFIG_NEG_LABELS}
         />
       </SectionBox>
 
@@ -431,11 +483,11 @@ function BeobachtungRoute() {
         />
         <ScaleInput
           label="Motorische Unruhe"
-          value={wa.pmMotorUnrest} onChange={(v) => patch({ pmMotorUnrest: v })}
+          value={wa.pmMotorUnrest} onChange={(v) => patch({ pmMotorUnrest: v })} labels={STAERKE_LABELS}
         />
         <ScaleInput
           label="Impulsivität"
-          value={wa.pmImpulsivity} onChange={(v) => patch({ pmImpulsivity: v })}
+          value={wa.pmImpulsivity} onChange={(v) => patch({ pmImpulsivity: v })} labels={STAERKE_LABELS}
         />
         <YesNo
           label="Unterschied zum Vormittag?"
@@ -457,7 +509,7 @@ function BeobachtungRoute() {
       <SectionBox title="Soziales & Emotionales">
         <ScaleInput
           label="Interaktion mit Gleichaltrigen"
-          value={wa.socialPeers} onChange={(v) => patch({ socialPeers: v })}
+          value={wa.socialPeers} onChange={(v) => patch({ socialPeers: v })} labels={SCHWIERIG_LABELS}
         />
         <ScaleInput
           label="Emotionale Regulation"
@@ -479,7 +531,7 @@ function BeobachtungRoute() {
         )}
         <ScaleInput
           label="Frustrationstoleranz"
-          value={wa.socialFrustration} onChange={(v) => patch({ socialFrustration: v })}
+          value={wa.socialFrustration} onChange={(v) => patch({ socialFrustration: v })} labels={TIEF_HOCH_LABELS}
         />
       </SectionBox>
 
@@ -487,15 +539,15 @@ function BeobachtungRoute() {
       <SectionBox title="Organisation">
         <ScaleInput
           label="Arbeitsplatz ordentlich"
-          value={wa.orgWorkspace} onChange={(v) => patch({ orgWorkspace: v })}
+          value={wa.orgWorkspace} onChange={(v) => patch({ orgWorkspace: v })} labels={HAEUFIG_POS_LABELS}
         />
         <ScaleInput
           label="Material dabei"
-          value={wa.orgMaterials} onChange={(v) => patch({ orgMaterials: v })}
+          value={wa.orgMaterials} onChange={(v) => patch({ orgMaterials: v })} labels={HAEUFIG_POS_LABELS}
         />
         <ScaleInput
           label="Übergänge zwischen Aktivitäten"
-          value={wa.orgTransitions} onChange={(v) => patch({ orgTransitions: v })}
+          value={wa.orgTransitions} onChange={(v) => patch({ orgTransitions: v })} labels={SCHWIERIG_LABELS}
         />
       </SectionBox>
 
