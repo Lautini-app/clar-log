@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { TodayView } from "@/components/clar/TodayView";
@@ -92,6 +92,20 @@ function HeuteRoute() {
           <ChevronRight size={20} />
         </button>
       </div>
+
+      {activePeriod && today > activePeriod.endDate && (
+        <div style={{
+          margin: "12px 16px 0", padding: "12px 14px", borderRadius: 12,
+          background: "var(--color-primary-soft)", fontSize: 13, lineHeight: 1.5,
+        }}>
+          Diese Beobachtungsperiode ist am{" "}
+          {new Date(activePeriod.endDate + "T12:00:00").toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" })}{" "}
+          zu Ende gegangen. Neue Einträge zählen weiter zu ihr.{" "}
+          <Link to="/einstellungen" style={{ fontWeight: 600, textDecoration: "underline" }}>
+            Neue Periode starten
+          </Link>
+        </div>
+      )}
 
       <TodayView
         log={log}

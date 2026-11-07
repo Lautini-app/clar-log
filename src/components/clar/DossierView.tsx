@@ -226,13 +226,13 @@ function CellBtn({ val, invert = false, label, onClick }: { val?: number; invert
   const bg    = heatBg(val, invert);
   const color = heatColor(val, invert);
   const text  = val === undefined ? "—"
-    : invert ? (val >= 3.5 ? "hoch" : val >= 2.5 ? "mid" : "tief")
-             : (val >= 3.5 ? "gut"  : val >= 2.5 ? "mid" : "tief");
+    : invert ? (val >= 3.5 ? "hoch" : val >= 2.5 ? "mittel" : "tief")
+             : (val >= 3.5 ? "gut"  : val >= 2.5 ? "mittel" : "tief");
   return (
     <div onClick={onClick} title={label} style={{
       display: "inline-flex", alignItems: "center", justifyContent: "center",
-      width: 30, height: 26, borderRadius: 4, background: bg, color,
-      fontSize: 10, fontWeight: 500, cursor: onClick ? "pointer" : "default",
+      width: 34, height: 26, borderRadius: 4, background: bg, color,
+      fontSize: text === "mittel" ? 9 : 10, fontWeight: 500, cursor: onClick ? "pointer" : "default",
     }}>
       {text}
     </div>
@@ -836,7 +836,11 @@ export function DossierView({ settings, logs, ownerId, teenLogGroups }: Props) {
   const hyperfocusVals = dayLogs.map(l => collectVal(l, "hyperfocus"));
   const energyVals    = dayLogs.map(l => collectVal(l, "energy_level"));
   const sleepVals     = dayLogs.map(l => collectVal(l, "sleep_duration"));
-  const reboundDays   = dayLogs.map(l => isTruthy(collectAnswer(l, "rebound_today")));
+  // Rebound zählt auch, wenn der andere Elternteil ihn im Beobachter-Formular meldet.
+  const reboundDays   = dayLogs.map((l, i) =>
+    isTruthy(collectAnswer(l, "rebound_today")) ||
+    partnerWeekObs.some((o: any) => o.date === days[i] &&
+      isTruthy(o?.answers?.home_rebound_observed ?? o?.home_rebound_observed)));
   const reboundCount  = reboundDays.filter(Boolean).length;
 
   const open = (title: string, type: DetailPanel["type"], extra?: Partial<Pick<DetailPanel, "medications" | "observerObs">>) =>
@@ -934,7 +938,7 @@ export function DossierView({ settings, logs, ownerId, teenLogGroups }: Props) {
                 <td key={i} style={{ textAlign: "center", padding: "2px 1px" }}>
                   <div style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    width: 30, height: 26, borderRadius: 4,
+                    width: 34, height: 26, borderRadius: 4,
                     background: isTruthy(v) ? "#E8DFFF" : "var(--color-background-secondary)",
                     fontSize: 9, fontWeight: 500,
                     color: isTruthy(v) ? "#6B21A8" : "var(--color-text-tertiary)",
@@ -959,7 +963,7 @@ export function DossierView({ settings, logs, ownerId, teenLogGroups }: Props) {
                 <td key={i} style={{ textAlign: "center", padding: "2px 1px" }}>
                   <div style={{
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    width: 30, height: 26, borderRadius: 4,
+                    width: 34, height: 26, borderRadius: 4,
                     background: v ? "#FCEBEB" : "var(--color-background-secondary)",
                     fontSize: 9, fontWeight: 500,
                     color: v ? "#A32D2D" : "var(--color-text-tertiary)",
@@ -1254,7 +1258,7 @@ export function DossierView({ settings, logs, ownerId, teenLogGroups }: Props) {
                           <td key={i} style={{ textAlign: "center", padding: "2px 1px" }}>
                             <div style={{
                               display: "inline-flex", alignItems: "center", justifyContent: "center",
-                              width: 30, height: 26, borderRadius: 4, fontSize: 10, fontWeight: 500,
+                              width: 34, height: 26, borderRadius: 4, fontSize: 10, fontWeight: 500,
                               background: taken === undefined ? "var(--color-background-secondary)" : taken ? "#E1F5EE" : "#FCEBEB",
                               color: taken === undefined ? "var(--color-text-tertiary)" : taken ? "#0F6E56" : "#A32D2D",
                             }}>

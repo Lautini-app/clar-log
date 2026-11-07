@@ -190,6 +190,7 @@ const CHILD_EMOTION_NAMES: Record<string, string> = {
   "Neutral": "Weder gut noch schlecht",
   "Ausgeglichen": "Ruhig und okay",
   "Stärke": "Stärke",
+  "Ich fühle gar nichts": "Leer – ich spüre wenig",
 };
 
 const EMOTION_GROUPS: { label: string; positive: boolean | null; emotions: string[] }[] = [
@@ -329,6 +330,32 @@ function BooleanInput({ value, onChange }: { value?: boolean; onChange: (value: 
           {label as string}
         </button>
       ))}
+    </div>
+  );
+}
+
+// Zahl mit Punkt ODER Komma (Schweizer Tastaturen, iPhone-Zahlenfeld).
+// Ein type="number"-Feld verwarf bei «8.5» je nach Spracheinstellung den Punkt.
+function DecimalInput({ value, onChange, max, placeholder, unit }: {
+  value?: number; onChange: (n: number) => void; max: number; placeholder: string; unit: string;
+}) {
+  const [text, setText] = useState(value === undefined ? "" : String(value).replace(".", ","));
+  return (
+    <div className="flex items-center gap-3">
+      <input
+        type="text"
+        inputMode="decimal"
+        value={text}
+        onChange={(e) => {
+          const raw = e.target.value.replace(/[^0-9.,]/g, "");
+          setText(raw);
+          const n = parseFloat(raw.replace(",", "."));
+          if (!Number.isNaN(n) && n >= 0 && n <= max) onChange(n);
+        }}
+        className="w-32 rounded-2xl border border-border bg-card px-4 py-3 text-2xl font-semibold text-primary outline-none focus:border-primary"
+        placeholder={placeholder}
+      />
+      <span className="text-sm text-muted-foreground">{unit}</span>
     </div>
   );
 }
@@ -510,20 +537,13 @@ function WizardInput({
   if (item.kind === "number") {
     const isSleep = item.id === "sleep_duration";
     return (
-      <div className="flex items-center gap-3">
-        <input
-          type="number"
-          inputMode="decimal"
-          min={0}
-          max={isSleep ? 24 : 240}
-          step={isSleep ? 0.5 : 1}
-          value={answer?.value as number ?? ""}
-          onChange={(e) => setValue(Number(e.target.value))}
-          className="w-32 rounded-2xl border border-border bg-card px-4 py-3 text-2xl font-semibold text-primary outline-none focus:border-primary"
-          placeholder={isSleep ? "7.5" : "0"}
-        />
-        <span className="text-sm text-muted-foreground">{isSleep ? "Stunden" : "Minuten"}</span>
-      </div>
+      <DecimalInput
+        value={answer?.value as number | undefined}
+        onChange={(n) => setValue(n)}
+        max={isSleep ? 24 : 240}
+        placeholder={isSleep ? "7,5" : "0"}
+        unit={isSleep ? "Stunden" : "Minuten"}
+      />
     );
   }
   // Keine Smiley-Skala mehr: jede Frage bekommt ihre eigenen, logischen Antworten.
@@ -549,7 +569,7 @@ function SlotWizard({
   const speechEnabled = period.speechOutput === true;
 
   const patchSlot = (patch: Partial<typeof slotLog>) => {
-    const next: DayLog = { ...localLog, slots: { ...localLog.slots, [slot]: { ...slotLog, status: "in_progress", ...patch } } };
+    const next: DayLog = { ...localLog, slots: { ...localLog.slots, [slot]: { ...slotLog, status: slotLog.status === "done" ? "done" : "in_progress", ...patch } } };
     setLocalLog(next);
     onChange(next);
   };
@@ -584,7 +604,7 @@ function SlotWizard({
     <div className="fixed inset-0 z-30 overflow-y-auto bg-background/95 px-4 py-6 backdrop-blur">
       <div className="mx-auto max-w-md">
         <div className="mb-4 flex items-center justify-between">
-          <button type="button" onClick={onClose} className="text-sm font-semibold text-primary">Schließen</button>
+          <button type="button" onClick={onClose} className="text-sm font-semibold text-primary">Schliessen</button>
           <span className="text-xs text-muted-foreground">{groupIndex + 1} / {total}</span>
         </div>
         <div className="rounded-3xl border border-border bg-card p-5">

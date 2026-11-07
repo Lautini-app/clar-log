@@ -305,7 +305,7 @@ function TeacherLinkSettings({ ownerId, periodId }: { ownerId: string; periodId:
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Jede Lehr- oder Fachperson erhält einen eigenen Link — kein Login nötig, 7 Tage gültig.
+        Jede Lehr- oder Fachperson erhält einen eigenen Link.
       </p>
 
       {links.map((l) => (
@@ -466,7 +466,7 @@ function TeenLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: st
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Jugendliche/r erhält einen persönlichen Link — kein Login, kein Konto nötig. Link ist 30 Tage gültig.
+        Der Link ist 30 Tage gültig.
       </p>
 
       {links.map((l) => (
@@ -694,7 +694,7 @@ function DoctorLinkSettings({ ownerId, periodId }: { ownerId: string; periodId: 
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
-        Arzt oder Therapeut·in öffnet den Link im Browser — sieht alle Wochen, kann navigieren. Kein Login nötig.
+        Arzt oder Therapeut·in öffnet den Link im Browser und kann alle Wochen durchblättern.
       </p>
       {link ? (
         <div className="space-y-2">
