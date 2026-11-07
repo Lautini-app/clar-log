@@ -86,8 +86,8 @@ function HilfePage() {
                 Fragebogen: Medikament eingenommen? Energie, Stimmung, Fokus, Ablenkbarkeit,
                 Impulsivität — dazu morgens der Schlaf (Dauer, Einschlafzeit, Erholung) und
                 abends Appetit, Rebound und Notizen. Die Fragen sind altersgerecht formuliert;
-                für Kinder und Jugendliche gibt es angepasste Versionen mit einfacher Sprache
-                und Emoji-Skalen.
+                für Kinder und Jugendliche gibt es angepasste Versionen in einfacher Sprache.
+                Jede Frage hat vier kurze Antworten zum Antippen.
               </div>
             </div>
           </li>
@@ -113,8 +113,8 @@ function HilfePage() {
               <div className="text-[15px] font-semibold">4. Mit dem Arzt teilen</div>
               <div className="text-sm text-muted-foreground leading-relaxed">
                 Vor dem Termin erstellst du ein Arzt-Dossier: einen Link, der 90 Tage gültig
-                ist und dem Behandlungsteam eine navigierbare Verlaufsansicht zeigt. Kein
-                Konto nötig, kein Ausdruck — nur der Link.
+                ist. Damit blättert die Ärztin oder der Arzt Woche für Woche durch euren
+                Verlauf. Kein Konto nötig, kein Ausdruck — nur der Link.
               </div>
             </div>
           </li>
@@ -145,27 +145,42 @@ function HilfePage() {
           <FaqItem question="Mein Teenager will selbst ausfüllen — geht das?">
             <p>
               Ja. Für Jugendliche (ab 12, mit deiner Zustimmung als erziehungsberechtigte
-              Person) erstellst du im Konto-Tab eine Einladung. Dein Kind erhält einen
+              Person) erstellst du unter «Konto» → «Jugendliche/r einladen» einen Link. Dein Kind erhält einen
               persönlichen Link und füllt die komplette Tagesabfrage selbst aus — ohne
-              eigenes Konto und ohne Zugriff auf deine anderen Daten. Die Einträge fliessen
+              eigenes Konto und ohne Zugriff auf deine anderen Daten. Der Link ist 30 Tage
+              gültig; danach erstellst du einen neuen. Die Einträge fliessen
               in denselben Verlauf und in die Arzt-Auswertung.
             </p>
           </FaqItem>
-          <FaqItem question="Was sehen eingeladene Beobachter, z. B. die Lehrperson?">
+          <FaqItem question="Wie gibt der andere Elternteil Rückmeldung?">
             <p>
-              Beobachter erhalten einen zeitlich begrenzten Link ohne eigenes Konto. Sie
-              sehen nur, was du explizit freigibst, und können strukturierte Rückmeldungen
-              geben (z. B. zum Verhalten in der Schule). Diese Rückmeldungen erscheinen im
-              Verlauf und ergänzen das Bild für den Arzttermin. Du kannst jeden Link
-              jederzeit widerrufen.
+              Unter «Konto» → «Beobachter» erstellst du einen Link für den Partner, die
+              Partnerin oder das zweite Elternteil. Damit füllt diese Person täglich ein
+              kurzes Formular aus: Stimmung, Mitarbeit, Umgang mit Gefühlen, Hausaufgaben,
+              Zubettgehen und ob am Abend ein Rebound auffiel. Kein Konto nötig. Der Link ist
+              30 Tage gültig. Die Rückmeldungen erscheinen in deinem Verlauf und im
+              Arzt-Dossier.
+            </p>
+          </FaqItem>
+          <FaqItem question="Wie gibt die Lehrperson Rückmeldung?">
+            <p>
+              Unter «Konto» → «Lehrperson» erstellst du einen Link und gibst ihn der
+              Lehrperson weiter. Sie füllt damit einmal pro Woche einen kurzen Wochenbericht
+              aus: Vormittag, Nachmittag, Umgang mit anderen Kindern, Organisation und ein
+              Gesamteindruck. Kein Konto nötig. Der Link ist 7 Tage gültig; für die nächste
+              Woche erstellst du einen neuen.
+            </p>
+            <p className="mt-2">
+              Beobachter und Lehrpersonen sehen nur ihr eigenes Formular, nicht deine
+              Einträge. Du kannst jeden Link jederzeit löschen.
             </p>
           </FaqItem>
           <FaqItem question="Was sieht die Ärztin / der Arzt genau?">
             <p>
-              Die Dossier-Ansicht mit Wochendurchschnitten, Tagesverlauf (Heatmap),
-              Schlafbalken und Medikamenten-Einnahme über den gewählten Zeitraum —
-              zusammengeführt aus allen Quellen: deine Einträge, die deines Kindes und die
-              Rückmeldungen von Beobachtern. Der Link ist 90 Tage gültig und jederzeit
+              Eine Übersicht pro Woche: Durchschnittswerte, einen Tagesverlauf mit farbigen
+              Feldern (grün = gut, gelb = mittel, rot = schwierig), die Schlafdauer und wann
+              welches Medikament genommen wurde. Darin zusammengeführt: deine Einträge, die
+              deines Kindes und die Rückmeldungen von Beobachtern und Lehrpersonen. Der Link ist 90 Tage gültig und jederzeit
               widerrufbar.
             </p>
           </FaqItem>
@@ -177,9 +192,9 @@ function HilfePage() {
           </FaqItem>
           <FaqItem question="Sind die Gesundheitsdaten meiner Familie sicher?">
             <p>
-              Ja, das nehmen wir ernst: Die Daten liegen verschlüsselt in einem
-              EU-Rechenzentrum (Frankfurt), jede Nutzerin sieht nur die eigenen Daten
-              (Row-Level Security), alle Verbindungen sind TLS-verschlüsselt. clar·log
+              Ja, das nehmen wir ernst: Die Daten liegen verschlüsselt auf Servern in
+              Frankfurt. Niemand ausser dir sieht deine Einträge – ausser den Personen,
+              denen du selbst einen Link gibst. Die Übertragung ist immer verschlüsselt. clar·log
               verwendet keine Tracking-Cookies, kein Analytics und keine Werbung, und
               deine Daten werden weder verkauft noch für KI-Training verwendet. Details in
               der{" "}
@@ -204,16 +219,19 @@ function HilfePage() {
           </FaqItem>
           <FaqItem question="Wie lösche ich meine Daten?">
             <p>
-              In den Einstellungen unter «Gefahrenzone» → «Alle meine Daten löschen». Die
-              Löschung ist unwiderruflich und betrifft alle clar·log-Daten deines Kontos.
+              Unter «Konto» ganz unten bei «Gefahrenzone» → «Alle clar·log-Daten endgültig
+              löschen». Die Löschung ist sofort und unwiderruflich und betrifft alle
+              clar·log-Daten. Dein clar-Konto und die anderen Apps bleiben bestehen.
               Nach einer Kontolöschung sind sämtliche personenbezogenen Daten innerhalb von
               30 Tagen entfernt.
             </p>
           </FaqItem>
           <FaqItem question="Was kostet clar·log?">
             <p>
-              clar·log ist Teil des clar-Abos (einzeln oder im Bundle mit clar·markt,
-              clar·heim und clar·tag, jeweils mit Familien-Sharing für bis zu 5 Personen).
+              Bis 31. Januar 2027 sind alle clar-Apps kostenlos. Danach ist clar·log Teil
+              des clar-Abos: einzeln oder zusammen mit clar·markt, clar·heim und clar·tag,
+              jeweils für die ganze Familie (bis 5 Personen). Auf dem iPhone läuft das Abo
+              über Apple.
               Aktuelle Preise und Abo-Verwaltung findest du auf{" "}
               <a
                 href="https://home.lautini.ch"

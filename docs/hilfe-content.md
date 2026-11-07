@@ -12,11 +12,11 @@ clar·log ist ein digitales Tagebuch für Familien, die eine ärztlich begleitet
 
 **1. Beobachtungsperiode anlegen** — Du startest eine Periode mit Medikament und Dosierung (z. B. «Concerta 36 mg ab 1. August»). Ändert sich die Dosis, beginnt eine neue Periode. So bleibt vergleichbar, was unter welcher Einstellung passiert ist.
 
-**2. Täglich kurz erfassen** — Dreimal täglich (Morgen, Mittag, Abend) beantwortest du einen kurzen Fragebogen: Medikament eingenommen? Energie, Stimmung, Fokus, Ablenkbarkeit, Impulsivität — dazu morgens der Schlaf (Dauer, Einschlafzeit, Erholung) und abends Appetit, Rebound und Notizen. Die Fragen sind altersgerecht formuliert; für Kinder und Jugendliche gibt es angepasste Versionen mit einfacher Sprache und Emoji-Skalen.
+**2. Täglich kurz erfassen** — Dreimal täglich (Morgen, Mittag, Abend) beantwortest du einen kurzen Fragebogen: Medikament eingenommen? Energie, Stimmung, Fokus, Ablenkbarkeit, Impulsivität — dazu morgens der Schlaf (Dauer, Einschlafzeit, Erholung) und abends Appetit, Rebound und Notizen. Die Fragen sind altersgerecht formuliert; für Kinder und Jugendliche gibt es angepasste Versionen in einfacher Sprache. Jede Frage hat vier kurze Antworten zum Antippen.
 
 **3. Verlauf ansehen** — Die Wochenansicht zeigt Durchschnitte (Fokus, Stimmung, Schlaf, Rebound) und einen Tagesverlauf über alle erfassten Werte. So erkennt ihr Muster: Wirkt das Medikament nachmittags noch? Leidet der Schlaf? Gibt es einen Rebound am Abend?
 
-**4. Mit dem Arzt teilen** — Vor dem Termin erstellst du ein Arzt-Dossier: einen Link, der 90 Tage gültig ist und dem Behandlungsteam eine navigierbare Verlaufsansicht zeigt. Kein Konto nötig, kein Ausdruck — nur der Link.
+**4. Mit dem Arzt teilen** — Vor dem Termin erstellst du ein Arzt-Dossier: einen Link, der 90 Tage gültig ist. Damit blättert die Ärztin oder der Arzt Woche für Woche durch euren Verlauf. Kein Konto nötig, kein Ausdruck — nur der Link.
 
 ## Häufige Fragen
 
@@ -30,15 +30,21 @@ Beim Anlegen der Periode wählst du «Eltern erfassen für Kind». Du beantworte
 
 ### Mein Teenager will selbst ausfüllen — geht das?
 
-Ja. Für Jugendliche (ab 12, mit deiner Zustimmung als erziehungsberechtigte Person) erstellst du im Konto-Tab eine Einladung. Dein Kind erhält einen persönlichen Link und füllt die komplette Tagesabfrage selbst aus — ohne eigenes Konto und ohne Zugriff auf deine anderen Daten. Der Link bleibt für die gesamte Beobachtungsperiode gültig: täglich einfach denselben Link öffnen. Die Einträge fliessen in denselben Verlauf und in die Arzt-Auswertung.
+Ja. Für Jugendliche (ab 12, mit deiner Zustimmung als erziehungsberechtigte Person) erstellst du unter «Konto» → «Jugendliche/r einladen» einen Link. Dein Kind füllt damit die komplette Tagesabfrage selbst aus — ohne eigenes Konto und ohne Zugriff auf deine anderen Daten. Der Link ist 30 Tage gültig; danach erstellst du einen neuen. Die Einträge fliessen in denselben Verlauf und in die Arzt-Auswertung.
 
-### Was sehen eingeladene Beobachter, z. B. die Lehrperson?
+### Wie gibt der andere Elternteil Rückmeldung?
 
-Beobachter erhalten einen persönlichen Link ohne eigenes Konto — für die tägliche Rückmeldung wird immer derselbe Link verwendet. Aus Sicherheitsgründen ist er jeweils 7 Tage gültig; danach verlängerst du ihn in der App und teilst ihn erneut. Sie sehen nur, was du explizit freigibst, und können strukturierte Rückmeldungen geben (z. B. zum Verhalten in der Schule). Diese Rückmeldungen erscheinen im Verlauf und ergänzen das Bild für den Arzttermin. Du kannst jeden Link jederzeit widerrufen.
+Unter «Konto» → «Beobachter» erstellst du einen Link für den Partner, die Partnerin oder das zweite Elternteil. Damit füllt diese Person täglich ein kurzes Formular aus: Stimmung, Mitarbeit, Umgang mit Gefühlen, Hausaufgaben, Zubettgehen und ob am Abend ein Rebound auffiel. Kein Konto nötig. Der Link ist 30 Tage gültig. Die Rückmeldungen erscheinen in deinem Verlauf und im Arzt-Dossier.
+
+### Wie gibt die Lehrperson Rückmeldung?
+
+Unter «Konto» → «Lehrperson» erstellst du einen Link und gibst ihn der Lehrperson weiter. Sie füllt damit einmal pro Woche einen kurzen Wochenbericht aus: Vormittag, Nachmittag, Umgang mit anderen Kindern, Organisation und ein Gesamteindruck. Kein Konto nötig. Der Link ist 7 Tage gültig; für die nächste Woche erstellst du einen neuen.
+
+Beobachter und Lehrpersonen sehen nur ihr eigenes Formular, nicht deine Einträge. Du kannst jeden Link jederzeit löschen.
 
 ### Was sieht die Ärztin / der Arzt genau?
 
-Die Dossier-Ansicht mit Wochendurchschnitten, Tagesverlauf (Heatmap), Schlafbalken und Medikamenten-Einnahme über den gewählten Zeitraum — zusammengeführt aus allen Quellen: deine Einträge, die deines Kindes und die Rückmeldungen von Beobachtern. Der Link ist 90 Tage gültig und jederzeit widerrufbar.
+Eine Übersicht pro Woche: Durchschnittswerte, einen Tagesverlauf mit farbigen Feldern (grün = gut, gelb = mittel, rot = schwierig), die Schlafdauer und wann welches Medikament genommen wurde. Darin zusammengeführt: deine Einträge, die deines Kindes und die Rückmeldungen von Beobachtern und Lehrpersonen. Der Link ist 90 Tage gültig und jederzeit widerrufbar.
 
 ### Muss ich wirklich dreimal täglich erfassen?
 
@@ -46,19 +52,19 @@ Nein. Jeder Eintrag hilft, aber auch lückenhafte Daten zeigen Muster. Erfasse, 
 
 ### Sind die Gesundheitsdaten meiner Familie sicher?
 
-Ja, das nehmen wir ernst: Die Daten liegen verschlüsselt in einem EU-Rechenzentrum (Frankfurt), jede Nutzerin sieht nur die eigenen Daten (Row-Level Security), alle Verbindungen sind TLS-verschlüsselt. clar·log verwendet keine Tracking-Cookies, kein Analytics und keine Werbung, und deine Daten werden weder verkauft noch für KI-Training verwendet. Details in der [Datenschutzerklärung](https://blog.lautini.ch/datenschutz).
+Ja, das nehmen wir ernst: Die Daten liegen verschlüsselt auf Servern in Frankfurt. Niemand ausser dir sieht deine Einträge – ausser den Personen, denen du selbst einen Link gibst. Die Übertragung ist immer verschlüsselt. clar·log verwendet keine Tracking-Cookies, kein Analytics und keine Werbung, und deine Daten werden weder verkauft noch für KI-Training verwendet. Details in der [Datenschutzerklärung](https://blog.lautini.ch/datenschutz).
 
 ### Warum fragt die App nach einer Einwilligung?
 
-Die Einträge sind gesundheitsbezogene Daten und damit besonders geschützt (DSG/DSGVO). Deshalb holen wir vor der ersten Nutzung deine ausdrückliche Einwilligung ein. Du kannst sie jederzeit widerrufen — per E-Mail oder indem du deine Daten löschst.
+Die Einträge sind gesundheitsbezogene Daten und damit besonders geschützt (Schweizer Datenschutzgesetz, revDSG). Deshalb holen wir vor der ersten Nutzung deine ausdrückliche Einwilligung ein. Du kannst sie jederzeit widerrufen — per E-Mail oder indem du deine Daten löschst.
 
 ### Wie lösche ich meine Daten?
 
-In den Einstellungen unter «Gefahrenzone» → «Alle meine Daten löschen». Die Löschung ist unwiderruflich und betrifft alle clar·log-Daten deines Kontos. Nach einer Kontolöschung sind sämtliche personenbezogenen Daten innerhalb von 30 Tagen entfernt.
+Unter «Konto» ganz unten bei «Gefahrenzone» → «Alle clar·log-Daten endgültig löschen». Die Löschung ist sofort und unwiderruflich und betrifft alle clar·log-Daten. Dein clar-Konto und die anderen Apps bleiben bestehen. Nach einer Kontolöschung sind sämtliche personenbezogenen Daten innerhalb von 30 Tagen entfernt.
 
 ### Was kostet clar·log?
 
-clar·log ist Teil des clar-Abos (einzeln oder im Bundle mit clar·markt, clar·heim und clar·tag, jeweils mit Familien-Sharing für bis zu 5 Personen). Aktuelle Preise und Abo-Verwaltung findest du auf [home.lautini.ch](https://home.lautini.ch).
+Bis 31. Januar 2027 sind alle clar-Apps kostenlos. Danach ist clar·log Teil des clar-Abos: einzeln oder zusammen mit clar·markt, clar·heim und clar·tag, jeweils für die ganze Familie (bis 5 Personen). Auf dem iPhone läuft das Abo über Apple. Aktuelle Preise und Abo-Verwaltung findest du auf [home.lautini.ch](https://home.lautini.ch).
 
 ### Die App ersetzt also den Arzt nicht?
 
