@@ -76,6 +76,11 @@ export function AuthScreen({ onLogin }: { onLogin: () => void }) {
           >
             {busy ? "Wird angemeldet…" : "Anmelden"}
           </button>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            <a href="https://home.lautini.ch/#anmelden" className="font-medium text-primary underline-offset-4 hover:underline">Passwort vergessen?</a>
+            {" · "}
+            <a href="https://home.lautini.ch/" className="font-medium text-primary underline-offset-4 hover:underline">Noch kein Konto?</a>
+          </p>
         </section>
       </div>
     </div>
