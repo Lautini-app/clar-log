@@ -576,6 +576,11 @@ function normalizeSlot(slot?: Partial<DailySlotLog>): DailySlotLog {
     status: slot?.status ?? "pending",
     medicationTaken: slot?.medicationTaken,
     medicationTime: slot?.medicationTime,
+    // medsTaken/medsDose: welches Medikament in diesem Zeitfenster genommen
+    // wurde und in welcher Dosis. Fehlten hier, wurden sie beim Speichern
+    // verworfen – die Einnahme erschien nie im Verlauf und im Arzt-Dossier.
+    medsTaken: slot?.medsTaken,
+    medsDose: slot?.medsDose,
     answers: slot?.answers ?? {},
     note: slot?.note,
   };
