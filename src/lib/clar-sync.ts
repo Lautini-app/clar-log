@@ -17,7 +17,10 @@ export async function loadFromSupabase(userId: string): Promise<RemoteStore> {
     supabase.from("tracker_settings").select("data").eq("user_id", userId).maybeSingle(),
   ]);
 
-  if (!periodsRes.error && !dailyLogsRes.error) {
+  // Nur wenn daily_logs wirklich Zeilen hat. Geschrieben wird immer in tracker_logs;
+  // leere daily_logs/observation_periods dürfen den Fallback nicht aushebeln,
+  // sonst erscheint der Verlauf auf neuen Geräten leer.
+  if (!periodsRes.error && !dailyLogsRes.error && (dailyLogsRes.data?.length ?? 0) > 0) {
     const periods = ((periodsRes.data ?? []) as Array<Record<string, unknown>>)
       .map((row) => ((row.data as ObservationPeriod | undefined) ?? row) as ObservationPeriod)
       .filter((period) => typeof period?.id === "string");
